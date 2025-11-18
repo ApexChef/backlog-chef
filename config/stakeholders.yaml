@@ -1,0 +1,12 @@
+stakeholders:
+  - id: "po-001"
+    name: "Sarah van der Berg"
+    role: "ProductOwner"
+    email: "sarah@company.nl"
+    working_days: [Mon, Tue, Wed, Thu, Fri]
+  
+  - id: "dev-001"
+    name: "Lisa"
+    role: "Developer"
+    email: "lisa@company.nl"
+    working_days: [Mon, Tue, Wed, Thu]

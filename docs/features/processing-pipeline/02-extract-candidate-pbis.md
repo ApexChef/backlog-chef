@@ -1,0 +1,138 @@
+# STEP 2: Extract Candidate PBIs
+
+**Input:**
+```yaml
+transcript: [full transcript from above]
+event_type: "refinement"
+prompt_template: "refinement_extraction"
+```
+
+**Process:**
+```yaml
+llm_prompt: |
+  You are analyzing a backlog refinement meeting transcript.
+  Extract all potential Product Backlog Items discussed.
+  
+  For each PBI provide:
+  - Title (concise, user-facing)
+  - Description (what problem it solves)
+  - Acceptance Criteria (specific, testable conditions)
+  - Mentioned technical constraints
+  - Dependencies mentioned
+  - Scope boundaries (what's in, what's out)
+  
+  Transcript:
+  [transcript]
+```
+
+**Output:**
+```yaml
+candidates:
+  - id: "PBI-001"
+    title: "Customer Order Tracking Portal"
+    description: |
+      Enable customers to self-service check their order status without 
+      contacting support. Customers (Contacts in Salesforce) can log into 
+      a portal to view their current and historical product orders.
+    
+    acceptance_criteria:
+      - "Customers can log into the portal using their email/credentials"
+      - "Dashboard shows overview of customer's orders"
+      - "List displays order details: number, date, status, items"
+      - "Customers can view orders from the last 12 months"
+      - "Order statuses are displayed in customer-friendly language"
+      - "Customers can cancel orders that are not yet shipped"
+    
+    technical_notes:
+      - "Use Salesforce Experience Cloud"
+      - "Need to implement caching for performance"
+      - "API call limits need consideration"
+      - "Permission model differs for B2B vs B2C"
+    
+    scope:
+      in_scope:
+        - "Product orders only"
+        - "View and cancel functionality"
+        - "Last 12 months of orders"
+      out_of_scope:
+        - "Service appointments (phase 2)"
+        - "Real-time shipment tracking integration"
+        - "Delivery address modification"
+    
+    dependencies:
+      - "Experience Cloud licenses must be available"
+      - "Account type access rules need definition"
+      - "GDPR compliance for B2B order visibility"
+    
+    mentioned_by: ["Sarah (PO)", "Lisa (Dev)", "Mark (BA)"]
+
+  - id: "PBI-002"
+    title: "Shipment Tracking Integration"
+    description: |
+      Integrate with shipping providers (DHL, PostNL) to show real-time 
+      tracking information for shipped orders.
+    
+    acceptance_criteria:
+      - "Shipped orders display tracking number"
+      - "Link to carrier tracking page"
+      - "Estimated delivery date shown"
+    
+    technical_notes:
+      - "Requires DHL/PostNL API integration"
+      - "No existing integration available"
+    
+    scope:
+      in_scope:
+        - "Display tracking information"
+      out_of_scope:
+        - "Included in v1 (explicitly moved to phase 2)"
+    
+    mentioned_by: ["Lisa (Dev)", "Sarah (PO)"]
+    phase: "phase_2"
+
+  - id: "PBI-003"
+    title: "Order Delivery Address Modification"
+    description: |
+      Allow customers to change the delivery address for orders that 
+      haven't been shipped yet.
+    
+    acceptance_criteria:
+      - "Customers can edit delivery address before shipping"
+      - "System validates if modification is still possible"
+      - "Recalculates shipping costs if address changes"
+    
+    technical_notes:
+      - "Complex: requires order update flow"
+      - "Need shipping cost recalculation logic"
+      - "Validation rules for timing"
+    
+    scope:
+      in_scope:
+        - "Address modification"
+        - "Cost recalculation"
+      out_of_scope:
+        - "Deferred to separate story"
+    
+    mentioned_by: ["Sarah (PO)", "Lisa (Dev)"]
+    status: "deferred"
+
+  - id: "PBI-004"
+    title: "Customer-Friendly Order Status Labels"
+    description: |
+      Replace technical order statuses with customer-friendly labels 
+      in the portal.
+    
+    acceptance_criteria:
+      - "Define mapping: technical status -> customer label"
+      - "All portal pages use friendly labels"
+      - "Maintain technical statuses in backend"
+    
+    technical_notes:
+      - "UX copy task"
+      - "Configuration/translation table needed"
+    
+    current_statuses: ["New", "Processing", "Shipped", "Delivered", "Cancelled"]
+    
+    mentioned_by: ["Sarah (PO)", "Tom (SM)"]
+    type: "enabling_story"
+```

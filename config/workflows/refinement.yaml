@@ -1,0 +1,8 @@
+event: refinement
+pipeline:
+  steps:
+    - extract_candidates
+    - score_confidence
+    - identify_questions
+    - route_questions
+    - output
