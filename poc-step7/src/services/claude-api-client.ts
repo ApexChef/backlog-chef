@@ -97,22 +97,52 @@ export class ClaudeAPIClient {
   parseJSONResponse<T>(content: string, operation: string): T {
     // Helper to fix common JSON issues in LLM responses
     const fixJSON = (jsonStr: string): string => {
-      // Replace literal newlines in string values with escaped newlines
-      // This handles cases where the LLM includes actual newlines in strings
-      let fixed = jsonStr;
+      // Simple but effective: fix literal control characters in the JSON
+      // We'll iterate character by character within string contexts
+      let result = '';
+      let inString = false;
+      let escaped = false;
 
-      // Fix unescaped newlines within quoted strings
-      // Match strings and replace unescaped control chars
-      fixed = fixed.replace(/"((?:[^"\\]|\\.)*)"/g, (_match, stringContent) => {
-        // Only fix if not already escaped
-        const fixedContent = stringContent
-          .replace(/(?<!\\)\n/g, '\\n')
-          .replace(/(?<!\\)\r/g, '\\r')
-          .replace(/(?<!\\)\t/g, '\\t');
-        return `"${fixedContent}"`;
-      });
+      for (let i = 0; i < jsonStr.length; i++) {
+        const char = jsonStr[i];
 
-      return fixed;
+        // Track string context
+        if (char === '"' && !escaped) {
+          inString = !inString;
+          result += char;
+          continue;
+        }
+
+        // Track escape sequences
+        if (char === '\\' && !escaped) {
+          escaped = true;
+          result += char;
+          continue;
+        }
+
+        // If we're in a string and encounter literal control characters, escape them
+        if (inString && !escaped) {
+          if (char === '\n') {
+            result += '\\n';
+          } else if (char === '\r') {
+            result += '\\r';
+          } else if (char === '\t') {
+            result += '\\t';
+          } else if (char === '\b') {
+            result += '\\b';
+          } else if (char === '\f') {
+            result += '\\f';
+          } else {
+            result += char;
+          }
+        } else {
+          result += char;
+        }
+
+        escaped = false;
+      }
+
+      return result;
     };
 
     try {
