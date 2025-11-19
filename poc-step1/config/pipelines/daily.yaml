@@ -1,0 +1,37 @@
+pipelineName: daily_pipeline
+version: 1.0.0
+steps:
+  - name: Event Detection
+    handler: eventDetection
+    input:
+      - transcript
+      - summary
+    output:
+      - eventType
+      - confidence
+  - name: Extract Per-Person Updates
+    handler: extractUpdates
+    input:
+      - transcript
+    output:
+      - updates
+  - name: Identify Blockers
+    handler: identifyBlockers
+    input:
+      - updates
+    output:
+      - blockers
+  - name: Detect Dependencies
+    handler: detectDependencies
+    input:
+      - updates
+    output:
+      - dependencies
+  - name: Output
+    handler: generateOutput
+    input:
+      - updates
+      - blockers
+      - dependencies
+    output:
+      - finalOutput

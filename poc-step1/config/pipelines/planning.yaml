@@ -1,0 +1,51 @@
+pipelineName: planning_pipeline
+version: 1.0.0
+steps:
+  - name: Event Detection
+    handler: eventDetection
+    input:
+      - transcript
+      - summary
+    output:
+      - eventType
+      - confidence
+  - name: Extract Sprint Goals
+    handler: extractGoals
+    input:
+      - transcript
+    output:
+      - sprintGoals
+  - name: Extract Capacity & Velocity
+    handler: extractCapacity
+    input:
+      - transcript
+    output:
+      - capacity
+      - velocity
+  - name: Extract Commitments
+    handler: extractCommitments
+    input:
+      - transcript
+    output:
+      - commitments
+  - name: Identify Risks
+    handler: identifyRisks
+    input:
+      - commitments
+      - capacity
+    output:
+      - risks
+  - name: Generate Sprint Plan
+    handler: generatePlan
+    input:
+      - sprintGoals
+      - commitments
+      - risks
+    output:
+      - sprintPlan
+  - name: Output
+    handler: generateOutput
+    input:
+      - sprintPlan
+    output:
+      - finalOutput

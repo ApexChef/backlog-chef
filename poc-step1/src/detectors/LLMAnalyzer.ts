@@ -44,7 +44,10 @@ export class LLMAnalyzer {
         ]
       });
 
-      const llmResponse = this.parseResponse(response.content[0].type === 'text' ? response.content[0].text : '');
+      const responseText = response.content[0].type === 'text' ? response.content[0].text : '';
+      this.logger.debug(`Full LLM response: ${responseText}`);
+
+      const llmResponse = this.parseResponse(responseText);
       const processingTimeMs = Date.now() - startTime;
 
       this.logger.info(`LLM analysis completed: ${llmResponse.eventType} with confidence ${llmResponse.confidence.toFixed(2)} in ${processingTimeMs}ms`);
@@ -132,7 +135,41 @@ Provide your classification:`;
         throw new Error('No JSON found in response');
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      // Use a more robust JSON extraction that handles newlines in strings
+      // Try multiple parsing strategies
+      let parsed: any;
+
+      // Strategy 1: Try parsing as-is
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch (e1) {
+        // Strategy 2: Clean control characters
+        try {
+          const cleanedJson = jsonMatch[0]
+            .replace(/[\x00-\x1F\x7F-\x9F]/g, (match) => {
+              if (match === '\n' || match === '\r' || match === '\t' || match === ' ') {
+                return ' '; // Replace with space
+              }
+              return ''; // Remove other control chars
+            });
+          parsed = JSON.parse(cleanedJson);
+        } catch (e2) {
+          // Strategy 3: Extract just the values using regex
+          const eventTypeMatch = jsonMatch[0].match(/"eventType"\s*:\s*"([^"]+)"/);
+          const confidenceMatch = jsonMatch[0].match(/"confidence"\s*:\s*([\d.]+)/);
+          const reasoningMatch = jsonMatch[0].match(/"reasoning"\s*:\s*"([^"]*(?:"[^"]*)*?)"/s);
+
+          if (eventTypeMatch && confidenceMatch) {
+            parsed = {
+              eventType: eventTypeMatch[1],
+              confidence: parseFloat(confidenceMatch[1]),
+              reasoning: reasoningMatch ? reasoningMatch[1].replace(/\s+/g, ' ').trim() : 'No reasoning provided'
+            };
+          } else {
+            throw new Error('Could not extract values from response');
+          }
+        }
+      }
 
       // Validate and normalize event type
       const eventType = this.normalizeEventType(parsed.eventType);

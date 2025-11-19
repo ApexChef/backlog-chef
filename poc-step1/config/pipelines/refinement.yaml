@@ -1,0 +1,54 @@
+pipelineName: refinement_pipeline
+version: 1.0.0
+steps:
+  - name: Event Detection
+    handler: eventDetection
+    input:
+      - transcript
+      - summary
+    output:
+      - eventType
+      - confidence
+  - name: Extract Candidate PBIs
+    handler: extractPBIs
+    input:
+      - transcript
+    output:
+      - candidates
+  - name: Score Confidence
+    handler: scoreConfidence
+    input:
+      - candidates
+    output:
+      - scoredCandidates
+  - name: Enrich with Context
+    handler: enrichContext
+    input:
+      - scoredCandidates
+      - transcript
+    output:
+      - enrichedCandidates
+  - name: Check Risks & Conflicts
+    handler: checkRisks
+    input:
+      - enrichedCandidates
+    output:
+      - validatedCandidates
+  - name: Generate Questions & Proposals
+    handler: generateProposals
+    input:
+      - validatedCandidates
+    output:
+      - proposals
+  - name: Run Readiness Checker
+    handler: checkReadiness
+    input:
+      - proposals
+    output:
+      - readyItems
+  - name: Final Output
+    handler: generateOutput
+    input:
+      - readyItems
+    output:
+      - finalOutput

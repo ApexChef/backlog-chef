@@ -1,0 +1,43 @@
+pipelineName: retrospective_pipeline
+version: 1.0.0
+steps:
+  - name: Event Detection
+    handler: eventDetection
+    input:
+      - transcript
+      - summary
+    output:
+      - eventType
+      - confidence
+  - name: Extract What Went Well
+    handler: extractPositives
+    input:
+      - transcript
+    output:
+      - positives
+  - name: Extract What Didn't Work
+    handler: extractNegatives
+    input:
+      - transcript
+    output:
+      - negatives
+  - name: Extract Action Items
+    handler: extractActions
+    input:
+      - transcript
+    output:
+      - actionItems
+  - name: Categorize & Prioritize
+    handler: categorize
+    input:
+      - positives
+      - negatives
+      - actionItems
+    output:
+      - categorized
+  - name: Output
+    handler: generateOutput
+    input:
+      - categorized
+    output:
+      - finalOutput
