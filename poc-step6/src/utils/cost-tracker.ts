@@ -135,12 +135,93 @@ export class CostTracker {
 
     console.log(summary);
 
-    logger.info('API cost summary generated', {
+    // Log detailed cost breakdown to log file
+    logger.info('API cost summary', {
       model: this.model,
       api_calls: cost.api_calls,
-      total_tokens: cost.total_tokens,
-      total_cost_usd: cost.total_cost_usd,
+      token_usage: {
+        input_tokens: cost.total_input_tokens,
+        output_tokens: cost.total_output_tokens,
+        total_tokens: cost.total_tokens,
+      },
+      costs_usd: {
+        input_cost: parseFloat(cost.input_cost_usd.toFixed(4)),
+        output_cost: parseFloat(cost.output_cost_usd.toFixed(4)),
+        total_cost: parseFloat(cost.total_cost_usd.toFixed(4)),
+      },
+      averages: {
+        tokens_per_call: Math.round(cost.total_tokens / cost.api_calls),
+        cost_per_call: parseFloat((cost.total_cost_usd / cost.api_calls).toFixed(4)),
+      },
     });
+  }
+
+  /**
+   * Save cost breakdown to a CSV file for historical tracking
+   */
+  async saveCostToFile(outputDir: string, runId?: string): Promise<void> {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const cost = this.getCostBreakdown();
+    const timestamp = new Date().toISOString();
+    const id = runId || timestamp;
+
+    // Create costs directory if it doesn't exist
+    const costsDir = path.join(outputDir, 'costs');
+    await fs.mkdir(costsDir, { recursive: true });
+
+    // Define CSV file path
+    const csvFile = path.join(costsDir, 'cost-history.csv');
+
+    // Check if file exists to determine if we need headers
+    let fileExists = false;
+    try {
+      await fs.access(csvFile);
+      fileExists = true;
+    } catch {
+      fileExists = false;
+    }
+
+    // Prepare CSV row
+    const row = [
+      timestamp,
+      id,
+      this.model,
+      cost.api_calls,
+      cost.total_input_tokens,
+      cost.total_output_tokens,
+      cost.total_tokens,
+      cost.input_cost_usd.toFixed(6),
+      cost.output_cost_usd.toFixed(6),
+      cost.total_cost_usd.toFixed(6),
+    ].join(',');
+
+    // Prepare CSV content
+    let csvContent = '';
+    if (!fileExists) {
+      // Add header if file doesn't exist
+      const header = [
+        'timestamp',
+        'run_id',
+        'model',
+        'api_calls',
+        'input_tokens',
+        'output_tokens',
+        'total_tokens',
+        'input_cost_usd',
+        'output_cost_usd',
+        'total_cost_usd',
+      ].join(',');
+      csvContent = header + '\n' + row + '\n';
+    } else {
+      csvContent = row + '\n';
+    }
+
+    // Append to file
+    await fs.appendFile(csvFile, csvContent, 'utf-8');
+
+    logger.info(`Cost data saved to ${csvFile}`);
   }
 
   /**

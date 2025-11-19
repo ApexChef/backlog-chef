@@ -100,8 +100,15 @@ class QuestionProposalOrchestrator {
       // Print summary
       this.printSummary(output);
 
-      // Print cost summary
-      this.claudeClient.getCostTracker().logCostSummary();
+      // Print and save cost summary
+      const costTracker = this.claudeClient.getCostTracker();
+      costTracker.logCostSummary();
+
+      // Save cost history to CSV file
+      await costTracker.saveCostToFile(
+        path.dirname(appConfig.outputFile),
+        `step6-${new Date().toISOString().split('T')[0]}`
+      );
 
       logger.success('Question and proposal generation completed successfully!');
     } catch (error) {
