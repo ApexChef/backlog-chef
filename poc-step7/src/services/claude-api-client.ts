@@ -95,6 +95,26 @@ export class ClaudeAPIClient {
    * Helper method to parse JSON from Claude's response with fallback strategies
    */
   parseJSONResponse<T>(content: string, operation: string): T {
+    // Helper to fix common JSON issues in LLM responses
+    const fixJSON = (jsonStr: string): string => {
+      // Replace literal newlines in string values with escaped newlines
+      // This handles cases where the LLM includes actual newlines in strings
+      let fixed = jsonStr;
+
+      // Fix unescaped newlines within quoted strings
+      // Match strings and replace unescaped control chars
+      fixed = fixed.replace(/"((?:[^"\\]|\\.)*)"/g, (_match, stringContent) => {
+        // Only fix if not already escaped
+        const fixedContent = stringContent
+          .replace(/(?<!\\)\n/g, '\\n')
+          .replace(/(?<!\\)\r/g, '\\r')
+          .replace(/(?<!\\)\t/g, '\\t');
+        return `"${fixedContent}"`;
+      });
+
+      return fixed;
+    };
+
     try {
       // Try direct JSON parse
       return JSON.parse(content);
@@ -105,19 +125,28 @@ export class ClaudeAPIClient {
         // Strategy 2: Extract JSON from markdown code blocks
         const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
         if (jsonMatch && jsonMatch[1]) {
-          return JSON.parse(jsonMatch[1]);
+          try {
+            return JSON.parse(jsonMatch[1]);
+          } catch {
+            return JSON.parse(fixJSON(jsonMatch[1]));
+          }
         }
 
         // Strategy 3: Extract JSON between curly braces
         const jsonObjectMatch = content.match(/\{[\s\S]*\}/);
         if (jsonObjectMatch) {
-          return JSON.parse(jsonObjectMatch[0]);
+          try {
+            return JSON.parse(jsonObjectMatch[0]);
+          } catch {
+            return JSON.parse(fixJSON(jsonObjectMatch[0]));
+          }
         }
 
-        throw new Error('No valid JSON found in response');
+        // Strategy 4: Try fixing the entire content
+        return JSON.parse(fixJSON(content));
       } catch (secondError) {
         logError(`All JSON parsing strategies failed for ${operation}`, secondError as Error);
-        logDebug(`Response content: ${content}`);
+        logDebug(`Response content (first 1000 chars): ${content.substring(0, 1000)}`);
         throw new Error(`Failed to parse JSON response for ${operation}: ${(secondError as Error).message}`);
       }
     }
