@@ -1,0 +1,431 @@
+{
+  "enriched_candidates": [
+    {
+      "id": "PBI-001",
+      "title": "Customer Self-Service Order Portal",
+      "confidenceScores": {
+        "isCompletePBI": {
+          "score": 90,
+          "reasoning": "The PBI clearly articulates a specific business value of improving customer experience and reducing support workload.",
+          "evidence": [
+            "Clear target audience (B2B and B2C customers)",
+            "Defined value proposition of self-service order tracking",
+            "Specific problem statement addressing customer support inefficiencies"
+          ]
+        },
+        "hasAllRequirements": {
+          "score": 85,
+          "reasoning": "The PBI provides comprehensive technical requirements with clear integration and performance considerations.",
+          "evidence": [
+            "Specific technical approach using Salesforce Experience Cloud",
+            "Performance optimization and caching strategy mentioned",
+            "API call limit verification included",
+            "GDPR and account permission considerations noted"
+          ]
+        },
+        "isRefinementComplete": {
+          "score": 75,
+          "reasoning": "Most refinement aspects are addressed, but some dependencies require further clarification.",
+          "evidence": [
+            "Stakeholders from multiple roles have been involved",
+            "Dependencies are explicitly listed",
+            "Some stakeholder requirement confirmations are still pending"
+          ]
+        },
+        "hasAcceptanceCriteria": {
+          "score": 95,
+          "reasoning": "Acceptance criteria are specific, measurable, and cover key user interaction scenarios.",
+          "evidence": [
+            "Clear login mechanism specified",
+            "Precise order display parameters defined",
+            "Role-based permission levels outlined",
+            "Specific functionality like order cancellation included"
+          ]
+        },
+        "hasClearScope": {
+          "score": 90,
+          "reasoning": "Scope boundaries are explicitly and comprehensively defined with clear in-scope and out-of-scope items.",
+          "evidence": [
+            "Detailed in-scope features listed",
+            "Explicit out-of-scope items clearly documented",
+            "Phase 1 implementation clearly indicated"
+          ]
+        },
+        "isEstimable": {
+          "score": 80,
+          "reasoning": "The technical approach is well-understood, but some complexity remains in implementation details.",
+          "evidence": [
+            "Specific technology platform identified",
+            "Performance considerations outlined",
+            "Some technical unknowns around API and license limitations"
+          ]
+        }
+      },
+      "overall_readiness": "READY",
+      "blocking_issues": 0,
+      "warning_issues": 0,
+      "context_enrichment": {
+        "similar_work": [
+          {
+            "ref": "PBI-2023-156",
+            "title": "Partner Portal Implementation",
+            "similarity": 85,
+            "learnings": [
+              "Experience Cloud licenses were bottleneck - needed to purchase additional licenses mid-project",
+              "Performance issues with > 1000 records per user - implemented pagination and caching",
+              "Initial estimate 13 points, actual 21 points due to security requirements",
+              "Caching strategy saved 70% API calls and improved response times"
+            ],
+            "link": "https://devops.company.com/PBI-2023-156"
+          },
+          {
+            "ref": "PBI-2023-198",
+            "title": "Customer Portal SSO Integration",
+            "similarity": 65,
+            "learnings": [
+              "SAML configuration required multiple iterations with identity provider",
+              "Just-in-time provisioning simplified user management",
+              "Custom login flow for better user experience",
+              "Session timeout settings needed careful tuning"
+            ],
+            "link": "https://devops.company.com/PBI-2023-198"
+          }
+        ],
+        "past_decisions": [
+          {
+            "ref": "Meeting-2024-10-15",
+            "title": "Q4 Architecture Review",
+            "decision": "Standardize on Experience Cloud for all customer portals",
+            "rationale": "Consolidate licenses and expertise, reduce maintenance overhead",
+            "constraints": "Current license pool: 500 login-based licenses",
+            "assigned_architect": "Alex",
+            "date": "2024-10-15"
+          }
+        ],
+        "technical_docs": [],
+        "risk_flags": [
+          {
+            "type": "LICENSE_CAPACITY",
+            "severity": "HIGH",
+            "message": "Experience Cloud licenses may be limited (current pool: 500)"
+          },
+          {
+            "type": "PERFORMANCE_RISK",
+            "severity": "MEDIUM",
+            "message": "Previous similar implementations had performance challenges"
+          }
+        ],
+        "suggestions": [
+          "Create a low-fidelity wireframe of the self-service portal user flow to validate initial UX assumptions",
+          "Conduct user research with 3-5 potential customers to understand key order management requirements",
+          "Develop a technical spike to evaluate potential technology stacks for building the self-service portal"
+        ]
+      }
+    },
+    {
+      "id": "PBI-002",
+      "title": "Customer-Friendly Order Status Labels",
+      "confidenceScores": {
+        "isCompletePBI": {
+          "score": 85,
+          "reasoning": "The PBI clearly articulates a user-centric improvement with a defined business value of enhancing customer experience.",
+          "evidence": [
+            "Specific user need identified (customer-friendly terminology)",
+            "Clear value proposition of improving order status communication",
+            "Concrete objective of replacing technical labels"
+          ]
+        },
+        "hasAllRequirements": {
+          "score": 70,
+          "reasoning": "While basic requirements are outlined, some technical details and implementation specifics are missing.",
+          "evidence": [
+            "UX team consultation mentioned",
+            "No specific performance or technical implementation details provided",
+            "Limited technical approach documentation"
+          ]
+        },
+        "isRefinementComplete": {
+          "score": 65,
+          "reasoning": "The PBI requires additional team discussion and technical feasibility confirmation.",
+          "evidence": [
+            "No explicit team discussions noted",
+            "Technical feasibility not fully explored",
+            "Minimal context about current status implementation"
+          ]
+        },
+        "hasAcceptanceCriteria": {
+          "score": 80,
+          "reasoning": "Acceptance criteria provide clear, testable conditions for the improvement.",
+          "evidence": [
+            "Specific requirement to replace status labels",
+            "Clear goal of maintaining order progression communication",
+            "Emphasis on intuitive and understandable labels"
+          ]
+        },
+        "hasClearScope": {
+          "score": 90,
+          "reasoning": "Scope boundaries are explicitly and cleanly defined with clear in-scope and out-of-scope items.",
+          "evidence": [
+            "Explicit in-scope item: Renaming existing order statuses",
+            "Clear out-of-scope item: Not changing underlying status logic",
+            "No ambiguity in project boundaries"
+          ]
+        },
+        "isEstimable": {
+          "score": 75,
+          "reasoning": "The work seems relatively straightforward, but some technical complexity remains undefined.",
+          "evidence": [
+            "Relatively simple UX improvement",
+            "Requires UX team consultation",
+            "No complex technical transformations mentioned"
+          ]
+        }
+      },
+      "overall_readiness": "MOSTLY_READY",
+      "blocking_issues": 0,
+      "warning_issues": 0,
+      "context_enrichment": {
+        "similar_work": [
+          {
+            "ref": "PBI-2023-234",
+            "title": "Customer Order History Dashboard",
+            "similarity": 65,
+            "learnings": [
+              "Complex permission model required custom sharing rules",
+              "Performance optimization needed for large data volumes",
+              "Export functionality required scheduled batch job",
+              "Users requested real-time updates - implemented push topics"
+            ],
+            "link": "https://devops.company.com/PBI-2023-234"
+          },
+          {
+            "ref": "PBI-2024-112",
+            "title": "Order Status Workflow Automation",
+            "similarity": 65,
+            "learnings": [
+              "Platform events provided reliable event-driven architecture",
+              "Error handling and retry logic was critical",
+              "Status mapping between systems required business rules engine",
+              "Monitoring and alerting essential for production"
+            ],
+            "link": "https://devops.company.com/PBI-2024-112"
+          }
+        ],
+        "past_decisions": [
+          {
+            "ref": "Meeting-2024-06-25",
+            "title": "License Optimization Workshop",
+            "decision": "Implement license monitoring dashboard",
+            "rationale": "Proactive management of license allocation",
+            "date": "2024-06-25"
+          }
+        ],
+        "technical_docs": [
+          {
+            "ref": "CONF-Status-Picklist",
+            "title": "Order Status Picklist Values",
+            "relevant_sections": [
+              "Mapping to customer-friendly labels defined in Custom Labels. Example: Awaiting_Payment -> \"Waiting for your payment\""
+            ],
+            "note": "More statuses exist than discussed in meeting!",
+            "link": "https://confluence.company.com/CONF-Status-Picklist"
+          }
+        ],
+        "risk_flags": [
+          {
+            "type": "PERFORMANCE_RISK",
+            "severity": "MEDIUM",
+            "message": "Previous similar implementations had performance challenges"
+          }
+        ],
+        "suggestions": [
+          "Create a mapping of internal order statuses to customer-friendly labels that are clear and intuitive",
+          "Design a consistent terminology guide for order status language across all customer touchpoints",
+          "Develop a user-friendly status flow diagram to validate label progression and clarity"
+        ]
+      }
+    },
+    {
+      "id": "PBI-003",
+      "title": "B2B Account Permission Model",
+      "confidenceScores": {
+        "isCompletePBI": {
+          "score": 75,
+          "reasoning": "The PBI has a clear business value and user need around B2B account permissions, but lacks some specificity.",
+          "evidence": [
+            "Defines specific user roles (purchasing managers, regular users)",
+            "Addresses a clear business problem of access control",
+            "Missing explicit business value statement"
+          ]
+        },
+        "hasAllRequirements": {
+          "score": 70,
+          "reasoning": "Technical requirements are partially defined, but some key details are missing.",
+          "evidence": [
+            "Mentions Salesforce integration point",
+            "Includes GDPR compliance requirement",
+            "Lacks specific performance or security implementation details",
+            "No explicit authentication mechanism specified"
+          ]
+        },
+        "isRefinementComplete": {
+          "score": 60,
+          "reasoning": "The PBI requires additional team discussion and clarification of technical approach.",
+          "evidence": [
+            "Dependency on legal team for GDPR verification exists",
+            "Role-based permission logic needs more detailed definition",
+            "No evidence of team technical discussion",
+            "Integration details with Salesforce are high-level"
+          ]
+        },
+        "hasAcceptanceCriteria": {
+          "score": 80,
+          "reasoning": "Acceptance criteria provide clear, testable conditions for the permission model.",
+          "evidence": [
+            "Specific role-based viewing permissions defined",
+            "GDPR compliance requirement included",
+            "Clear differentiation between user roles",
+            "Criteria cover primary user scenarios"
+          ]
+        },
+        "hasClearScope": {
+          "score": 50,
+          "reasoning": "Scope definition is minimal, with no explicit in-scope or out-of-scope items documented.",
+          "evidence": [
+            "No in-scope items specified",
+            "No out-of-scope items listed",
+            "No phase or iteration boundaries defined",
+            "Lacks detailed scope boundaries"
+          ]
+        },
+        "isEstimable": {
+          "score": 65,
+          "reasoning": "The technical approach is partially understood, but some complexity remains uncertain.",
+          "evidence": [
+            "Salesforce integration point identified",
+            "Role-based access control concept defined",
+            "Lacks detailed technical implementation approach",
+            "Complexity of GDPR compliance not fully explored"
+          ]
+        }
+      },
+      "overall_readiness": "NOT_READY",
+      "blocking_issues": 0,
+      "warning_issues": 1,
+      "context_enrichment": {
+        "similar_work": [
+          {
+            "ref": "PBI-2024-045",
+            "title": "B2B User Permission Framework",
+            "similarity": 85,
+            "learnings": [
+              "GDPR compliance added complexity to permission model",
+              "Required custom permission sets for each role",
+              "Account-based sharing rules were more complex than expected",
+              "Legal review added 2 weeks to timeline"
+            ],
+            "link": "https://devops.company.com/PBI-2024-045"
+          },
+          {
+            "ref": "PBI-2023-156",
+            "title": "Partner Portal Implementation",
+            "similarity": 75,
+            "learnings": [
+              "Experience Cloud licenses were bottleneck - needed to purchase additional licenses mid-project",
+              "Performance issues with > 1000 records per user - implemented pagination and caching",
+              "Initial estimate 13 points, actual 21 points due to security requirements",
+              "Caching strategy saved 70% API calls and improved response times"
+            ],
+            "link": "https://devops.company.com/PBI-2023-156"
+          },
+          {
+            "ref": "PBI-2023-198",
+            "title": "Customer Portal SSO Integration",
+            "similarity": 65,
+            "learnings": [
+              "SAML configuration required multiple iterations with identity provider",
+              "Just-in-time provisioning simplified user management",
+              "Custom login flow for better user experience",
+              "Session timeout settings needed careful tuning"
+            ],
+            "link": "https://devops.company.com/PBI-2023-198"
+          }
+        ],
+        "past_decisions": [
+          {
+            "ref": "Meeting-2024-09-20",
+            "title": "GDPR Compliance Review",
+            "decision": "B2B users can see company data only with explicit permission model",
+            "rationale": "Legal requirement for data isolation and GDPR compliance",
+            "assigned_architect": "Maria (Security)",
+            "date": "2024-09-20"
+          },
+          {
+            "ref": "Meeting-2024-09-20",
+            "title": "GDPR Compliance Review",
+            "decision": "Implement audit trail for all data access",
+            "rationale": "Compliance requirement for data processing accountability",
+            "date": "2024-09-20"
+          }
+        ],
+        "technical_docs": [
+          {
+            "ref": "CONF-Portal-Architecture",
+            "title": "Experience Cloud Architecture Guide",
+            "relevant_sections": [
+              "Recommended patterns for guest vs authenticated users. Use SAML for enterprise SSO, OAuth for social login.",
+              "Security model for external users: Use External User licenses, implement row-level security with sharing rules, use permission sets for role-based access."
+            ],
+            "note": "Architecture guide - review for implementation patterns",
+            "link": "https://confluence.company.com/CONF-Portal-Architecture"
+          },
+          {
+            "ref": "CONF-Order-Object",
+            "title": "Order Object Data Model",
+            "relevant_sections": [
+              "Sharing rules: Private to Account by default, Account team members have read access, Service agents have read/write via permission set",
+              "Record types: B2B_Order (for business customers), B2C_Order (for individual customers), Internal_Order (for internal use)",
+              "Required fields: Account, Order Date, Status. Business rules: Cannot cancel if status is Delivered, B2B orders require PO number"
+            ],
+            "link": "https://confluence.company.com/CONF-Order-Object"
+          },
+          {
+            "ref": "CONF-GDPR-Guidelines",
+            "title": "GDPR Compliance Guidelines",
+            "relevant_sections": [
+              "B2B users can see company data only with explicit permission model. Implement account-based visibility, not user-based."
+            ],
+            "link": "https://confluence.company.com/CONF-GDPR-Guidelines"
+          }
+        ],
+        "risk_flags": [
+          {
+            "type": "SECURITY_COMPLEXITY",
+            "severity": "MEDIUM",
+            "message": "Permission models for B2B typically require extensive testing"
+          },
+          {
+            "type": "PERFORMANCE_RISK",
+            "severity": "MEDIUM",
+            "message": "Previous similar implementations had performance challenges"
+          }
+        ],
+        "suggestions": [
+          "Design a role-based access control (RBAC) matrix mapping account types to specific permission levels",
+          "Implement granular permission settings with configurable access tiers for different B2B user roles",
+          "Create a flexible permission inheritance model that allows parent account settings to cascade to child/sub-accounts"
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "enriched_at": "2025-11-19T06:44:58.672Z",
+    "total_enriched": 3,
+    "model_used": "claude-3-5-haiku-20241022",
+    "enrichment_sources": [
+      "mock_devops",
+      "mock_confluence",
+      "mock_meetings"
+    ]
+  }
+}
