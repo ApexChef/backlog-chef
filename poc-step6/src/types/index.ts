@@ -108,6 +108,13 @@ export interface OutputMetadata {
   stakeholders_identified: string[];
   model_used: string;
   generation_duration_ms: number;
+  api_usage?: {
+    total_api_calls: number;
+    total_input_tokens: number;
+    total_output_tokens: number;
+    total_tokens: number;
+    estimated_cost_usd: number;
+  };
 }
 
 // Main output structure

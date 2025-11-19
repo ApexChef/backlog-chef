@@ -6,15 +6,18 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ClaudeMessage, ClaudeResponse } from '../types';
 import { appConfig } from '../config/app.config';
 import { logger } from '../utils/logger';
+import { CostTracker } from '../utils/cost-tracker';
 
 export class ClaudeAPIClient {
   private client: AxiosInstance;
   private readonly maxRetries: number;
   private readonly retryDelay: number;
+  private costTracker: CostTracker;
 
   constructor() {
     this.maxRetries = appConfig.maxRetries;
     this.retryDelay = appConfig.retryDelay;
+    this.costTracker = new CostTracker(appConfig.claudeModel);
 
     this.client = axios.create({
       baseURL: 'https://api.anthropic.com/v1',
@@ -77,11 +80,23 @@ export class ClaudeAPIClient {
 
       const content = response.data.content[0].text;
 
+      // Track token usage
+      if (response.data.usage) {
+        this.costTracker.trackUsage(response.data.usage);
+      }
+
       return {
         content,
         usage: response.data.usage
       };
     });
+  }
+
+  /**
+   * Get cost tracker instance
+   */
+  getCostTracker(): CostTracker {
+    return this.costTracker;
   }
 
   /**

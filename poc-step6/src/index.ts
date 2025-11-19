@@ -100,6 +100,9 @@ class QuestionProposalOrchestrator {
       // Print summary
       this.printSummary(output);
 
+      // Print cost summary
+      this.claudeClient.getCostTracker().logCostSummary();
+
       logger.success('Question and proposal generation completed successfully!');
     } catch (error) {
       logger.error('Failed to generate questions and proposals', error);
@@ -215,6 +218,9 @@ class QuestionProposalOrchestrator {
       });
     });
 
+    // Get cost breakdown
+    const costBreakdown = this.claudeClient.getCostTracker().getCostBreakdown();
+
     const metadata: OutputMetadata = {
       generated_at: new Date().toISOString(),
       total_pbis: pbiResults.length,
@@ -225,7 +231,14 @@ class QuestionProposalOrchestrator {
       low_questions: lowQuestions,
       stakeholders_identified: Array.from(stakeholdersSet),
       model_used: appConfig.claudeModel,
-      generation_duration_ms: Date.now() - this.startTime
+      generation_duration_ms: Date.now() - this.startTime,
+      api_usage: {
+        total_api_calls: costBreakdown.api_calls,
+        total_input_tokens: costBreakdown.total_input_tokens,
+        total_output_tokens: costBreakdown.total_output_tokens,
+        total_tokens: costBreakdown.total_tokens,
+        estimated_cost_usd: costBreakdown.total_cost_usd
+      }
     };
 
     return {
