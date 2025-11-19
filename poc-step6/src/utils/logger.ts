@@ -1,16 +1,66 @@
 /**
  * Logging Utility for POC Step 6
+ * Uses Winston for both console and file logging
  */
 
-import * as chalk from 'chalk';
+import winston from 'winston';
+import path from 'path';
 import { appConfig } from '../config/app.config';
 
+// Create logs directory path
+const logsDir = path.join(process.cwd(), 'logs');
+
+// Define log format
+const logFormat = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.errors({ stack: true }),
+  winston.format.metadata({ fillExcept: ['message', 'level', 'timestamp', 'label'] }),
+  winston.format.json()
+);
+
+// Console format with colors
+const consoleFormat = winston.format.combine(
+  winston.format.colorize(),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.printf(({ timestamp, level, message, ...metadata }) => {
+    let msg = `${timestamp} [${level}]: ${message}`;
+    if (Object.keys(metadata).length > 0) {
+      msg += ` ${JSON.stringify(metadata)}`;
+    }
+    return msg;
+  })
+);
+
+// Create Winston logger instance
+const winstonLogger = winston.createLogger({
+  level: appConfig.enableDebugLogging ? 'debug' : 'info',
+  format: logFormat,
+  transports: [
+    // Console transport
+    new winston.transports.Console({
+      format: consoleFormat,
+    }),
+    // File transport - all logs
+    new winston.transports.File({
+      filename: path.join(logsDir, 'poc-step6.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+    }),
+    // File transport - errors only
+    new winston.transports.File({
+      filename: path.join(logsDir, 'poc-step6-error.log'),
+      level: 'error',
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+    }),
+  ],
+});
+
 export enum LogLevel {
-  DEBUG = 'DEBUG',
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
-  SUCCESS = 'SUCCESS'
+  DEBUG = 'debug',
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error',
 }
 
 class Logger {
@@ -20,112 +70,85 @@ class Logger {
     this.startTime = Date.now();
   }
 
-  private formatMessage(level: LogLevel, message: string): string {
-    const timestamp = new Date().toISOString();
-    const elapsed = ((Date.now() - this.startTime) / 1000).toFixed(2);
-    return `[${timestamp}] [${elapsed}s] [${level}] ${message}`;
+  private getElapsed(): string {
+    return ((Date.now() - this.startTime) / 1000).toFixed(2);
   }
 
-  private colorize(level: LogLevel, message: string): string {
-    switch (level) {
-      case LogLevel.DEBUG:
-        return chalk.gray(message);
-      case LogLevel.INFO:
-        return chalk.blue(message);
-      case LogLevel.WARN:
-        return chalk.yellow(message);
-      case LogLevel.ERROR:
-        return chalk.red(message);
-      case LogLevel.SUCCESS:
-        return chalk.green(message);
-      default:
-        return message;
-    }
+  debug(message: string, meta?: any): void {
+    winstonLogger.debug(message, { elapsed: this.getElapsed(), ...meta });
   }
 
-  debug(message: string, data?: any): void {
-    if (appConfig.enableDebugLogging) {
-      console.log(this.colorize(LogLevel.DEBUG, this.formatMessage(LogLevel.DEBUG, message)));
-      if (data) {
-        console.log(chalk.gray(JSON.stringify(data, null, 2)));
-      }
-    }
+  info(message: string, meta?: any): void {
+    winstonLogger.info(message, { elapsed: this.getElapsed(), ...meta });
   }
 
-  info(message: string, data?: any): void {
-    console.log(this.colorize(LogLevel.INFO, this.formatMessage(LogLevel.INFO, message)));
-    if (data && appConfig.enableDebugLogging) {
-      console.log(chalk.gray(JSON.stringify(data, null, 2)));
-    }
-  }
-
-  warn(message: string, data?: any): void {
-    console.log(this.colorize(LogLevel.WARN, this.formatMessage(LogLevel.WARN, message)));
-    if (data) {
-      console.log(chalk.yellow(JSON.stringify(data, null, 2)));
-    }
+  warn(message: string, meta?: any): void {
+    winstonLogger.warn(message, { elapsed: this.getElapsed(), ...meta });
   }
 
   error(message: string, error?: any): void {
-    console.error(this.colorize(LogLevel.ERROR, this.formatMessage(LogLevel.ERROR, message)));
+    const meta: any = { elapsed: this.getElapsed() };
+
     if (error) {
       if (error instanceof Error) {
-        console.error(chalk.red(error.stack || error.message));
+        meta.error = {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+        };
       } else {
-        console.error(chalk.red(JSON.stringify(error, null, 2)));
+        meta.error = error;
       }
     }
+
+    winstonLogger.error(message, meta);
   }
 
-  success(message: string, data?: any): void {
-    console.log(this.colorize(LogLevel.SUCCESS, this.formatMessage(LogLevel.SUCCESS, message)));
-    if (data && appConfig.enableDebugLogging) {
-      console.log(chalk.green(JSON.stringify(data, null, 2)));
-    }
+  success(message: string, meta?: any): void {
+    // Success is logged as info with success flag
+    winstonLogger.info(message, { elapsed: this.getElapsed(), success: true, ...meta });
   }
 
   section(title: string): void {
     const line = '='.repeat(60);
-    console.log('\n' + chalk.cyan(line));
-    console.log(chalk.cyan.bold(`  ${title}`));
-    console.log(chalk.cyan(line) + '\n');
+    this.info(`\n${line}\n  ${title}\n${line}`);
   }
 
   subsection(title: string): void {
-    console.log('\n' + chalk.magenta(`--- ${title} ---`) + '\n');
+    this.info(`\n--- ${title} ---`);
   }
 
   progress(current: number, total: number, message: string): void {
     const percentage = Math.round((current / total) * 100);
-    const progressBar = this.createProgressBar(percentage);
-    console.log(
-      chalk.cyan(`[${progressBar}] ${percentage}% - ${message} (${current}/${total})`)
-    );
-  }
-
-  private createProgressBar(percentage: number): string {
-    const filled = Math.round(percentage / 5);
-    const empty = 20 - filled;
-    return '█'.repeat(filled) + '░'.repeat(empty);
+    this.info(`Progress: ${percentage}% - ${message}`, {
+      current,
+      total,
+      percentage,
+    });
   }
 
   table(headers: string[], rows: string[][]): void {
+    this.info('Table output', {
+      headers,
+      rows,
+    });
+
+    // Also print to console in formatted way
+    console.log('\n');
     const columnWidths = headers.map((header, index) => {
       const maxWidth = Math.max(
         header.length,
         ...rows.map(row => (row[index] || '').length)
       );
-      return Math.min(maxWidth, 40); // Cap at 40 chars
+      return Math.min(maxWidth, 40);
     });
 
-    // Print headers
     const headerRow = headers
       .map((header, index) => header.padEnd(columnWidths[index]))
       .join(' | ');
-    console.log(chalk.cyan.bold(headerRow));
-    console.log(chalk.cyan('-'.repeat(headerRow.length)));
+    console.log(headerRow);
+    console.log('-'.repeat(headerRow.length));
 
-    // Print rows
     rows.forEach(row => {
       const rowStr = row
         .map((cell, index) => {
@@ -138,13 +161,15 @@ class Logger {
         .join(' | ');
       console.log(rowStr);
     });
+    console.log('\n');
   }
 
   json(data: any, title?: string): void {
     if (title) {
-      console.log(chalk.cyan.bold(`\n${title}:`));
+      this.info(title, { json_data: data });
+    } else {
+      this.info('JSON output', { json_data: data });
     }
-    console.log(JSON.stringify(data, null, 2));
   }
 }
 

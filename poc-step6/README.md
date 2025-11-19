@@ -318,6 +318,24 @@ This will show:
 - Stakeholder routing decisions
 - Proposal generation details
 
+### Log Files
+
+All logs are stored in the `logs/` directory:
+
+- **`logs/poc-step6.log`**: All logs (info, warnings, errors)
+- **`logs/poc-step6-error.log`**: Error logs only
+
+Log files are automatically rotated when they reach 5MB (keeps last 5 files).
+
+To view logs in real-time:
+```bash
+# All logs
+tail -f logs/poc-step6.log
+
+# Errors only
+tail -f logs/poc-step6-error.log
+```
+
 ## Performance
 
 - Typical processing time: 10-15 seconds per PBI
