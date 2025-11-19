@@ -7,28 +7,24 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import {
-  AIProvider,
   AIRequest,
   AIResponse,
-  CostEstimate,
   Model,
-  Currency,
   AnthropicConfig,
   ProviderError,
   ProviderUnavailableError,
   RateLimitError,
 } from './base';
-import { convertFromUSD, getExchangeRate } from '../utils/currency-converter';
+import { BaseAIProvider, ModelPricing } from './base-provider';
 
 /**
  * Anthropic Claude provider adapter
  */
-export class AnthropicProvider implements AIProvider {
+export class AnthropicProvider extends BaseAIProvider {
   readonly name = 'anthropic';
   readonly type = 'online' as const;
 
   private client: Anthropic;
-  private config: AnthropicConfig;
 
   /**
    * Pricing per million tokens (as of January 2025)
@@ -40,16 +36,22 @@ export class AnthropicProvider implements AIProvider {
    * - Versioned with effective dates
    * - Support for regional pricing variations
    */
-  private static readonly PRICING: Record<string, { input: number; output: number }> = {
-    'claude-3-5-sonnet-20241022': { input: 3.00, output: 15.00 },
-    'claude-3-5-haiku-20241022': { input: 0.80, output: 4.00 },
-    'claude-3-opus-20240229': { input: 15.00, output: 75.00 },
-    'claude-3-sonnet-20240229': { input: 3.00, output: 15.00 },
-    'claude-3-haiku-20240307': { input: 0.25, output: 1.25 },
-  };
+  protected getPricing(): Record<string, ModelPricing> {
+    return {
+      'claude-3-5-sonnet-20241022': { input: 3.0, output: 15.0 },
+      'claude-3-5-haiku-20241022': { input: 0.8, output: 4.0 },
+      'claude-3-opus-20240229': { input: 15.0, output: 75.0 },
+      'claude-3-sonnet-20240229': { input: 3.0, output: 15.0 },
+      'claude-3-haiku-20240307': { input: 0.25, output: 1.25 },
+    };
+  }
+
+  protected getDefaultModel(): string {
+    return 'claude-3-5-haiku-20241022';
+  }
 
   constructor(config: AnthropicConfig) {
-    this.config = config;
+    super(config);
     this.client = new Anthropic({
       apiKey: config.apiKey,
       timeout: config.timeout || 60000,
@@ -59,7 +61,7 @@ export class AnthropicProvider implements AIProvider {
 
   async sendMessage(request: AIRequest): Promise<AIResponse> {
     const startTime = Date.now();
-    const model = request.model || this.config.defaultModel || 'claude-3-5-haiku-20241022';
+    const model = request.model || this.config.defaultModel || this.getDefaultModel();
 
     try {
       const response = await this.client.messages.create({
@@ -130,42 +132,6 @@ export class AnthropicProvider implements AIProvider {
     }
   }
 
-  estimateCost(request: AIRequest, currency: Currency = 'EUR'): CostEstimate {
-    const model = request.model || this.config.defaultModel || 'claude-3-5-haiku-20241022';
-
-    // Rough estimate: system + user prompt length in chars / 4 (approx tokens)
-    const estimatedInputTokens = Math.ceil(
-      (request.systemPrompt.length + request.userPrompt.length) / 4
-    );
-
-    // Estimate output tokens based on maxTokens or default
-    const estimatedOutputTokens = request.maxTokens || 2048;
-
-    const costUSD = this.calculateCost(model, estimatedInputTokens, estimatedOutputTokens);
-    const inputCostUSD = this.calculateInputCost(model, estimatedInputTokens);
-    const outputCostUSD = this.calculateOutputCost(model, estimatedOutputTokens);
-
-    const exchangeRate = getExchangeRate(currency);
-    const cost = convertFromUSD(costUSD, currency);
-    const inputCost = convertFromUSD(inputCostUSD, currency);
-    const outputCost = convertFromUSD(outputCostUSD, currency);
-
-    return {
-      costUSD,
-      cost,
-      currency,
-      exchangeRate,
-      breakdown: {
-        inputTokens: estimatedInputTokens,
-        outputTokens: estimatedOutputTokens,
-        inputCostUSD,
-        outputCostUSD,
-        inputCost,
-        outputCost,
-      },
-    };
-  }
-
   async isAvailable(): Promise<boolean> {
     try {
       // Send a minimal request to check availability
@@ -191,24 +157,24 @@ export class AnthropicProvider implements AIProvider {
         name: 'Claude 3.5 Sonnet',
         description: 'Most capable model for complex tasks',
         contextWindow: 200000,
-        costPerMillionInputTokens: 3.00,
-        costPerMillionOutputTokens: 15.00,
+        costPerMillionInputTokens: 3.0,
+        costPerMillionOutputTokens: 15.0,
       },
       {
         id: 'claude-3-5-haiku-20241022',
         name: 'Claude 3.5 Haiku',
         description: 'Fast and cost-effective model',
         contextWindow: 200000,
-        costPerMillionInputTokens: 0.80,
-        costPerMillionOutputTokens: 4.00,
+        costPerMillionInputTokens: 0.8,
+        costPerMillionOutputTokens: 4.0,
       },
       {
         id: 'claude-3-opus-20240229',
         name: 'Claude 3 Opus',
         description: 'Previous flagship model (deprecated)',
         contextWindow: 200000,
-        costPerMillionInputTokens: 15.00,
-        costPerMillionOutputTokens: 75.00,
+        costPerMillionInputTokens: 15.0,
+        costPerMillionOutputTokens: 75.0,
         deprecated: true,
       },
       {
@@ -216,8 +182,8 @@ export class AnthropicProvider implements AIProvider {
         name: 'Claude 3 Sonnet',
         description: 'Previous mid-tier model (deprecated)',
         contextWindow: 200000,
-        costPerMillionInputTokens: 3.00,
-        costPerMillionOutputTokens: 15.00,
+        costPerMillionInputTokens: 3.0,
+        costPerMillionOutputTokens: 15.0,
         deprecated: true,
       },
       {
@@ -230,33 +196,5 @@ export class AnthropicProvider implements AIProvider {
         deprecated: true,
       },
     ];
-  }
-
-  // ============================================================================
-  // PRIVATE HELPER METHODS
-  // ============================================================================
-
-  private calculateCost(model: string, inputTokens: number, outputTokens: number): number {
-    const inputCost = this.calculateInputCost(model, inputTokens);
-    const outputCost = this.calculateOutputCost(model, outputTokens);
-    return inputCost + outputCost;
-  }
-
-  private calculateInputCost(model: string, tokens: number): number {
-    const pricing = AnthropicProvider.PRICING[model];
-    if (!pricing) {
-      // Default to Haiku pricing if model unknown
-      return (tokens / 1_000_000) * 0.80;
-    }
-    return (tokens / 1_000_000) * pricing.input;
-  }
-
-  private calculateOutputCost(model: string, tokens: number): number {
-    const pricing = AnthropicProvider.PRICING[model];
-    if (!pricing) {
-      // Default to Haiku pricing if model unknown
-      return (tokens / 1_000_000) * 4.00;
-    }
-    return (tokens / 1_000_000) * pricing.output;
   }
 }

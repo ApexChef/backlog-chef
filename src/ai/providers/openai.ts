@@ -6,42 +6,43 @@
 
 import OpenAI from 'openai';
 import {
-  AIProvider,
   AIRequest,
   AIResponse,
-  CostEstimate,
   Model,
-  Currency,
   OpenAIConfig,
   ProviderError,
   ProviderUnavailableError,
   RateLimitError,
 } from './base';
-import { convertFromUSD, getExchangeRate } from '../utils/currency-converter';
+import { BaseAIProvider, ModelPricing } from './base-provider';
 
 /**
  * OpenAI GPT provider adapter
  */
-export class OpenAIProvider implements AIProvider {
+export class OpenAIProvider extends BaseAIProvider {
   readonly name = 'openai';
   readonly type = 'online' as const;
 
   private client: OpenAI;
-  private config: OpenAIConfig;
 
-  // Pricing per million tokens (as of January 2025)
-  private static readonly PRICING: Record<string, { input: number; output: number }> = {
-    'gpt-4o': { input: 2.50, output: 10.00 },
-    'gpt-4o-mini': { input: 0.15, output: 0.60 },
-    'gpt-4-turbo': { input: 10.00, output: 30.00 },
-    'gpt-4-turbo-preview': { input: 10.00, output: 30.00 },
-    'gpt-4': { input: 30.00, output: 60.00 },
-    'gpt-3.5-turbo': { input: 0.50, output: 1.50 },
-    'gpt-3.5-turbo-0125': { input: 0.50, output: 1.50 },
-  };
+  protected getPricing(): Record<string, ModelPricing> {
+    return {
+      'gpt-4o': { input: 2.5, output: 10.0 },
+      'gpt-4o-mini': { input: 0.15, output: 0.6 },
+      'gpt-4-turbo': { input: 10.0, output: 30.0 },
+      'gpt-4-turbo-preview': { input: 10.0, output: 30.0 },
+      'gpt-4': { input: 30.0, output: 60.0 },
+      'gpt-3.5-turbo': { input: 0.5, output: 1.5 },
+      'gpt-3.5-turbo-0125': { input: 0.5, output: 1.5 },
+    };
+  }
+
+  protected getDefaultModel(): string {
+    return 'gpt-4o-mini';
+  }
 
   constructor(config: OpenAIConfig) {
-    this.config = config;
+    super(config);
     this.client = new OpenAI({
       apiKey: config.apiKey,
       organization: config.organization,
@@ -52,7 +53,7 @@ export class OpenAIProvider implements AIProvider {
 
   async sendMessage(request: AIRequest): Promise<AIResponse> {
     const startTime = Date.now();
-    const model = request.model || this.config.defaultModel || 'gpt-4o-mini';
+    const model = request.model || this.config.defaultModel || this.getDefaultModel();
 
     try {
       const response = await this.client.chat.completions.create({
@@ -119,42 +120,6 @@ export class OpenAIProvider implements AIProvider {
     }
   }
 
-  estimateCost(request: AIRequest, currency: Currency = 'EUR'): CostEstimate {
-    const model = request.model || this.config.defaultModel || 'gpt-4o-mini';
-
-    // Rough estimate: system + user prompt length in chars / 4 (approx tokens)
-    const estimatedInputTokens = Math.ceil(
-      (request.systemPrompt.length + request.userPrompt.length) / 4
-    );
-
-    // Estimate output tokens based on maxTokens or default
-    const estimatedOutputTokens = request.maxTokens || 2048;
-
-    const costUSD = this.calculateCost(model, estimatedInputTokens, estimatedOutputTokens);
-    const inputCostUSD = this.calculateInputCost(model, estimatedInputTokens);
-    const outputCostUSD = this.calculateOutputCost(model, estimatedOutputTokens);
-
-    const exchangeRate = getExchangeRate(currency);
-    const cost = convertFromUSD(costUSD, currency);
-    const inputCost = convertFromUSD(inputCostUSD, currency);
-    const outputCost = convertFromUSD(outputCostUSD, currency);
-
-    return {
-      costUSD,
-      cost,
-      currency,
-      exchangeRate,
-      breakdown: {
-        inputTokens: estimatedInputTokens,
-        outputTokens: estimatedOutputTokens,
-        inputCostUSD,
-        outputCostUSD,
-        inputCost,
-        outputCost,
-      },
-    };
-  }
-
   async isAvailable(): Promise<boolean> {
     try {
       // List models to check if API is accessible
@@ -176,8 +141,8 @@ export class OpenAIProvider implements AIProvider {
         name: 'GPT-4o',
         description: 'Latest multimodal flagship model',
         contextWindow: 128000,
-        costPerMillionInputTokens: 2.50,
-        costPerMillionOutputTokens: 10.00,
+        costPerMillionInputTokens: 2.5,
+        costPerMillionOutputTokens: 10.0,
       },
       {
         id: 'gpt-4o-mini',
@@ -185,60 +150,32 @@ export class OpenAIProvider implements AIProvider {
         description: 'Fast and affordable model',
         contextWindow: 128000,
         costPerMillionInputTokens: 0.15,
-        costPerMillionOutputTokens: 0.60,
+        costPerMillionOutputTokens: 0.6,
       },
       {
         id: 'gpt-4-turbo',
         name: 'GPT-4 Turbo',
         description: 'High-capability model with large context',
         contextWindow: 128000,
-        costPerMillionInputTokens: 10.00,
-        costPerMillionOutputTokens: 30.00,
+        costPerMillionInputTokens: 10.0,
+        costPerMillionOutputTokens: 30.0,
       },
       {
         id: 'gpt-4',
         name: 'GPT-4',
         description: 'Original GPT-4 model',
         contextWindow: 8192,
-        costPerMillionInputTokens: 30.00,
-        costPerMillionOutputTokens: 60.00,
+        costPerMillionInputTokens: 30.0,
+        costPerMillionOutputTokens: 60.0,
       },
       {
         id: 'gpt-3.5-turbo',
         name: 'GPT-3.5 Turbo',
         description: 'Fast and cost-effective legacy model',
         contextWindow: 16385,
-        costPerMillionInputTokens: 0.50,
-        costPerMillionOutputTokens: 1.50,
+        costPerMillionInputTokens: 0.5,
+        costPerMillionOutputTokens: 1.5,
       },
     ];
-  }
-
-  // ============================================================================
-  // PRIVATE HELPER METHODS
-  // ============================================================================
-
-  private calculateCost(model: string, inputTokens: number, outputTokens: number): number {
-    const inputCost = this.calculateInputCost(model, inputTokens);
-    const outputCost = this.calculateOutputCost(model, outputTokens);
-    return inputCost + outputCost;
-  }
-
-  private calculateInputCost(model: string, tokens: number): number {
-    const pricing = OpenAIProvider.PRICING[model];
-    if (!pricing) {
-      // Default to GPT-4o-mini pricing if model unknown
-      return (tokens / 1_000_000) * 0.15;
-    }
-    return (tokens / 1_000_000) * pricing.input;
-  }
-
-  private calculateOutputCost(model: string, tokens: number): number {
-    const pricing = OpenAIProvider.PRICING[model];
-    if (!pricing) {
-      // Default to GPT-4o-mini pricing if model unknown
-      return (tokens / 1_000_000) * 0.60;
-    }
-    return (tokens / 1_000_000) * pricing.output;
   }
 }

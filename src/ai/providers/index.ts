@@ -7,6 +7,10 @@
 // Base types and interfaces
 export * from './base';
 
+// Base classes for inheritance
+export { BaseAIProvider, BaseLocalProvider } from './base-provider';
+export type { ModelPricing } from './base-provider';
+
 // Provider implementations
 export { AnthropicProvider } from './anthropic';
 export { OpenAIProvider } from './openai';

@@ -29,7 +29,11 @@
       "Bash(node -e 'const json = {\"\"confidence\"\": \"\"HIGH\"\",\"\"suggestion\"\": \"\"Implement a multi-tenant license management strategy using dynamic user allocation and role-based access control (RBAC). Create a tiered licensing approach with:\\n    1. Prioritized user groups with core access\\n    2. Flexible license pooling across different portal implementations\\n    3. Automated license recycling and real-time usage tracking\\n    4. Implement license checkout/checkin mechanism to maximize utilization\"\",\"\"rationale\"\": \"\"Addresses 500 license limitation by creating an intelligent allocation strategy that optimizes existing license pool and prevents over-provisioning\"\",\"\"alternatives\"\": [\"\"Purchase additional Experience Cloud licenses\"\"],\"\"risk\"\": \"\"test\"\"}; console.log(JSON.stringify(json));')",
       "Bash(git ls-tree:*)",
       "Bash(git log:*)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(for i in {1..8})",
+      "Bash(do echo -n \"Step $i: \")",
+      "Bash([ -d \"poc-step$i\" ])",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

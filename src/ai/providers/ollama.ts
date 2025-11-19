@@ -6,16 +6,14 @@
  */
 
 import {
-  AIProvider,
   AIRequest,
   AIResponse,
-  CostEstimate,
   Model,
-  Currency,
   OllamaConfig,
   ProviderError,
   ProviderUnavailableError,
 } from './base';
+import { BaseLocalProvider } from './base-provider';
 
 /**
  * Response format from Ollama's OpenAI-compatible chat completion endpoint
@@ -64,21 +62,23 @@ interface OllamaTagsResponse {
 /**
  * Ollama local provider adapter
  */
-export class OllamaProvider implements AIProvider {
+export class OllamaProvider extends BaseLocalProvider {
   readonly name = 'ollama';
-  readonly type = 'local' as const;
 
-  private config: OllamaConfig;
   private endpoint: string;
 
+  protected getDefaultModel(): string {
+    return 'llama3.2:latest';
+  }
+
   constructor(config: OllamaConfig) {
-    this.config = config;
+    super(config);
     this.endpoint = config.endpoint || 'http://localhost:11434';
   }
 
   async sendMessage(request: AIRequest): Promise<AIResponse> {
     const startTime = Date.now();
-    const model = request.model || this.config.defaultModel || 'llama3.2:latest';
+    const model = request.model || this.config.defaultModel || this.getDefaultModel();
 
     try {
       const response = await fetch(`${this.endpoint}/v1/chat/completions`, {
@@ -144,23 +144,7 @@ export class OllamaProvider implements AIProvider {
     }
   }
 
-  estimateCost(_request: AIRequest, currency: Currency = 'EUR'): CostEstimate {
-    // Local models are always free (no API costs)
-    return {
-      costUSD: 0,
-      cost: 0,
-      currency,
-      exchangeRate: 1.0,
-      breakdown: {
-        inputTokens: 0,
-        outputTokens: 0,
-        inputCostUSD: 0,
-        outputCostUSD: 0,
-        inputCost: 0,
-        outputCost: 0,
-      },
-    };
-  }
+  // estimateCost is inherited from BaseLocalProvider (always returns 0 cost)
 
   async isAvailable(): Promise<boolean> {
     try {

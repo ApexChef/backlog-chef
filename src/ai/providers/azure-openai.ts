@@ -7,41 +7,43 @@
 
 import { AzureOpenAI } from 'openai';
 import {
-  AIProvider,
   AIRequest,
   AIResponse,
-  CostEstimate,
   Model,
-  Currency,
   AzureOpenAIConfig,
   ProviderError,
   ProviderUnavailableError,
   RateLimitError,
 } from './base';
-import { convertFromUSD, getExchangeRate } from '../utils/currency-converter';
+import { BaseAIProvider, ModelPricing } from './base-provider';
 
 /**
  * Azure OpenAI provider adapter
  */
-export class AzureOpenAIProvider implements AIProvider {
+export class AzureOpenAIProvider extends BaseAIProvider {
   readonly name = 'azure-openai';
   readonly type = 'online' as const;
 
   private client: AzureOpenAI;
-  private config: AzureOpenAIConfig;
 
   // Pricing is similar to OpenAI but may vary by Azure region
   // These are approximate US East prices
-  private static readonly PRICING: Record<string, { input: number; output: number }> = {
-    'gpt-4o': { input: 2.50, output: 10.00 },
-    'gpt-4o-mini': { input: 0.15, output: 0.60 },
-    'gpt-4-turbo': { input: 10.00, output: 30.00 },
-    'gpt-4': { input: 30.00, output: 60.00 },
-    'gpt-35-turbo': { input: 0.50, output: 1.50 }, // Azure uses gpt-35-turbo instead of gpt-3.5-turbo
-  };
+  protected getPricing(): Record<string, ModelPricing> {
+    return {
+      'gpt-4o': { input: 2.5, output: 10.0 },
+      'gpt-4o-mini': { input: 0.15, output: 0.6 },
+      'gpt-4-turbo': { input: 10.0, output: 30.0 },
+      'gpt-4': { input: 30.0, output: 60.0 },
+      'gpt-35-turbo': { input: 0.5, output: 1.5 }, // Azure uses gpt-35-turbo instead of gpt-3.5-turbo
+    };
+  }
+
+  protected getDefaultModel(): string {
+    return 'gpt-4o-mini';
+  }
 
   constructor(config: AzureOpenAIConfig) {
-    this.config = config;
+    super(config);
     this.client = new AzureOpenAI({
       apiKey: config.apiKey,
       endpoint: config.endpoint,
@@ -54,7 +56,7 @@ export class AzureOpenAIProvider implements AIProvider {
   async sendMessage(request: AIRequest): Promise<AIResponse> {
     const startTime = Date.now();
     // Azure uses deployment name instead of model name
-    const deployment = this.config.deployment;
+    const deployment = (this.config as AzureOpenAIConfig).deployment;
 
     try {
       const response = await this.client.chat.completions.create({
@@ -86,7 +88,7 @@ export class AzureOpenAIProvider implements AIProvider {
       };
 
       // Use the model from request or config for pricing
-      const model = request.model || this.config.defaultModel || 'gpt-4o-mini';
+      const model = request.model || this.config.defaultModel || this.getDefaultModel();
       const cost = this.calculateCost(model, usage.inputTokens, usage.outputTokens);
 
       return {
@@ -127,47 +129,12 @@ export class AzureOpenAIProvider implements AIProvider {
     }
   }
 
-  estimateCost(request: AIRequest, currency: Currency = 'EUR'): CostEstimate {
-    const model = request.model || this.config.defaultModel || 'gpt-4o-mini';
-
-    // Rough estimate: system + user prompt length in chars / 4 (approx tokens)
-    const estimatedInputTokens = Math.ceil(
-      (request.systemPrompt.length + request.userPrompt.length) / 4
-    );
-
-    // Estimate output tokens based on maxTokens or default
-    const estimatedOutputTokens = request.maxTokens || 2048;
-
-    const costUSD = this.calculateCost(model, estimatedInputTokens, estimatedOutputTokens);
-    const inputCostUSD = this.calculateInputCost(model, estimatedInputTokens);
-    const outputCostUSD = this.calculateOutputCost(model, estimatedOutputTokens);
-
-    const exchangeRate = getExchangeRate(currency);
-    const cost = convertFromUSD(costUSD, currency);
-    const inputCost = convertFromUSD(inputCostUSD, currency);
-    const outputCost = convertFromUSD(outputCostUSD, currency);
-
-    return {
-      costUSD,
-      cost,
-      currency,
-      exchangeRate,
-      breakdown: {
-        inputTokens: estimatedInputTokens,
-        outputTokens: estimatedOutputTokens,
-        inputCostUSD,
-        outputCostUSD,
-        inputCost,
-        outputCost,
-      },
-    };
-  }
-
   async isAvailable(): Promise<boolean> {
     try {
       // Make a minimal request to check availability
+      const deployment = (this.config as AzureOpenAIConfig).deployment;
       await this.client.chat.completions.create({
-        model: this.config.deployment,
+        model: deployment,
         max_tokens: 10,
         messages: [{ role: 'user', content: 'ping' }],
       });
@@ -190,8 +157,8 @@ export class AzureOpenAIProvider implements AIProvider {
         name: 'GPT-4o (Azure)',
         description: 'Latest multimodal flagship model on Azure',
         contextWindow: 128000,
-        costPerMillionInputTokens: 2.50,
-        costPerMillionOutputTokens: 10.00,
+        costPerMillionInputTokens: 2.5,
+        costPerMillionOutputTokens: 10.0,
       },
       {
         id: 'gpt-4o-mini',
@@ -199,60 +166,32 @@ export class AzureOpenAIProvider implements AIProvider {
         description: 'Fast and affordable model on Azure',
         contextWindow: 128000,
         costPerMillionInputTokens: 0.15,
-        costPerMillionOutputTokens: 0.60,
+        costPerMillionOutputTokens: 0.6,
       },
       {
         id: 'gpt-4-turbo',
         name: 'GPT-4 Turbo (Azure)',
         description: 'High-capability model with large context',
         contextWindow: 128000,
-        costPerMillionInputTokens: 10.00,
-        costPerMillionOutputTokens: 30.00,
+        costPerMillionInputTokens: 10.0,
+        costPerMillionOutputTokens: 30.0,
       },
       {
         id: 'gpt-4',
         name: 'GPT-4 (Azure)',
         description: 'Original GPT-4 model on Azure',
         contextWindow: 8192,
-        costPerMillionInputTokens: 30.00,
-        costPerMillionOutputTokens: 60.00,
+        costPerMillionInputTokens: 30.0,
+        costPerMillionOutputTokens: 60.0,
       },
       {
         id: 'gpt-35-turbo',
         name: 'GPT-3.5 Turbo (Azure)',
         description: 'Fast and cost-effective legacy model',
         contextWindow: 16385,
-        costPerMillionInputTokens: 0.50,
-        costPerMillionOutputTokens: 1.50,
+        costPerMillionInputTokens: 0.5,
+        costPerMillionOutputTokens: 1.5,
       },
     ];
-  }
-
-  // ============================================================================
-  // PRIVATE HELPER METHODS
-  // ============================================================================
-
-  private calculateCost(model: string, inputTokens: number, outputTokens: number): number {
-    const inputCost = this.calculateInputCost(model, inputTokens);
-    const outputCost = this.calculateOutputCost(model, outputTokens);
-    return inputCost + outputCost;
-  }
-
-  private calculateInputCost(model: string, tokens: number): number {
-    const pricing = AzureOpenAIProvider.PRICING[model];
-    if (!pricing) {
-      // Default to GPT-4o-mini pricing if model unknown
-      return (tokens / 1_000_000) * 0.15;
-    }
-    return (tokens / 1_000_000) * pricing.input;
-  }
-
-  private calculateOutputCost(model: string, tokens: number): number {
-    const pricing = AzureOpenAIProvider.PRICING[model];
-    if (!pricing) {
-      // Default to GPT-4o-mini pricing if model unknown
-      return (tokens / 1_000_000) * 0.60;
-    }
-    return (tokens / 1_000_000) * pricing.output;
   }
 }
