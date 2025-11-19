@@ -1,29 +1,87 @@
 # STEP 4: Enrich with Context
 
+> **Technical Implementation**: This step uses **Model Context Protocol (MCP)** to access data from Azure DevOps, Confluence, and Fireflies. See [MCP Architecture Documentation](../../technical/mcp-architecture.md) for detailed implementation design.
+
 **Input:**
 ```yaml
 candidates: [scored PBI-001, PBI-002, PBI-003, PBI-004]
 context_sources:
-  - devops_backlog
-  - confluence_docs
-  - previous_meetings
+  - devops_backlog        # Via Azure DevOps MCP Server
+  - confluence_docs       # Via Atlassian MCP Server
+  - previous_meetings     # Via Fireflies API/MCP
 ```
 
 **Process:**
 ```yaml
 for each candidate:
+  # Step 1: Generate search queries using Claude
+  search_queries = extract_search_queries(candidate)
+
+  # Step 2: Query all sources via MCP in parallel
   search_similar_work:
-    query: semantic_similarity(candidate.description)
-    sources: [devops, confluence]
-  
+    mcp_server: azure-devops
+    tool: search_work_items
+    query: search_queries.similarity_query
+    filters:
+      workItemTypes: [User Story, Bug, Feature]
+      states: [Done, Closed]
+      dateRange: last_12_months
+
   search_past_decisions:
-    query: extract_key_concepts(candidate)
-    sources: [meeting_transcripts, confluence]
-  
+    mcp_server: atlassian
+    tool: search_content
+    query: search_queries.concept_keywords
+    filters:
+      contentTypes: [page, blogpost]
+      spaces: [TECH, ARCH, PROD]
+
   search_technical_docs:
-    query: extract_components(candidate.technical_notes)
-    sources: [confluence, sharepoint]
+    mcp_server: atlassian
+    tool: search_content
+    query: search_queries.technical_components
+    filters:
+      contentTypes: [page]
+      spaces: [TECH]
+
+  # Step 3: Aggregate, rank, and extract learnings
+  enrichment = extract_learnings(candidate, results)
 ```
+
+## Technical Architecture Overview
+
+### MCP-Based Data Access
+
+Instead of custom API integrations, this step uses **Model Context Protocol (MCP) servers**:
+
+1. **Azure DevOps MCP Server** (Microsoft Official)
+   - Access work items, pull requests, builds, test plans
+   - Local deployment (data stays in network)
+   - Status: Generally Available (GA)
+
+2. **Atlassian MCP Server** (Atlassian Official)
+   - Access Confluence pages and Jira issues
+   - Remote deployment (hosted by Atlassian on Cloudflare)
+   - OAuth 2.1 authentication
+   - Status: Public Beta
+
+3. **Fireflies MCP/API**
+   - Access meeting transcripts and summaries
+   - Custom MCP wrapper around Fireflies REST API
+
+### Key Benefits of MCP Approach
+
+- ✅ **Standardized Interface** - One protocol for all data sources
+- ✅ **Managed Authentication** - OAuth handled by MCP servers
+- ✅ **LLM-Optimized** - Data pre-formatted for AI consumption
+- ✅ **Faster Development** - No custom API clients needed
+- ✅ **Lower Maintenance** - MCP servers handle API updates
+
+See [docs/technical/mcp-architecture.md](../../technical/mcp-architecture.md) for:
+- Detailed component architecture
+- Implementation phases (4-week roadmap)
+- Error handling and resilience patterns
+- Configuration examples
+- Testing strategy
 
 **Output:**
 ```yaml

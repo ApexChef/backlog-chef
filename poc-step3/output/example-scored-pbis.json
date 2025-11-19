@@ -1,0 +1,202 @@
+{
+  "scored_candidates": [
+    {
+      "id": "PBI-001",
+      "title": "Customer Self-Service Order Portal",
+      "confidenceScores": {
+        "isCompletePBI": {
+          "score": 85,
+          "reasoning": "Clear business value with specific user needs and actionable scope defined",
+          "evidence": [
+            "Clear business value: reducing support workload",
+            "Specific user need: customers tracking orders",
+            "Actionable deliverable: self-service portal"
+          ]
+        },
+        "hasAllRequirements": {
+          "score": 45,
+          "reasoning": "Several critical technical and permission requirements remain undefined",
+          "evidence": [
+            "Experience Cloud license capacity unknown",
+            "B2B/B2C permission model not defined",
+            "GDPR requirements not verified",
+            "Performance strategy for large volumes unclear"
+          ]
+        },
+        "isRefinementComplete": {
+          "score": 40,
+          "reasoning": "Needs significant additional refinement before sprint planning",
+          "evidence": [
+            "GDPR compliance not verified with legal team",
+            "Technical feasibility of performance requirements not confirmed",
+            "Account type access permissions undefined"
+          ]
+        },
+        "hasAcceptanceCriteria": {
+          "score": 70,
+          "reasoning": "Acceptance criteria present but missing some edge cases",
+          "evidence": [
+            "6 acceptance criteria defined",
+            "Missing performance requirements",
+            "Missing error handling scenarios",
+            "B2B vs B2C behavior differences not specified"
+          ]
+        },
+        "hasClearScope": {
+          "score": 80,
+          "reasoning": "Scope boundaries are well documented with clear inclusions and exclusions",
+          "evidence": [
+            "In-scope items clearly listed (4 items)",
+            "Out-of-scope items explicitly defined (4 items)",
+            "Phase boundaries mentioned (12-month limit)"
+          ]
+        },
+        "isEstimable": {
+          "score": 35,
+          "reasoning": "Too many unknowns prevent accurate estimation",
+          "evidence": [
+            "License availability unknown",
+            "Permission model complexity undefined",
+            "Performance requirements unclear",
+            "API call limits not verified"
+          ]
+        }
+      },
+      "overall_readiness": "NOT_READY",
+      "blocking_issues": 3,
+      "warning_issues": 1
+    },
+    {
+      "id": "PBI-002",
+      "title": "Customer-Friendly Order Status Labels",
+      "confidenceScores": {
+        "isCompletePBI": {
+          "score": 90,
+          "reasoning": "Clear, focused improvement with obvious business value",
+          "evidence": [
+            "Specific improvement identified: user-friendly labels",
+            "Clear purpose: better customer communication",
+            "Simple, actionable change"
+          ]
+        },
+        "hasAllRequirements": {
+          "score": 70,
+          "reasoning": "Most requirements clear, needs UX input on label design",
+          "evidence": [
+            "Current status labels known",
+            "Change scope understood",
+            "UX consultation needed for final labels"
+          ]
+        },
+        "isRefinementComplete": {
+          "score": 65,
+          "reasoning": "Nearly ready but requires UX team input",
+          "evidence": [
+            "Technical approach is straightforward",
+            "Needs UX team consultation",
+            "Implementation path clear"
+          ]
+        },
+        "hasAcceptanceCriteria": {
+          "score": 75,
+          "reasoning": "Good acceptance criteria for the scope of change",
+          "evidence": [
+            "3 clear criteria defined",
+            "Criteria are testable",
+            "Appropriate for configuration change"
+          ]
+        },
+        "hasClearScope": {
+          "score": 85,
+          "reasoning": "Very focused scope with clear boundaries",
+          "evidence": [
+            "Single focused change: rename labels",
+            "Clear exclusion: not changing logic",
+            "Well-defined boundaries"
+          ]
+        },
+        "isEstimable": {
+          "score": 80,
+          "reasoning": "Straightforward configuration change, easily estimable",
+          "evidence": [
+            "Simple configuration update",
+            "Known complexity level",
+            "No technical unknowns"
+          ]
+        }
+      },
+      "overall_readiness": "MOSTLY_READY",
+      "blocking_issues": 0,
+      "warning_issues": 0
+    },
+    {
+      "id": "PBI-003",
+      "title": "B2B Account Permission Model",
+      "confidenceScores": {
+        "isCompletePBI": {
+          "score": 70,
+          "reasoning": "Valid technical story but lacks some business context",
+          "evidence": [
+            "Clear technical need identified",
+            "Permission model requirement understood",
+            "Business value implicit but not stated"
+          ]
+        },
+        "hasAllRequirements": {
+          "score": 35,
+          "reasoning": "Critical requirements and compliance details missing",
+          "evidence": [
+            "GDPR compliance requirements not verified",
+            "Specific role definitions missing",
+            "Integration approach with Account hierarchy unclear",
+            "No performance requirements for permission checks"
+          ]
+        },
+        "isRefinementComplete": {
+          "score": 30,
+          "reasoning": "Needs significant refinement before implementation",
+          "evidence": [
+            "Legal team GDPR verification pending",
+            "Role-based logic not designed",
+            "No team discussion documented"
+          ]
+        },
+        "hasAcceptanceCriteria": {
+          "score": 60,
+          "reasoning": "Basic criteria present but lacks technical details",
+          "evidence": [
+            "4 acceptance criteria defined",
+            "Missing technical verification criteria",
+            "GDPR compliance criteria vague"
+          ]
+        },
+        "hasClearScope": {
+          "score": 25,
+          "reasoning": "Scope boundaries are not well defined",
+          "evidence": [
+            "In-scope items not specified",
+            "Out-of-scope items not listed",
+            "Unclear what's included vs excluded"
+          ]
+        },
+        "isEstimable": {
+          "score": 30,
+          "reasoning": "Too many unknowns for accurate estimation",
+          "evidence": [
+            "Permission logic complexity unknown",
+            "GDPR requirements not defined",
+            "Integration approach unclear"
+          ]
+        }
+      },
+      "overall_readiness": "NOT_READY",
+      "blocking_issues": 4,
+      "warning_issues": 1
+    }
+  ],
+  "metadata": {
+    "scored_at": "2024-11-18T20:30:00.000Z",
+    "total_scored": 3,
+    "model_used": "claude-3-5-haiku-20241022"
+  }
+}
