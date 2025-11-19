@@ -167,7 +167,7 @@ IMPORTANT: You must respond with valid JSON only. No explanatory text before or 
       const status = error.response?.status;
 
       // Retry on rate limits, timeouts, and server errors
-      if (status === 429 || status === 503 || status >= 500) {
+      if (status && (status === 429 || status === 503 || status >= 500)) {
         return true;
       }
 

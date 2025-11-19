@@ -7,8 +7,7 @@ import {
   Question,
   Stakeholder,
   StakeholderRegistry,
-  Priority,
-  QuestionCategory
+  Priority
 } from '../types';
 import { logger } from '../utils/logger';
 import * as fs from 'fs/promises';

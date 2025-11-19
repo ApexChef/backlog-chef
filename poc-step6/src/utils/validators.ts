@@ -2,7 +2,7 @@
  * Input Validation Utilities
  */
 
-import { RiskAnalysisInput, StakeholderRegistry, Priority, QuestionCategory } from '../types';
+import { RiskAnalysisInput, StakeholderRegistry, Priority } from '../types';
 import { logger } from './logger';
 
 export class ValidationError extends Error {

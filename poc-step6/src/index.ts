@@ -112,7 +112,7 @@ class QuestionProposalOrchestrator {
    */
   private async processPBI(
     pbi: any,
-    fullAnalysis: RiskAnalysisInput
+    _fullAnalysis: RiskAnalysisInput
   ): Promise<PBIQuestionsAndProposals> {
     // Step 1: Generate questions
     logger.info('Step 1: Identifying unanswered questions...');

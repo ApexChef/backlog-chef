@@ -162,7 +162,7 @@ export class QuestionGenerator {
    * Convert raw questions to Question objects
    */
   private convertToQuestions(rawQuestions: RawQuestion[]): Question[] {
-    return rawQuestions.map((raw, index) => ({
+    return rawQuestions.map((raw) => ({
       id: this.generateQuestionId(),
       question: raw.question,
       category: raw.category as QuestionCategory,
