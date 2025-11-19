@@ -21,12 +21,13 @@ graph TB
     CostSummary --> SaveCost[Save Cost to CSV]
     SaveCost --> End([End])
 
-    style Start fill:#90EE90
-    style End fill:#FFB6C1
-    style GenQ fill:#87CEEB
-    style RouteS fill:#87CEEB
-    style GenP fill:#87CEEB
-    style SearchDocs fill:#87CEEB
+    style Start fill:#90EE90,stroke:#2d5f2d,stroke-width:3px,color:#000
+    style End fill:#FFB6C1,stroke:#8b4560,stroke-width:3px,color:#000
+    style GenQ fill:#87CEEB,stroke:#4682b4,stroke-width:2px,color:#000
+    style RouteS fill:#87CEEB,stroke:#4682b4,stroke-width:2px,color:#000
+    style GenP fill:#87CEEB,stroke:#4682b4,stroke-width:2px,color:#000
+    style SearchDocs fill:#87CEEB,stroke:#4682b4,stroke-width:2px,color:#000
+    style ProcessLoop fill:#fff,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Detailed Component Flow
@@ -42,8 +43,8 @@ graph TB
     subgraph "Per-PBI Processing Loop"
         LoadRA --> QGen[Question Generator]
 
-        QGen -->|Claude API| IdentifyQ[Identify Unanswered<br/>Questions via AI]
-        IdentifyQ --> EnhanceQ[Enhance & Validate<br/>Questions]
+        QGen --> IdentifyQ[Identify Unanswered<br/>Questions via AI]
+        IdentifyQ --> EnhanceQ[Enhance and Validate<br/>Questions]
         EnhanceQ --> AdjustP[Adjust Priority<br/>Based on Risks]
 
         AdjustP --> SRouter[Stakeholder Router]
@@ -51,11 +52,11 @@ graph TB
         MapDomain --> AssignStake[Assign Stakeholders<br/>from Registry]
 
         AssignStake --> PGen[Proposal Generator]
-        PGen -->|Claude API| GenAnswer[Generate Proposed<br/>Answer]
-        GenAnswer --> AddAlternatives[Add Alternatives &<br/>Considerations]
+        PGen --> GenAnswer[Generate Proposed<br/>Answer]
+        GenAnswer --> AddAlternatives[Add Alternatives and<br/>Considerations]
 
         AddAlternatives --> DocSearch[Documentation Search]
-        DocSearch -->|Claude API| SimSearch[Simulate Doc Search<br/>via AI]
+        DocSearch --> SimSearch[Simulate Doc Search<br/>via AI]
         SimSearch --> AddSources[Add Supporting<br/>Sources]
 
         AddSources --> Combine[Combine into<br/>Final Question Object]
@@ -63,35 +64,35 @@ graph TB
 
     subgraph "Output Generation"
         Combine --> Aggregate[Aggregate All PBIs]
-        Aggregate --> CalcMeta[Calculate Metadata<br/>& Statistics]
+        Aggregate --> CalcMeta[Calculate Metadata<br/>and Statistics]
         CalcMeta --> AddCost[Add Cost Tracking<br/>Data]
         AddCost --> FormatJSON[Format Output JSON]
     end
 
     subgraph "Finalization"
         FormatJSON --> SaveFile[Save to<br/>questions-proposals.json]
-        SaveFile --> LogCost[Log Cost Summary<br/>to Console & Logs]
+        SaveFile --> LogCost[Log Cost Summary<br/>to Console and Logs]
         LogCost --> SaveCSV[Save Cost to<br/>cost-history.csv]
     end
 
-    style Init fill:#FFE4B5
-    style QGen fill:#B0E0E6
-    style SRouter fill:#DDA0DD
-    style PGen fill:#F0E68C
-    style DocSearch fill:#98FB98
-    style SaveFile fill:#FFB6C1
+    style Init fill:#FFE4B5,stroke:#cd9b4d,stroke-width:2px,color:#000
+    style QGen fill:#B0E0E6,stroke:#5f9ea0,stroke-width:2px,color:#000
+    style SRouter fill:#DDA0DD,stroke:#8b668b,stroke-width:2px,color:#000
+    style PGen fill:#F0E68C,stroke:#bdb76b,stroke-width:2px,color:#000
+    style DocSearch fill:#98FB98,stroke:#2e8b57,stroke-width:2px,color:#000
+    style SaveFile fill:#FFB6C1,stroke:#8b4560,stroke-width:2px,color:#000
 ```
 
 ## Service-Level Architecture
 
 ```mermaid
 graph LR
-    subgraph "Orchestrator (index.ts)"
+    subgraph "Orchestrator"
         Main[Main Execute Loop]
     end
 
     subgraph "Core Services"
-        ClaudeAPI[Claude API Client<br/>+ Cost Tracker]
+        ClaudeAPI[Claude API Client<br/>with Cost Tracker]
         QuestGen[Question Generator]
         StakeRoute[Stakeholder Router]
         PropGen[Proposal Generator]
@@ -101,7 +102,7 @@ graph LR
     subgraph "Utilities"
         Logger[Winston Logger<br/>logs/poc-step6.log]
         Validator[Input Validators]
-        CostTrack[Cost Tracker<br/>+ CSV Writer]
+        CostTrack[Cost Tracker<br/>with CSV Writer]
     end
 
     subgraph "External Resources"
@@ -138,10 +139,10 @@ graph LR
     Logger --> ErrorLog
     CostTrack --> CostCSV
 
-    style Main fill:#FFE4B5
-    style ClaudeAPI fill:#87CEEB
-    style ClaudeAI fill:#FF6B6B
-    style OutJSON fill:#90EE90
+    style Main fill:#FFE4B5,stroke:#cd9b4d,stroke-width:2px,color:#000
+    style ClaudeAPI fill:#87CEEB,stroke:#4682b4,stroke-width:2px,color:#000
+    style ClaudeAI fill:#FF6B6B,stroke:#8b0000,stroke-width:2px,color:#000
+    style OutJSON fill:#90EE90,stroke:#2d5f2d,stroke-width:2px,color:#000
 ```
 
 ## Question Generation Deep Dive
@@ -170,7 +171,7 @@ sequenceDiagram
     end
 
     QG->>QG: Convert to Question objects
-    QG-->>O: Return questions[]
+    QG-->>O: Return questions array
 
     Note over QG,AI: Typical response:<br/>5-10 questions per PBI
 ```
@@ -185,18 +186,20 @@ graph TB
     LoadReg -->|Yes| MapCat[Map Category to Domain]
     CacheReg --> MapCat
 
-    MapCat --> FindRole[Find Role(s)<br/>for Domain]
+    MapCat --> FindRole[Find Role for<br/>Domain]
     FindRole --> GetDefault[Get Default Assignee<br/>for Role]
-    GetDefault --> AddStake[Add Stakeholder(s)<br/>to Question]
+    GetDefault --> AddStake[Add Stakeholder to Question]
 
     AddStake --> CheckPriority{Priority =<br/>CRITICAL?}
     CheckPriority -->|Yes| AddEscalation[Add Escalation<br/>Stakeholders]
     CheckPriority -->|No| Done[Return Question<br/>with Stakeholders]
     AddEscalation --> Done
 
-    style Start fill:#FFE4B5
-    style Done fill:#90EE90
-    style AddStake fill:#87CEEB
+    style Start fill:#FFE4B5,stroke:#cd9b4d,stroke-width:2px,color:#000
+    style Done fill:#90EE90,stroke:#2d5f2d,stroke-width:3px,color:#000
+    style AddStake fill:#87CEEB,stroke:#4682b4,stroke-width:2px,color:#000
+    style LoadReg fill:#fff,stroke:#333,stroke-width:2px,color:#000
+    style CheckPriority fill:#fff,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Proposal Generation Flow
@@ -209,16 +212,16 @@ graph TB
     CallClaude --> Parse{JSON Parse<br/>Success?}
     Parse -->|Strategy 1| DirectParse[JSON.parse]
     DirectParse -->|Fail| ExtractBounds
-    Parse -->|Strategy 2| ExtractBounds[Extract JSON Bounds<br/>& Parse]
+    Parse -->|Strategy 2| ExtractBounds[Extract JSON Bounds<br/>and Parse]
     ExtractBounds -->|Fail| CleanChars
-    Parse -->|Strategy 3| CleanChars[Clean Control Chars<br/>& Parse]
+    Parse -->|Strategy 3| CleanChars[Clean Control Chars<br/>and Parse]
     CleanChars -->|Fail| Error[Throw Error]
 
     DirectParse -->|Success| BuildProposal
     ExtractBounds -->|Success| BuildProposal
     CleanChars -->|Success| BuildProposal
 
-    BuildProposal[Build Proposal Object] --> AddFields[Add:<br/>- confidence<br/>- suggestion<br/>- rationale<br/>- alternatives]
+    BuildProposal[Build Proposal Object] --> AddFields[Add confidence<br/>suggestion<br/>rationale<br/>alternatives]
 
     AddFields --> CheckCategory{Category?}
     CheckCategory -->|Security/Legal| AddLegal[Add Legal<br/>Considerations]
@@ -230,32 +233,35 @@ graph TB
     AddRisk --> Return
     CheckCategory -->|Other| Return
 
-    style Start fill:#FFE4B5
-    style Return fill:#90EE90
-    style Error fill:#FF6B6B
+    style Start fill:#FFE4B5,stroke:#cd9b4d,stroke-width:2px,color:#000
+    style Return fill:#90EE90,stroke:#2d5f2d,stroke-width:3px,color:#000
+    style Error fill:#FF6B6B,stroke:#8b0000,stroke-width:3px,color:#000
+    style Parse fill:#fff,stroke:#333,stroke-width:2px,color:#000
+    style CheckCategory fill:#fff,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Documentation Search Flow
 
 ```mermaid
 graph TB
-    Start[Question + Context] --> BuildQuery[Build Search Query<br/>from Question]
+    Start[Question with Context] --> BuildQuery[Build Search Query<br/>from Question]
     BuildQuery --> CallClaude[Call Claude API to<br/>Simulate Doc Search]
 
     CallClaude --> ParseResp[Parse Response]
     ParseResp --> CheckFound{Docs<br/>Found?}
 
     CheckFound -->|Yes| BuildSources[Build Sources Array]
-    BuildSources --> AddRelevance[Add Relevance Scores<br/>95%, 85%, etc.]
-    AddRelevance --> AddExcerpts[Add Doc Excerpts<br/>& Links]
+    BuildSources --> AddRelevance[Add Relevance Scores<br/>like 95%, 85%]
+    AddRelevance --> AddExcerpts[Add Doc Excerpts<br/>and Links]
 
-    CheckFound -->|No| AddNote[Add Note:<br/>'No documentation found']
+    CheckFound -->|No| AddNote[Add Note:<br/>No documentation found]
 
     AddExcerpts --> Return[Return DocumentationSearch]
     AddNote --> Return
 
-    style Start fill:#FFE4B5
-    style Return fill:#90EE90
+    style Start fill:#FFE4B5,stroke:#cd9b4d,stroke-width:2px,color:#000
+    style Return fill:#90EE90,stroke:#2d5f2d,stroke-width:3px,color:#000
+    style CheckFound fill:#fff,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Cost Tracking Flow
@@ -264,7 +270,7 @@ graph TB
 graph TB
     Start[Claude API Response] --> Extract[Extract Token Usage<br/>from Response]
     Extract --> Track[costTracker.trackUsage]
-    Track --> Update[Update Running Totals:<br/>- input_tokens<br/>- output_tokens<br/>- api_calls]
+    Track --> Update[Update Running Totals<br/>input_tokens<br/>output_tokens<br/>api_calls]
 
     Update --> Continue[Continue Processing]
 
@@ -273,17 +279,18 @@ graph TB
     MoreCalls --> Extract
 
     EndRun -->|Yes| Calculate[Calculate Cost Breakdown]
-    Calculate --> GetPricing[Get Model Pricing:<br/>Haiku: $0.80/$4.00<br/>Sonnet: $3.00/$15.00]
-    GetPricing --> Multiply[Multiply Tokens × Price]
+    Calculate --> GetPricing[Get Model Pricing<br/>Haiku or Sonnet]
+    GetPricing --> Multiply[Multiply Tokens by Price]
 
     Multiply --> Display[Display in Console]
     Display --> LogFile[Log to<br/>logs/poc-step6.log]
     LogFile --> SaveCSV[Append to<br/>cost-history.csv]
     SaveCSV --> AddMeta[Add to Output<br/>Metadata]
 
-    style Start fill:#FFE4B5
-    style AddMeta fill:#90EE90
-    style Display fill:#87CEEB
+    style Start fill:#FFE4B5,stroke:#cd9b4d,stroke-width:2px,color:#000
+    style AddMeta fill:#90EE90,stroke:#2d5f2d,stroke-width:3px,color:#000
+    style Display fill:#87CEEB,stroke:#4682b4,stroke-width:2px,color:#000
+    style EndRun fill:#fff,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Data Flow: Input to Output
@@ -297,15 +304,15 @@ graph LR
 
     subgraph "Processing"
         P1[3 PBIs]
-        P2[Question Generation<br/>~8 questions/PBI]
-        P3[Stakeholder Routing<br/>~9 unique roles]
-        P4[Proposal Generation<br/>~24 API calls]
-        P5[Doc Search<br/>~24 API calls]
+        P2[Question Generation<br/>8 questions/PBI]
+        P3[Stakeholder Routing<br/>9 unique roles]
+        P4[Proposal Generation<br/>24 API calls]
+        P5[Doc Search<br/>24 API calls]
     end
 
     subgraph "Output"
-        O1[questions-proposals.json<br/>~24 questions total]
-        O2[cost-history.csv<br/>$0.08 estimated]
+        O1[questions-proposals.json<br/>24 questions total]
+        O2[cost-history.csv<br/>0.08 USD estimated]
         O3[logs/poc-step6.log<br/>detailed execution log]
     end
 
@@ -319,10 +326,10 @@ graph LR
     P5 --> O2
     P5 --> O3
 
-    style I1 fill:#FFE4B5
-    style O1 fill:#90EE90
-    style O2 fill:#90EE90
-    style O3 fill:#90EE90
+    style I1 fill:#FFE4B5,stroke:#cd9b4d,stroke-width:2px,color:#000
+    style O1 fill:#90EE90,stroke:#2d5f2d,stroke-width:2px,color:#000
+    style O2 fill:#90EE90,stroke:#2d5f2d,stroke-width:2px,color:#000
+    style O3 fill:#90EE90,stroke:#2d5f2d,stroke-width:2px,color:#000
 ```
 
 ## Error Handling & Fallback Strategy
@@ -339,13 +346,13 @@ graph TB
     CheckType -->|Server Error 5xx| Retry
     CheckType -->|Network Error| Retry
 
-    Retry --> CheckAttempts{Attempts <<br/>Max Retries?}
+    Retry --> CheckAttempts{Attempts less than<br/>Max Retries?}
     CheckAttempts -->|Yes| Try
     CheckAttempts -->|No| Fallback{Fallback<br/>Available?}
 
     Fallback -->|Questions| GenFromRisks[Generate from<br/>Risk Data]
     Fallback -->|Proposals| BasicProposal[Generate Basic<br/>Proposal]
-    Fallback -->|Docs| NoDocsFound[Return 'Not Found']
+    Fallback -->|Docs| NoDocsFound[Return Not Found]
     Fallback -->|None| Fatal
 
     GenFromRisks --> Continue
@@ -354,25 +361,36 @@ graph TB
 
     Continue --> Next[Next Step]
 
-    style Start fill:#FFE4B5
-    style Continue fill:#90EE90
-    style Fatal fill:#FF6B6B
-    style Retry fill:#FFD700
+    style Start fill:#FFE4B5,stroke:#cd9b4d,stroke-width:2px,color:#000
+    style Continue fill:#90EE90,stroke:#2d5f2d,stroke-width:2px,color:#000
+    style Fatal fill:#FF6B6B,stroke:#8b0000,stroke-width:3px,color:#000
+    style Retry fill:#FFD700,stroke:#b8860b,stroke-width:2px,color:#000
+    style Try fill:#fff,stroke:#333,stroke-width:2px,color:#000
+    style CheckType fill:#fff,stroke:#333,stroke-width:2px,color:#000
+    style CheckAttempts fill:#fff,stroke:#333,stroke-width:2px,color:#000
+    style Fallback fill:#fff,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## Summary Statistics
 
 **Typical Run Metrics:**
-- Input: 3 PBIs from Step 5
-- Questions Generated: ~24 total (8 per PBI)
-- API Calls: ~48 total (questions + proposals + doc searches)
-- Stakeholders Identified: ~9 unique roles
-- Processing Time: ~2-3 minutes
-- Token Usage: ~50-60K total tokens
-- Estimated Cost: $0.08-0.10 USD (using Haiku model)
+- **Input:** 3 PBIs from Step 5
+- **Questions Generated:** Approximately 24 total (8 per PBI)
+- **API Calls:** Approximately 48 total (questions + proposals + doc searches)
+- **Stakeholders Identified:** Approximately 9 unique roles
+- **Processing Time:** 2-3 minutes
+- **Token Usage:** 50-60K total tokens
+- **Estimated Cost:** $0.08-0.10 USD (using Haiku model)
 
 **Output Files:**
-1. `output/questions-proposals.json` (~80KB)
+1. `output/questions-proposals.json` (approximately 80KB)
 2. `output/costs/cost-history.csv` (1 row per run)
 3. `logs/poc-step6.log` (all logs)
 4. `logs/poc-step6-error.log` (errors only)
+
+**Color Legend:**
+- 🟢 **Green:** Start/End points and successful outputs
+- 🔵 **Blue:** Core processing steps
+- 🟡 **Yellow:** Warning/Retry states
+- 🔴 **Red:** Error states
+- ⚪ **White:** Decision points
