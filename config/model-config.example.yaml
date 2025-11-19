@@ -1,0 +1,124 @@
+# Model Router Configuration
+# This file configures AI provider selection, fallback strategies, and cost limits
+
+# ============================================================================
+# DEFAULT CONFIGURATION
+# ============================================================================
+defaults:
+  provider: anthropic                    # Default AI provider
+  model: claude-3-5-haiku-20241022      # Default model
+  temperature: 0.7                       # Default temperature (0.0-1.0)
+  maxTokens: 4096                        # Default max output tokens
+  currency: EUR                          # Default currency for cost tracking
+
+# ============================================================================
+# FALLBACK STRATEGY
+# ============================================================================
+fallback:
+  enabled: true                          # Enable automatic fallback
+  strategy: cascade                      # Strategy: cascade | round-robin | cheapest-first
+
+  # Providers to try in order (for cascade strategy)
+  providers:
+    - provider: anthropic
+      model: claude-3-5-haiku-20241022
+
+    - provider: openai
+      model: gpt-4o-mini
+
+    - provider: ollama                   # Local fallback (always free)
+      model: llama3.2:latest
+
+# ============================================================================
+# PER-STEP OVERRIDES
+# ============================================================================
+# Customize model selection for specific pipeline steps
+steps:
+  # Step 1: Event Detection (simple classification)
+  detect_event_type:
+    provider: anthropic
+    model: claude-3-5-haiku-20241022
+    reason: "Fast classification task"
+
+  # Step 2: Extract Candidate PBIs (parsing and extraction)
+  extract_candidates:
+    provider: anthropic
+    model: claude-3-5-haiku-20241022
+    reason: "Efficient extraction, cost-effective"
+
+  # Step 3: Score Confidence (complex analysis)
+  score_confidence:
+    provider: anthropic
+    model: claude-3-5-sonnet-20241022
+    reason: "Complex quality analysis requires more capable model"
+
+  # Step 4: Enrich with Context (semantic search)
+  enrich_with_context:
+    provider: openai
+    model: gpt-4o
+    reason: "Good at semantic search and context retrieval"
+
+  # Step 5: Check Risks (critical analysis)
+  check_risks:
+    provider: anthropic
+    model: claude-3-5-sonnet-20241022
+    reason: "Critical step requiring deep analysis"
+
+  # Step 6: Generate Proposals (creative task)
+  generate_proposals:
+    provider: anthropic
+    model: claude-3-5-sonnet-20241022
+    reason: "Creative proposal generation with high quality"
+
+  # Step 7: Readiness Checker (checklist evaluation)
+  readiness_checker:
+    provider: anthropic
+    model: claude-3-5-haiku-20241022
+    reason: "Checklist evaluation, fast and efficient"
+
+  # Step 8: Final Output (no AI needed)
+  # (This step just formats output, no AI call)
+
+# ============================================================================
+# COST MANAGEMENT
+# ============================================================================
+cost_management:
+  daily_limit_usd: 10.00                 # Maximum spend per day
+  per_run_limit_usd: 1.00                # Maximum spend per pipeline run
+  alert_threshold_usd: 0.50              # Alert when approaching limit
+
+# ============================================================================
+# OFFLINE MODE (Optional)
+# ============================================================================
+# Uncomment to enable fully offline operation using local models
+# offline_mode:
+#   enabled: true
+#   default_provider: ollama
+#   default_model: llama3.2:latest
+
+# ============================================================================
+# CONFIGURATION NOTES
+# ============================================================================
+#
+# Model Selection Strategy:
+# - Use Haiku (fast/cheap) for simple tasks: extraction, classification
+# - Use Sonnet (powerful) for complex tasks: analysis, risk assessment
+# - Use GPT-4o for specialized tasks: semantic search, variety
+# - Use local models (Ollama) as fallback or for offline mode
+#
+# Cost Optimization:
+# - Estimated cost per PBI with this config: ~$0.02-0.05
+# - Daily limit of $10 allows ~200-500 PBIs per day
+# - Adjust maxTokens to control output length and cost
+#
+# Fallback Strategies:
+# - cascade: Try providers in order (recommended for reliability)
+# - round-robin: Distribute load evenly (for load balancing)
+# - cheapest-first: Always try cheapest option first (for cost savings)
+#
+# Provider Availability:
+# - Anthropic: Requires ANTHROPIC_API_KEY environment variable
+# - OpenAI: Requires OPENAI_API_KEY environment variable
+# - Azure OpenAI: Requires AZURE_OPENAI_API_KEY and endpoint config
+# - Google Gemini: Requires GOOGLE_API_KEY environment variable
+# - Ollama: Requires Ollama running locally (ollama serve)
