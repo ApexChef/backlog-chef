@@ -8,8 +8,8 @@ import {
   RiskAnalysisResult,
   RiskAnalysisOutput,
   Risk,
-  RiskSeverity,
   ClaudeAnalysisResponse,
+  ConflictType,
 } from '../types';
 
 const logger = createModuleLogger('RiskAnalysisOrchestrator');
@@ -43,7 +43,7 @@ export class RiskAnalysisOrchestrator {
         const batch = enrichedData.enriched_candidates.slice(i, i + batchSize);
         logger.info(`Processing batch ${Math.floor(i / batchSize) + 1} (${batch.length} PBIs)`);
 
-        const batchPromises = batch.map(pbi => this.analyzeSinglePBI(pbi));
+        const batchPromises = batch.map((pbi: EnrichedPBI) => this.analyzeSinglePBI(pbi));
         const batchResults = await Promise.allSettled(batchPromises);
 
         for (let j = 0; j < batchResults.length; j++) {
@@ -102,12 +102,22 @@ export class RiskAnalysisOrchestrator {
       // Transform and organize risks by severity
       const risksBySeverity = this.organizeRisksBySeverity(claudeAnalysis.risks);
 
+      // Transform conflicts
+      const transformedConflicts = claudeAnalysis.conflicts.map(conflict => ({
+        type: conflict.type as ConflictType,
+        description: conflict.description,
+        detail: conflict.detail,
+        resolution: conflict.resolution,
+        assigned_to: conflict.assigned_to,
+        related_items: conflict.related_items,
+      }));
+
       // Create the analysis result
       const result: RiskAnalysisResult = {
         id: pbi.id,
         title: pbi.title,
         risks: risksBySeverity,
-        conflicts: claudeAnalysis.conflicts,
+        conflicts: transformedConflicts,
         complexity_score: claudeAnalysis.complexity_analysis.score,
         recommended_split: claudeAnalysis.complexity_analysis.recommended_split,
         split_suggestion: claudeAnalysis.complexity_analysis.split_suggestion,
