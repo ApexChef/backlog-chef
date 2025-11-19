@@ -1,0 +1,202 @@
+# Step 7: Readiness Checker Configuration
+# This is the default configuration for the readiness checker step
+
+step_id: "07-readiness-checker"
+name: "Run Readiness Checker"
+description: "Evaluate PBIs against Definition of Ready and provide actionable recommendations"
+version: "1.0.0"
+
+# Subtasks define the processing steps within this pipeline stage
+# Each subtask can be enabled/disabled, reordered, or customized
+subtasks:
+
+  # Subtask 1: Evaluate Readiness Criteria
+  - name: "evaluate_readiness_criteria"
+    description: "Check each PBI against Definition of Ready criteria"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/evaluate-readiness-criteria.ts"
+    order: 1
+
+    config:
+      # Path to Definition of Ready configuration
+      definition_of_ready: "config/definition-of-ready.yaml"
+
+      # Evaluation settings
+      parallel_evaluation: true  # Evaluate multiple PBIs concurrently
+      cache_results: true        # Cache evaluation results for performance
+
+      # Criteria categories
+      criteria_groups:
+        - name: "essential"
+          required: true
+          weight: 1.0
+        - name: "recommended"
+          required: false
+          weight: 0.5
+        - name: "optional"
+          required: false
+          weight: 0.2
+
+  # Subtask 2: Categorize Gaps
+  - name: "categorize_gaps"
+    description: "Classify readiness gaps by severity (blocking, warning, suggestion)"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/categorize-gaps.ts"
+    order: 2
+
+    config:
+      # Gap severity categories
+      categories:
+        - severity: "blocking"
+          description: "Critical issues that prevent sprint commitment"
+          fails_readiness: true
+          emoji: "❌"
+          color: "red"
+
+        - severity: "warning"
+          description: "Important issues that impact quality but aren't showstoppers"
+          fails_readiness: false
+          emoji: "⚠️"
+          color: "yellow"
+
+        - severity: "suggestion"
+          description: "Nice-to-have improvements"
+          fails_readiness: false
+          emoji: "💡"
+          color: "blue"
+
+      # Categorization rules
+      rules:
+        blocking_criteria:
+          - "dependencies_resolved"
+          - "key_questions_answered"
+          - "estimable_by_team"
+          - "no_critical_risks"
+
+        warning_criteria:
+          - "small_enough_for_sprint"
+          - "design_approved"
+          - "performance_baseline"
+
+        suggestion_criteria:
+          - "has_test_strategy"
+          - "documentation_complete"
+          - "monitoring_plan"
+
+      # Automatic categorization based on confidence scores
+      score_thresholds:
+        blocking_if_score_below: 50
+        warning_if_score_below: 75
+
+  # Subtask 3: Calculate Readiness Score
+  - name: "calculate_readiness_score"
+    description: "Calculate numeric readiness score (0-100)"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/calculate-readiness-score.ts"
+    order: 3
+
+    config:
+      # Scoring algorithm: "weighted" | "binary" | "percentage"
+      scoring_algorithm: "weighted"
+
+      # Pass threshold (0-100)
+      pass_threshold: 80
+
+      # Weights for weighted scoring algorithm
+      weights:
+        has_clear_business_value: 0.15
+        has_acceptance_criteria: 0.15
+        scope_is_defined: 0.10
+        has_technical_approach: 0.10
+        estimable_by_team: 0.15
+        small_enough_for_sprint: 0.10
+        dependencies_resolved: 0.15
+        key_questions_answered: 0.10
+
+      # Score display format
+      display_format: "X/100"  # Alternative: "percentage" (85%)
+
+      # Include detailed breakdown in output
+      include_breakdown: true
+
+  # Subtask 4: Recommend Next Actions
+  - name: "recommend_next_actions"
+    description: "Generate prioritized list of actions to achieve readiness"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/recommend-next-actions.ts"
+    order: 4
+
+    config:
+      # Prioritization strategy
+      prioritization_strategy: "critical_path"  # Options: "critical_path" | "severity_first" | "quick_wins"
+
+      # Action categories
+      action_categories:
+        - category: "immediate"
+          description: "Must do before sprint commitment"
+          filter: "blocking"
+          max_actions: 10
+
+        - category: "before_sprint"
+          description: "Should complete before starting work"
+          filter: "warning"
+          max_actions: 5
+
+        - category: "nice_to_have"
+          description: "Improves quality but not required"
+          filter: "suggestion"
+          max_actions: 3
+
+      # Include additional details
+      include_owner_suggestions: true    # Suggest who should own each action
+      include_time_estimates: true       # Estimate time to complete
+      include_dependencies: true         # Show action dependencies
+
+      # Stakeholder routing
+      stakeholder_registry: "config/stakeholders.yaml"
+
+      # Time estimation
+      time_estimation:
+        enabled: true
+        method: "historical"  # Options: "historical" | "complexity_based" | "manual"
+
+      # Sprint readiness ETA
+      calculate_eta: true
+      eta_confidence_levels:
+        - "HIGH"    # All blockers have clear resolution path
+        - "MEDIUM"  # Some uncertainty in timeline
+        - "LOW"     # Significant unknowns
+
+# Output configuration
+output:
+  format: "yaml"  # Options: "yaml" | "json" | "markdown"
+
+  # Fields to include in output
+  include_fields:
+    - "pbi_id"
+    - "title"
+    - "readiness_status"
+    - "readiness_score"
+    - "definition_of_ready_checklist"
+    - "recommended_next_actions"
+    - "sprint_readiness_eta"
+    - "confidence_in_eta"
+
+  # Readiness status values
+  status_values:
+    ready: "🟢 READY"
+    not_ready: "🔴 NOT READY"
+    needs_refinement: "🟡 NEEDS REFINEMENT"
+    deferred: "⚪ DEFERRED"
+    future_phase: "🔵 FUTURE PHASE"
+
+  # Grouping and sorting
+  group_by: "readiness_status"  # Group PBIs by status
+  sort_by: "readiness_score"     # Sort within groups by score
+  sort_order: "desc"              # Descending order (highest score first)
+
+# Error handling
+error_handling:
+  on_missing_criteria: "warn"      # Options: "error" | "warn" | "ignore"
+  on_invalid_config: "error"       # Options: "error" | "warn"
+  fallback_to_partial_evaluation: true

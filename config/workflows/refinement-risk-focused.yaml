@@ -1,0 +1,158 @@
+# Refinement Meeting - Risk-Focused Analysis
+# Deep dive into risks, dependencies, and blockers
+# Use this for: Complex projects, high-risk features, architectural changes
+
+name: "Refinement Meeting - Risk-Focused Analysis"
+description: "Enhanced risk detection, dependency analysis, and blocker identification"
+version: "1.0.0"
+
+pipeline:
+  steps:
+
+    # Step 1: Event Detection
+    - step_id: "01-event-detection"
+      enabled: true
+      config_file: "config/steps/step-01-event-detection.yaml"
+
+    # Step 2: Extract Candidates
+    - step_id: "02-extract-candidates"
+      enabled: true
+      config_file: "config/steps/step-02-extract-candidates.yaml"
+
+    # Step 3: Score Confidence
+    - step_id: "03-score-confidence"
+      enabled: true
+      config_file: "config/steps/step-03-score-confidence.yaml"
+
+    # Step 4: Enrich with Context (focus on risks)
+    - step_id: "04-enrich-context"
+      enabled: true
+      config_file: "config/steps/step-04-enrich-context.yaml"
+      subtasks:
+        - name: "search_similar_pbis"
+          enabled: true
+          implementation: "src/pipeline/steps/04-enrich-context/subtasks/search-similar-pbis.ts"
+          config:
+            focus_on_failed_pbis: true  # Learn from past failures
+
+        - name: "retrieve_past_estimates"
+          enabled: true
+          implementation: "src/pipeline/steps/04-enrich-context/subtasks/retrieve-past-estimates.ts"
+          config:
+            include_overrun_analysis: true
+
+        - name: "search_technical_docs"
+          enabled: true
+          implementation: "src/pipeline/steps/04-enrich-context/subtasks/search-technical-docs.ts"
+          config:
+            focus_on_architecture: true
+            focus_on_security: true
+
+        - name: "retrieve_team_history"
+          enabled: true
+          implementation: "src/pipeline/steps/04-enrich-context/subtasks/retrieve-team-history.ts"
+          config:
+            include_retrospective_risks: true
+
+    # Step 5: Check Risks (ALL SUBTASKS ENABLED)
+    - step_id: "05-check-risks"
+      enabled: true
+      config_file: "config/steps/step-05-check-risks.yaml"
+      subtasks:
+        - name: "detect_dependencies"
+          enabled: true
+          implementation: "src/pipeline/steps/05-check-risks/subtasks/detect-dependencies.ts"
+          config:
+            check_external_dependencies: true
+            check_team_dependencies: true
+            check_technical_dependencies: true
+            check_data_dependencies: true
+
+        - name: "identify_scope_creep"
+          enabled: true
+          implementation: "src/pipeline/steps/05-check-risks/subtasks/identify-scope-creep.ts"
+          config:
+            complexity_threshold: 7.0  # Lower threshold (more sensitive)
+            warn_on_multi_domain: true
+            warn_on_architectural_change: true
+
+        - name: "check_technical_blockers"
+          enabled: true
+          implementation: "src/pipeline/steps/05-check-risks/subtasks/check-technical-blockers.ts"
+          config:
+            check_api_limits: true
+            check_platform_constraints: true
+            check_performance_risks: true
+            check_security_requirements: true
+
+        - name: "validate_resource_availability"
+          enabled: true
+          implementation: "src/pipeline/steps/05-check-risks/subtasks/validate-resource-availability.ts"
+          config:
+            check_license_capacity: true
+            check_api_limits: true
+            check_infrastructure: true
+            check_budget: true
+            check_team_capacity: true
+
+    # Step 6: Generate Questions (risk-focused)
+    - step_id: "06-generate-questions"
+      enabled: true
+      config_file: "config/steps/step-06-generate-questions.yaml"
+
+    # Step 7: Readiness Checker (with enhanced risk weighting)
+    - step_id: "07-readiness-checker"
+      enabled: true
+      config_file: "config/steps/step-07-readiness-checker.yaml"
+      subtasks:
+        - name: "evaluate_readiness_criteria"
+          enabled: true
+          implementation: "src/pipeline/steps/07-readiness-checker/subtasks/evaluate-readiness-criteria.ts"
+          config:
+            definition_of_ready: "config/definition-of-ready.yaml"
+
+        - name: "categorize_gaps"
+          enabled: true
+          implementation: "src/pipeline/steps/07-readiness-checker/subtasks/categorize-gaps.ts"
+          config:
+            # More strict categorization - err on side of caution
+            score_thresholds:
+              blocking_if_score_below: 60  # Higher threshold
+              warning_if_score_below: 80
+
+        - name: "calculate_readiness_score"
+          enabled: true
+          implementation: "src/pipeline/steps/07-readiness-checker/subtasks/calculate-readiness-score.ts"
+          config:
+            scoring_algorithm: "weighted"
+            pass_threshold: 85  # Higher threshold for risk-focused work
+            weights:
+              has_clear_business_value: 0.10
+              has_acceptance_criteria: 0.10
+              scope_is_defined: 0.15  # Higher weight
+              has_technical_approach: 0.15  # Higher weight
+              estimable_by_team: 0.10
+              small_enough_for_sprint: 0.10
+              dependencies_resolved: 0.20  # Higher weight for risks
+              key_questions_answered: 0.10
+
+        - name: "recommend_next_actions"
+          enabled: true
+          implementation: "src/pipeline/steps/07-readiness-checker/subtasks/recommend-next-actions.ts"
+          config:
+            prioritization_strategy: "risk_first"  # Risk mitigation priority
+
+    # Step 8: Full output
+    - step_id: "08-final-output"
+      enabled: true
+      config_file: "config/steps/step-08-final-output.yaml"
+
+global:
+  llm:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.2  # Lower temperature for conservative risk assessment
+    max_tokens: 8000
+
+  logging:
+    level: "debug"  # More detailed logging for risk analysis

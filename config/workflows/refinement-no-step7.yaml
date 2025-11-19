@@ -1,0 +1,47 @@
+# Refinement Workflow - Without Step 7
+# Use case: Quick meeting summary without readiness evaluation
+
+name: "Refinement Meeting - No Readiness Check"
+description: "Extract PBIs and questions but skip readiness evaluation"
+version: "1.0.0"
+
+pipeline:
+  steps:
+
+    - step_id: "01-event-detection"
+      enabled: true
+      config_file: "config/steps/step-01-event-detection.yaml"
+
+    - step_id: "02-extract-candidates"
+      enabled: true
+      config_file: "config/steps/step-02-extract-candidates.yaml"
+
+    - step_id: "03-score-confidence"
+      enabled: true
+      config_file: "config/steps/step-03-score-confidence.yaml"
+
+    - step_id: "04-enrich-context"
+      enabled: true
+      config_file: "config/steps/step-04-enrich-context.yaml"
+
+    - step_id: "05-check-risks"
+      enabled: true
+      config_file: "config/steps/step-05-check-risks.yaml"
+
+    - step_id: "06-generate-questions"
+      enabled: true
+      config_file: "config/steps/step-06-generate-questions.yaml"
+
+    # STEP 7 COMPLETELY DISABLED
+    - step_id: "07-readiness-checker"
+      enabled: false
+      reason: "Team performs manual readiness check in follow-up meeting"
+
+    - step_id: "08-final-output"
+      enabled: true
+      config_file: "config/steps/step-08-final-output.yaml"
+
+global:
+  llm:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"

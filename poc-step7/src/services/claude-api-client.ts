@@ -146,7 +146,7 @@ export class ClaudeAPIClient {
     };
 
     try {
-      // Try direct JSON parse
+      // Strategy 1: Try direct JSON parse
       return JSON.parse(content);
     } catch (firstError) {
       logWarn(`Failed to parse JSON directly for ${operation}, trying fallback strategies...`);
@@ -156,9 +156,13 @@ export class ClaudeAPIClient {
         const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
         if (jsonMatch && jsonMatch[1]) {
           try {
-            return JSON.parse(jsonMatch[1]);
+            const result = JSON.parse(jsonMatch[1]);
+            logInfo(`✓ Successfully parsed ${operation} using Strategy 2: Extract from markdown code block`);
+            return result;
           } catch {
-            return JSON.parse(fixJSON(jsonMatch[1]));
+            const result = JSON.parse(fixJSON(jsonMatch[1]));
+            logInfo(`✓ Successfully parsed ${operation} using Strategy 2b: Extract from markdown + fix control chars`);
+            return result;
           }
         }
 
@@ -166,14 +170,20 @@ export class ClaudeAPIClient {
         const jsonObjectMatch = content.match(/\{[\s\S]*\}/);
         if (jsonObjectMatch) {
           try {
-            return JSON.parse(jsonObjectMatch[0]);
+            const result = JSON.parse(jsonObjectMatch[0]);
+            logInfo(`✓ Successfully parsed ${operation} using Strategy 3: Extract JSON object`);
+            return result;
           } catch {
-            return JSON.parse(fixJSON(jsonObjectMatch[0]));
+            const result = JSON.parse(fixJSON(jsonObjectMatch[0]));
+            logInfo(`✓ Successfully parsed ${operation} using Strategy 3b: Extract JSON object + fix control chars`);
+            return result;
           }
         }
 
         // Strategy 4: Try fixing the entire content
-        return JSON.parse(fixJSON(content));
+        const result = JSON.parse(fixJSON(content));
+        logInfo(`✓ Successfully parsed ${operation} using Strategy 4: Fix control chars in entire content`);
+        return result;
       } catch (secondError) {
         logError(`All JSON parsing strategies failed for ${operation}`, secondError as Error);
         logDebug(`Response content (first 1000 chars): ${content.substring(0, 1000)}`);

@@ -1,0 +1,104 @@
+# Refinement Meeting - Minimal Pipeline
+# Fast processing with basic output only
+# Use this for: Quick meeting summaries, demo environments, testing
+
+name: "Refinement Meeting - Minimal Pipeline"
+description: "Fast processing: extract PBIs and basic questions only, skip enrichment and analysis"
+version: "1.0.0"
+
+pipeline:
+  steps:
+
+    # Step 1: Event Detection (required)
+    - step_id: "01-event-detection"
+      enabled: true
+      config_file: "config/steps/step-01-event-detection.yaml"
+      subtasks:
+        - name: "detect_meeting_type"
+          enabled: true
+          implementation: "src/pipeline/steps/01-event-detection/subtasks/detect-meeting-type.ts"
+        # Skip transcript quality validation for speed
+        - name: "validate_transcript_quality"
+          enabled: false
+
+    # Step 2: Extract Candidates (basic extraction only)
+    - step_id: "02-extract-candidates"
+      enabled: true
+      config_file: "config/steps/step-02-extract-candidates.yaml"
+      subtasks:
+        - name: "identify_pbi_discussions"
+          enabled: true
+          implementation: "src/pipeline/steps/02-extract-candidates/subtasks/identify-pbi-discussions.ts"
+        - name: "extract_business_value"
+          enabled: true
+          implementation: "src/pipeline/steps/02-extract-candidates/subtasks/extract-business-value.ts"
+        # Skip detailed extraction for speed
+        - name: "extract_acceptance_criteria"
+          enabled: false
+        - name: "identify_scope_boundaries"
+          enabled: false
+
+    # Step 3: DISABLED - No confidence scoring
+    - step_id: "03-score-confidence"
+      enabled: false
+
+    # Step 4: DISABLED - No context enrichment
+    - step_id: "04-enrich-context"
+      enabled: false
+
+    # Step 5: DISABLED - No risk checking
+    - step_id: "05-check-risks"
+      enabled: false
+
+    # Step 6: Generate Questions (basic only)
+    - step_id: "06-generate-questions"
+      enabled: true
+      config_file: "config/steps/step-06-generate-questions.yaml"
+      subtasks:
+        - name: "identify_unanswered_questions"
+          enabled: true
+          implementation: "src/pipeline/steps/06-generate-questions/subtasks/identify-unanswered-questions.ts"
+        - name: "route_to_stakeholders"
+          enabled: true
+          implementation: "src/pipeline/steps/06-generate-questions/subtasks/route-to-stakeholders.ts"
+        # Skip proposed answers and documentation search
+        - name: "classify_by_domain"
+          enabled: false
+        - name: "generate_proposed_answers"
+          enabled: false
+        - name: "search_documentation"
+          enabled: false
+
+    # Step 7: DISABLED - No readiness checking
+    - step_id: "07-readiness-checker"
+      enabled: false
+
+    # Step 8: Output (DevOps only)
+    - step_id: "08-final-output"
+      enabled: true
+      config_file: "config/steps/step-08-final-output.yaml"
+      subtasks:
+        - name: "format_for_devops"
+          enabled: true
+          implementation: "src/pipeline/steps/08-final-output/subtasks/format-for-devops.ts"
+        # Skip other output formats
+        - name: "format_for_obsidian"
+          enabled: false
+        - name: "format_for_confluence"
+          enabled: false
+        - name: "generate_summary_email"
+          enabled: false
+
+global:
+  llm:
+    provider: "anthropic"
+    model: "claude-3-5-haiku-20241022"  # Faster, cheaper model
+    temperature: 0.3
+    max_tokens: 4000
+
+  logging:
+    level: "warn"  # Less verbose logging
+
+  performance:
+    parallel_processing: false
+    cache_enabled: false
