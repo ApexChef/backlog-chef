@@ -107,27 +107,42 @@ IMPORTANT: You must respond with valid JSON only. No explanatory text before or 
       content = jsonMatch[1];
     }
 
+    // Strategy 1: Try parsing as-is
     try {
       return JSON.parse(content);
     } catch (error) {
-      logger.warn('Failed to parse JSON response, attempting to clean', { content });
+      logger.debug('Failed to parse JSON directly, attempting to extract and clean');
+    }
 
-      // Try to find JSON-like content
-      const jsonStart = content.indexOf('{');
-      const jsonEnd = content.lastIndexOf('}');
+    // Strategy 2: Extract JSON object/array bounds and try again
+    const jsonStart = content.indexOf('{') !== -1 ? content.indexOf('{') : content.indexOf('[');
+    const jsonEnd = content.lastIndexOf('}') !== -1 ? content.lastIndexOf('}') : content.lastIndexOf(']');
 
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        const jsonContent = content.substring(jsonStart, jsonEnd + 1);
-        try {
-          return JSON.parse(jsonContent);
-        } catch (secondError) {
-          logger.error('Failed to parse cleaned JSON', { jsonContent });
-          throw new Error(`Invalid JSON response from Claude: ${content}`);
-        }
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      const jsonContent = content.substring(jsonStart, jsonEnd + 1);
+
+      try {
+        return JSON.parse(jsonContent);
+      } catch (secondError) {
+        logger.debug('Failed to parse extracted JSON, attempting to clean control characters');
       }
 
-      throw new Error(`Invalid JSON response from Claude: ${content}`);
+      // Strategy 3: Clean potential control characters while preserving newlines in strings
+      try {
+        // This regex preserves newlines and tabs within strings but removes other control chars
+        const cleaned = jsonContent.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+        return JSON.parse(cleaned);
+      } catch (thirdError) {
+        logger.warn('Failed to parse JSON after all cleanup attempts', {
+          originalLength: content.length,
+          extractedLength: jsonContent.length
+        });
+        throw new Error(`Invalid JSON response from Claude after multiple parse attempts`);
+      }
     }
+
+    logger.error('Could not find valid JSON structure in response');
+    throw new Error(`Invalid JSON response from Claude: ${content.substring(0, 200)}...`);
   }
 
   /**
