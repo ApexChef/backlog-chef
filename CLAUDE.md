@@ -30,6 +30,7 @@ The system uses YAML configuration files:
 - **`config/workflows/*.yaml`** - Pipeline definitions for different event types
 - **`config/stakeholders.yaml`** - Team member registry for question routing
 - **`config/adapters/`** - Output format adapters (DevOps, Obsidian, Confluence)
+- **`config/ai-providers.yaml`** - AI provider registry and per-step defaults
 
 ### Key Design Principles
 
@@ -37,6 +38,7 @@ The system uses YAML configuration files:
 2. **Event-Driven** - Asynchronous processing supports real-time features
 3. **API-First** - Integrates with Fireflies, Azure DevOps, Confluence
 4. **Quality Built-In** - Confidence scoring prevents incomplete requirements
+5. **Provider-Agnostic** - Multi-AI platform support with per-step provider selection and automatic fallback
 
 ## Documentation Structure
 
@@ -52,7 +54,13 @@ The system uses YAML configuration files:
 
 ### Planned MVP (CLI)
 - TypeScript/Node.js
-- Anthropic Claude API for LLM processing
+- **Multi-AI Platform Support** - Provider-agnostic architecture supporting:
+  - Anthropic (Claude 3.5 Sonnet/Haiku)
+  - OpenAI (GPT-4o, GPT-o1, GPT-4o-mini)
+  - Google (Gemini 1.5 Pro, 2.0 Flash)
+  - DeepSeek (Chat, R1 Reasoner)
+  - Mistral (Large, Small)
+  - xAI (Grok Beta)
 - Fireflies API for meeting transcripts
 - Azure DevOps, Confluence APIs for integration
 - Local JSON storage
@@ -62,6 +70,43 @@ The system uses YAML configuration files:
 - Backend: Node.js, PostgreSQL, Redis
 - Real-time: WebSockets
 - Infrastructure: Vercel + Railway
+- AI Layer: Provider registry, quota management, A/B testing
+
+## AI Provider Configuration
+
+The system supports multiple AI platforms with flexible configuration:
+
+### Configuration Hierarchy
+1. **Global Defaults** - `config/ai-providers.yaml` defines system-wide preferences
+2. **Workflow Strategy** - Each workflow can specify optimization strategy (quality, cost, speed, balanced)
+3. **Step-Level Override** - Individual pipeline steps can use specific providers
+4. **Runtime Override** - CLI/API can override providers for specific runs
+
+### Provider Selection Strategies
+- **quality_optimized** - Best models regardless of cost (Claude Sonnet, GPT-o1)
+- **cost_optimized** - Most cost-effective options (DeepSeek, Gemini Flash)
+- **speed_optimized** - Fastest response times (Haiku, GPT-4o-mini, Gemini Flash)
+- **context_optimized** - Longest context windows (Gemini Pro, Claude Sonnet)
+- **balanced** - Mix based on task complexity (recommended)
+
+### Example Configuration
+```yaml
+# In config/workflows/refinement.yaml
+ai_strategy: "balanced"
+
+pipeline:
+  steps:
+    - name: extract_candidates
+      ai_provider: "anthropic:claude-3-5-sonnet-20241022"
+
+    - name: score_confidence
+      ai_provider: "deepseek:deepseek-chat"  # Cost-effective
+
+    - name: check_risks
+      ai_provider: "openai:o1"  # Advanced reasoning
+```
+
+For complete provider details, see `docs/technical/multi-ai-architecture.md`.
 
 ## Domain Concepts
 

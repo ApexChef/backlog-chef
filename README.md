@@ -11,6 +11,7 @@ An intelligent system that transforms Scrum meetings into structured, high-quali
 3. **Actionable** - Generates questions, proposals, finds similar work
 4. **Integrated** - Works with Fireflies, Jira, DevOps, Confluence
 5. **Learning System** - Gets smarter with your history
+6. **Provider-Agnostic** - Use any AI platform (Anthropic, OpenAI, Google, DeepSeek, etc.) with per-task optimization
 
 ## 📁 Project Structure
 ```
@@ -37,10 +38,17 @@ Check out [docs/proof-of-concept.md](docs/proof-of-concept.md) for a complete wa
 - **Enterprise**: Custom (on-prem, SSO)
 
 ## 🛠️ Tech Stack
-- **Language**: TypeScript
-- **LLM**: Anthropic Claude
+- **Language**: TypeScript/Node.js
+- **AI Platforms**: Multi-provider support with intelligent routing
+  - Anthropic (Claude 3.5 Sonnet/Haiku)
+  - OpenAI (GPT-4o, GPT-o1, GPT-4o-mini)
+  - Google (Gemini 1.5 Pro, 2.0 Flash)
+  - DeepSeek (Chat, R1 Reasoner)
+  - Mistral (Large/Small)
+  - xAI (Grok)
 - **Integrations**: Fireflies, Azure DevOps, Confluence, Obsidian
 - **Interface**: CLI (MVP) → Web App (V1)
+- **Architecture**: Provider-agnostic with automatic fallback and cost optimization
 
 ## 🚦 Roadmap
 - **MVP (1-3mo)**: CLI, basic extraction, DevOps output

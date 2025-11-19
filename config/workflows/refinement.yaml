@@ -1,8 +1,40 @@
 event: refinement
+
+# AI Provider Strategy (optional)
+# Options: quality_optimized, cost_optimized, speed_optimized, context_optimized, balanced
+# If not specified, uses defaults from config/ai-providers.yaml
+ai_strategy: "balanced"
+
+# Global provider override for this workflow (optional)
+# ai_provider: "anthropic:claude-3-5-sonnet-20241022"
+
 pipeline:
   steps:
-    - extract_candidates
-    - score_confidence
-    - identify_questions
-    - route_questions
-    - output
+    - name: event_detection
+      # AI provider can be overridden per step
+      # ai_provider: "google:gemini-2.0-flash-exp"
+
+    - name: extract_candidates
+      # Uses default from ai_strategy or global override
+
+    - name: score_confidence
+      # Example: Use cost-effective model for scoring
+      # ai_provider: "deepseek:deepseek-chat"
+
+    - name: enrich_context
+      # Example: Use long-context model for enrichment
+      # ai_provider: "google:gemini-1.5-pro"
+
+    - name: check_risks
+      # Example: Use advanced reasoning for risk analysis
+      # ai_provider: "openai:o1"
+
+    - name: generate_questions
+      # Uses default from ai_strategy
+
+    - name: run_readiness_checker
+      # Uses default from ai_strategy
+
+    - name: format_output
+      # Example: Use fast model for formatting
+      # ai_provider: "anthropic:claude-3-5-haiku-20241022"

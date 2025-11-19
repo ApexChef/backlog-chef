@@ -1,0 +1,207 @@
+# AI Provider Configuration
+# Configure which AI models are available and their capabilities
+
+providers:
+  # Anthropic Claude - Advanced reasoning, long context
+  anthropic:
+    name: "Anthropic Claude"
+    models:
+      - id: "claude-3-5-sonnet-20241022"
+        name: "Claude 3.5 Sonnet"
+        max_tokens: 200000
+        capabilities: ["reasoning", "long_context", "structured_output"]
+        cost_tier: "medium"
+        recommended_for: ["extract_candidates", "score_confidence", "enrich_context", "generate_questions"]
+
+      - id: "claude-3-5-haiku-20241022"
+        name: "Claude 3.5 Haiku"
+        max_tokens: 200000
+        capabilities: ["fast", "structured_output"]
+        cost_tier: "low"
+        recommended_for: ["event_detection", "format_output"]
+
+    api_config:
+      base_url: "https://api.anthropic.com/v1"
+      auth_type: "api_key"
+      required_env: ["ANTHROPIC_API_KEY"]
+
+  # OpenAI - Widely adopted, good for structured output
+  openai:
+    name: "OpenAI"
+    models:
+      - id: "gpt-4o"
+        name: "GPT-4o"
+        max_tokens: 128000
+        capabilities: ["reasoning", "vision", "structured_output"]
+        cost_tier: "medium"
+        recommended_for: ["extract_candidates", "generate_questions", "check_risks"]
+
+      - id: "gpt-4o-mini"
+        name: "GPT-4o Mini"
+        max_tokens: 128000
+        capabilities: ["fast", "structured_output"]
+        cost_tier: "low"
+        recommended_for: ["event_detection", "format_output"]
+
+      - id: "o1"
+        name: "GPT-o1"
+        max_tokens: 200000
+        capabilities: ["advanced_reasoning", "complex_tasks"]
+        cost_tier: "high"
+        recommended_for: ["enrich_context", "check_risks", "complex_analysis"]
+
+    api_config:
+      base_url: "https://api.openai.com/v1"
+      auth_type: "bearer_token"
+      required_env: ["OPENAI_API_KEY"]
+
+  # Google Gemini - Multi-modal, large context
+  google:
+    name: "Google Gemini"
+    models:
+      - id: "gemini-2.0-flash-exp"
+        name: "Gemini 2.0 Flash"
+        max_tokens: 1000000
+        capabilities: ["ultra_long_context", "multimodal", "fast"]
+        cost_tier: "low"
+        recommended_for: ["extract_candidates", "enrich_context"]
+
+      - id: "gemini-1.5-pro"
+        name: "Gemini 1.5 Pro"
+        max_tokens: 2000000
+        capabilities: ["ultra_long_context", "reasoning", "multimodal"]
+        cost_tier: "medium"
+        recommended_for: ["score_confidence", "generate_questions", "check_risks"]
+
+    api_config:
+      base_url: "https://generativelanguage.googleapis.com/v1"
+      auth_type: "api_key"
+      required_env: ["GOOGLE_API_KEY"]
+
+  # DeepSeek - Cost-effective reasoning
+  deepseek:
+    name: "DeepSeek"
+    models:
+      - id: "deepseek-chat"
+        name: "DeepSeek Chat"
+        max_tokens: 64000
+        capabilities: ["reasoning", "cost_effective"]
+        cost_tier: "very_low"
+        recommended_for: ["extract_candidates", "score_confidence"]
+
+      - id: "deepseek-reasoner"
+        name: "DeepSeek R1"
+        max_tokens: 64000
+        capabilities: ["advanced_reasoning", "cost_effective"]
+        cost_tier: "low"
+        recommended_for: ["check_risks", "enrich_context", "complex_analysis"]
+
+    api_config:
+      base_url: "https://api.deepseek.com/v1"
+      auth_type: "bearer_token"
+      required_env: ["DEEPSEEK_API_KEY"]
+
+  # Mistral - European option, privacy-focused
+  mistral:
+    name: "Mistral AI"
+    models:
+      - id: "mistral-large-latest"
+        name: "Mistral Large"
+        max_tokens: 128000
+        capabilities: ["reasoning", "structured_output"]
+        cost_tier: "medium"
+        recommended_for: ["extract_candidates", "generate_questions"]
+
+      - id: "mistral-small-latest"
+        name: "Mistral Small"
+        max_tokens: 128000
+        capabilities: ["fast", "cost_effective"]
+        cost_tier: "low"
+        recommended_for: ["event_detection", "format_output"]
+
+    api_config:
+      base_url: "https://api.mistral.ai/v1"
+      auth_type: "bearer_token"
+      required_env: ["MISTRAL_API_KEY"]
+
+  # xAI Grok - Real-time knowledge
+  xai:
+    name: "xAI Grok"
+    models:
+      - id: "grok-beta"
+        name: "Grok Beta"
+        max_tokens: 131072
+        capabilities: ["reasoning", "real_time"]
+        cost_tier: "medium"
+        recommended_for: ["extract_candidates", "enrich_context"]
+
+    api_config:
+      base_url: "https://api.x.ai/v1"
+      auth_type: "bearer_token"
+      required_env: ["XAI_API_KEY"]
+
+# Default provider strategy per pipeline step
+defaults:
+  event_detection:
+    provider: "anthropic"
+    model: "claude-3-5-haiku-20241022"
+    fallback: ["openai:gpt-4o-mini", "google:gemini-2.0-flash-exp"]
+
+  extract_candidates:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    fallback: ["openai:gpt-4o", "google:gemini-1.5-pro"]
+
+  score_confidence:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    fallback: ["openai:gpt-4o", "deepseek:deepseek-chat"]
+
+  enrich_context:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    fallback: ["google:gemini-1.5-pro", "openai:o1"]
+
+  check_risks:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    fallback: ["openai:o1", "deepseek:deepseek-reasoner"]
+
+  generate_questions:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    fallback: ["openai:gpt-4o", "mistral:mistral-large-latest"]
+
+  run_readiness_checker:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    fallback: ["openai:gpt-4o", "google:gemini-1.5-pro"]
+
+  format_output:
+    provider: "anthropic"
+    model: "claude-3-5-haiku-20241022"
+    fallback: ["openai:gpt-4o-mini", "mistral:mistral-small-latest"]
+
+# Provider selection strategies
+strategies:
+  # Use fastest available provider
+  speed_optimized:
+    priority: ["google:gemini-2.0-flash-exp", "anthropic:claude-3-5-haiku-20241022", "openai:gpt-4o-mini"]
+
+  # Use most cost-effective provider
+  cost_optimized:
+    priority: ["deepseek:deepseek-chat", "google:gemini-2.0-flash-exp", "mistral:mistral-small-latest"]
+
+  # Use best reasoning capabilities
+  quality_optimized:
+    priority: ["openai:o1", "anthropic:claude-3-5-sonnet-20241022", "deepseek:deepseek-reasoner"]
+
+  # Use providers with longest context windows
+  context_optimized:
+    priority: ["google:gemini-1.5-pro", "anthropic:claude-3-5-sonnet-20241022", "openai:gpt-4o"]
+
+# Feature flags for experimental providers
+experimental:
+  enabled: false
+  providers:
+    - "xai:grok-beta"
