@@ -1,0 +1,52 @@
+{
+  "risk_analysis": [
+    {
+      "id": "PBI-TEST-001",
+      "title": "Test PBI for Unit Testing",
+      "risks": {
+        "CRITICAL": [
+          {
+            "type": "BLOCKING_DEPENDENCY",
+            "description": "Missing API Keys",
+            "detail": "Required third-party API keys not yet provisioned",
+            "action_required": "Obtain API keys from vendor",
+            "assigned_to": "Tech Lead",
+            "confidence": 0.9,
+            "evidence": ["No API keys in vault", "Vendor contract pending"]
+          }
+        ],
+        "HIGH": [
+          {
+            "type": "TECHNICAL_COMPLEXITY",
+            "description": "Complex Integration",
+            "detail": "Multiple system integrations required",
+            "action_required": "Design integration architecture",
+            "assigned_to": "Integration Architect",
+            "confidence": 0.8,
+            "evidence": ["3 external systems", "Different data formats"]
+          }
+        ],
+        "MEDIUM": [],
+        "LOW": []
+      },
+      "conflicts": [],
+      "complexity_score": 8,
+      "recommended_split": true,
+      "split_suggestion": "Split into API integration and UI components",
+      "analysis_confidence": 0.85,
+      "analyzed_at": "2024-01-01T10:00:00Z"
+    }
+  ],
+  "metadata": {
+    "analyzed_at": "2024-01-01T10:00:00Z",
+    "total_analyzed": 1,
+    "critical_risks": 1,
+    "high_risks": 1,
+    "medium_risks": 0,
+    "low_risks": 0,
+    "total_conflicts": 0,
+    "high_complexity_items": 1,
+    "model_used": "claude-3-5-haiku-20241022",
+    "analysis_duration_ms": 5000
+  }
+}

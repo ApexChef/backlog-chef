@@ -1,0 +1,219 @@
+{
+  "risk_analysis": [
+    {
+      "id": "PBI-001",
+      "title": "Customer Self-Service Order Portal",
+      "risks": {
+        "CRITICAL": [
+          {
+            "type": "BLOCKING_DEPENDENCY",
+            "description": "License capacity insufficient",
+            "detail": "Current Experience Cloud capacity is 500 login-based licenses, but estimated need is 1200+ customers based on B2B and B2C customer base. This creates a gap of 700 licenses requiring approximately €21,000 annual investment.",
+            "action_required": "Confirm budget approval before starting development",
+            "assigned_to": "Sarah (PO)",
+            "confidence": 0.95,
+            "evidence": [
+              "Current license pool: 500 login-based licenses",
+              "Architecture decision constrains to Experience Cloud",
+              "Previous Partner Portal had license bottleneck"
+            ]
+          },
+          {
+            "type": "UNRESOLVED_DECISION",
+            "description": "GDPR compliance not verified for B2B order visibility",
+            "detail": "B2B users seeing company-wide orders requires explicit permission model per GDPR. Legal approval pending for data visibility across account users.",
+            "action_required": "Get legal sign-off on permission model design",
+            "assigned_to": "Sarah (PO)",
+            "confidence": 0.92,
+            "evidence": [
+              "GDPR compliance requirement mentioned",
+              "Past decision: B2B users can see company data only with explicit permission model",
+              "Legal team not yet consulted"
+            ]
+          }
+        ],
+        "HIGH": [
+          {
+            "type": "TECHNICAL_COMPLEXITY",
+            "description": "Performance at scale not designed",
+            "detail": "Previous Partner Portal had performance issues with >1000 records per user. Average orders per B2B customer unknown, could exceed this threshold. Caching strategy required but not yet designed.",
+            "action_required": "Design pagination and caching strategy upfront",
+            "assigned_to": "Lisa (Dev)",
+            "confidence": 0.88,
+            "evidence": [
+              "Partner Portal: Performance issues with > 1000 records per user",
+              "Caching strategy saved 70% API calls in previous implementation",
+              "No current performance optimization mentioned"
+            ]
+          },
+          {
+            "type": "SCOPE_CREEP_RISK",
+            "description": "Multiple features mentioned but not properly scoped",
+            "detail": "Several features are referenced but marked as out-of-scope, creating confusion: notification system for status changes, mobile app version, order invoice download. These may be expected by stakeholders.",
+            "action_required": "Explicitly document and communicate out-of-scope items",
+            "assigned_to": "Mark (BA)",
+            "confidence": 0.85,
+            "evidence": [
+              "Out of scope: Notification system",
+              "Out of scope: Mobile app version",
+              "Out of scope: Order invoice download"
+            ]
+          }
+        ],
+        "MEDIUM": [
+          {
+            "type": "ESTIMATION_UNCERTAINTY",
+            "description": "High variance in similar past work",
+            "detail": "Partner Portal was estimated at 13 points but actual was 21 points (+61% overrun) due to security requirements. Similar complexity expected here.",
+            "action_required": "Add 50% buffer to estimate, consider spike story",
+            "assigned_to": "Team",
+            "confidence": 0.82,
+            "evidence": [
+              "Partner Portal: Initial estimate 13 points, actual 21 points",
+              "61% overrun due to security requirements",
+              "Current PBI has similar security needs"
+            ]
+          }
+        ],
+        "LOW": []
+      },
+      "conflicts": [
+        {
+          "type": "EXISTING_WORK",
+          "description": "Overlaps with Customer Portal SSO Integration work",
+          "detail": "PBI-2023-198 implemented SSO for customer portal. Current PBI needs same authentication mechanism but it's unclear if this can be reused.",
+          "resolution": "Verify if existing SSO implementation can be leveraged",
+          "assigned_to": "Lisa (Dev)",
+          "related_items": ["PBI-2023-198"]
+        }
+      ],
+      "complexity_score": 8.5,
+      "recommended_split": true,
+      "split_suggestion": "Consider splitting into three phases:\n1. Basic Portal with Login and Order List (MVP) - Focus on authentication and basic order viewing\n2. Order Dashboard with Statistics - Add analytics and reporting features\n3. Order Management Features - Include cancellation, filtering, and export capabilities",
+      "analysis_confidence": 0.91,
+      "analyzed_at": "2024-11-19T12:00:00.000Z"
+    },
+    {
+      "id": "PBI-002",
+      "title": "Customer-Friendly Order Status Labels",
+      "risks": {
+        "CRITICAL": [],
+        "HIGH": [],
+        "MEDIUM": [
+          {
+            "type": "DATA_INCONSISTENCY",
+            "description": "More status values exist than discussed",
+            "detail": "Confluence documentation shows 8 status values in the system, but only 5 were mentioned in refinement. Missing: Awaiting_Payment, In_Transit, Refunded. This impacts scope significantly.",
+            "action_required": "Update scope to cover all 8 statuses",
+            "assigned_to": "Mark (BA)",
+            "confidence": 0.94,
+            "evidence": [
+              "CONF-Status-Picklist shows 8 statuses",
+              "Meeting mentioned only 5 statuses",
+              "Missing: Awaiting_Payment, In_Transit, Refunded"
+            ]
+          }
+        ],
+        "LOW": [
+          {
+            "type": "MISSING_STAKEHOLDER",
+            "description": "UX designer not involved in refinement",
+            "detail": "Label copy needs UX approval for consistency across customer touchpoints, but UX team not consulted yet.",
+            "action_required": "Schedule UX review session for label copy",
+            "assigned_to": "Tom (SM)",
+            "confidence": 0.78,
+            "evidence": [
+              "UX team consultation mentioned but not completed",
+              "No UX team member in refinement"
+            ]
+          }
+        ]
+      },
+      "conflicts": [],
+      "complexity_score": 3.5,
+      "recommended_split": false,
+      "split_suggestion": null,
+      "analysis_confidence": 0.89,
+      "analyzed_at": "2024-11-19T12:00:15.000Z"
+    },
+    {
+      "id": "PBI-003",
+      "title": "B2B Account Permission Model",
+      "risks": {
+        "CRITICAL": [
+          {
+            "type": "UNRESOLVED_DECISION",
+            "description": "GDPR compliance approach not finalized",
+            "detail": "Legal team decision from 2024-09-20 requires explicit permission model and audit trail, but implementation approach not approved. This blocks development.",
+            "action_required": "Get legal approval on technical implementation",
+            "assigned_to": "Sarah (PO)",
+            "confidence": 0.91,
+            "evidence": [
+              "Legal requirement for data isolation and GDPR compliance",
+              "Implement audit trail for all data access required",
+              "Dependency on legal team for GDPR verification exists"
+            ]
+          }
+        ],
+        "HIGH": [
+          {
+            "type": "TECHNICAL_COMPLEXITY",
+            "description": "Complex permission model with multiple considerations",
+            "detail": "Requires custom permission sets per role, account-based sharing rules, row-level security, and audit trail. Previous similar work (PBI-2024-045) was more complex than expected.",
+            "action_required": "Create detailed technical design before estimation",
+            "assigned_to": "Alex (Architect)",
+            "confidence": 0.87,
+            "evidence": [
+              "Required custom permission sets for each role",
+              "Account-based sharing rules were more complex than expected",
+              "Legal review added 2 weeks to timeline in similar work"
+            ]
+          }
+        ],
+        "MEDIUM": [
+          {
+            "type": "ESTIMATION_UNCERTAINTY",
+            "description": "Scope not clearly defined",
+            "detail": "No explicit in-scope or out-of-scope items documented. Phase boundaries unclear. This makes accurate estimation impossible.",
+            "action_required": "Define clear scope boundaries and deliverables",
+            "assigned_to": "Mark (BA)",
+            "confidence": 0.83,
+            "evidence": [
+              "hasClearScope score: 50",
+              "No in-scope items specified",
+              "No out-of-scope items listed"
+            ]
+          }
+        ],
+        "LOW": []
+      },
+      "conflicts": [
+        {
+          "type": "EXISTING_WORK",
+          "description": "Overlaps with B2B User Permission Framework",
+          "detail": "PBI-2024-045 implemented similar permission framework. Current work may duplicate or conflict with existing implementation.",
+          "resolution": "Review PBI-2024-045 implementation for reuse opportunities",
+          "assigned_to": "Maria (Security)",
+          "related_items": ["PBI-2024-045"]
+        }
+      ],
+      "complexity_score": 7.8,
+      "recommended_split": true,
+      "split_suggestion": "Split into two work items:\n1. Permission Model Design & Legal Approval - Focus on getting legal sign-off and creating technical design\n2. Implementation & Testing - Build the approved solution with comprehensive testing",
+      "analysis_confidence": 0.86,
+      "analyzed_at": "2024-11-19T12:00:30.000Z"
+    }
+  ],
+  "metadata": {
+    "analyzed_at": "2024-11-19T12:00:35.000Z",
+    "total_analyzed": 3,
+    "critical_risks": 3,
+    "high_risks": 3,
+    "medium_risks": 3,
+    "low_risks": 1,
+    "total_conflicts": 2,
+    "high_complexity_items": 2,
+    "model_used": "claude-3-5-haiku-20241022",
+    "analysis_duration_ms": 35420
+  }
+}
