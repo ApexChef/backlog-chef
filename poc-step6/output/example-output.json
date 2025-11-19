@@ -1,0 +1,228 @@
+{
+  "questions_and_proposals": [
+    {
+      "pbi_id": "PBI-001",
+      "title": "Customer Self-Service Order Portal",
+      "unanswered_questions": {
+        "critical": [
+          {
+            "id": "Q001",
+            "question": "Which account types should have portal access and what are the specific eligibility criteria?",
+            "category": "Business",
+            "priority": "CRITICAL",
+            "stakeholders": [
+              {
+                "role": "Product Owner",
+                "name": "Sarah van der Berg",
+                "email": "sarah.vdberg@company.nl"
+              },
+              {
+                "role": "Business Analyst",
+                "name": "Mark Hendriksen",
+                "email": "mark.hendriksen@company.nl"
+              }
+            ],
+            "proposed_answer": {
+              "confidence": "MEDIUM",
+              "suggestion": "Based on similar portal implementations, recommend:\n- All B2B accounts with 'Active' status\n- B2C customers with orders in last 24 months\n- Exclude: Prospects, Inactive, Test accounts",
+              "rationale": "Previous 'Partner Portal' used similar criteria. Balances user experience with license costs.",
+              "alternatives": [
+                "All customers (highest cost, 1200+ licenses)",
+                "Opt-in only (lowest cost, estimated 300 licenses)",
+                "Tiered: Premium customers first, rollout by segment"
+              ]
+            },
+            "documentation_search": {
+              "found": true,
+              "sources": [
+                {
+                  "title": "Customer Segmentation Strategy 2024",
+                  "excerpt": "Tier 1: >€50k annual revenue, Tier 2: €10-50k...",
+                  "link": "https://sharepoint.company.com/customer-segments",
+                  "relevance": 85
+                }
+              ]
+            }
+          },
+          {
+            "id": "Q002",
+            "question": "Are current Experience Cloud licenses sufficient for expected user base?",
+            "category": "Technical/Budget",
+            "priority": "CRITICAL",
+            "stakeholders": [
+              {
+                "role": "Salesforce Administrator",
+                "name": "Peter de Vries",
+                "email": "peter.devries@company.nl"
+              },
+              {
+                "role": "Finance Manager",
+                "name": "Robert van den Berg",
+                "email": "robert.vandenberg@company.nl"
+              }
+            ],
+            "proposed_answer": {
+              "confidence": "LOW",
+              "suggestion": "Current State: 500 Experience Cloud Login-Based licenses\nEstimated Need: ~480 licenses (800 active customers × 60% adoption)\nAssessment: JUST SUFFICIENT for initial rollout\nRecommendation: Phase 1 with 300 key customers, procure additional 500 licenses for Phase 2",
+              "rationale": "License capacity is at 96% utilization, no buffer for growth",
+              "alternatives": [
+                "Buy 500 more licenses upfront (€15k/year)",
+                "Use Member-Based licenses (cheaper but limited features)",
+                "Implement waitlist if capacity reached"
+              ],
+              "risk": "If adoption > 60%, will need more licenses (12-week procurement)"
+            },
+            "documentation_search": {
+              "found": true,
+              "sources": [
+                {
+                  "title": "Salesforce License Inventory Q4 2024",
+                  "excerpt": "Experience Cloud: 500 login licenses, 482 active users...",
+                  "link": "https://sharepoint.company.com/sf-licenses",
+                  "note": "Already at 96% capacity!"
+                }
+              ]
+            }
+          }
+        ],
+        "high": [
+          {
+            "id": "Q003",
+            "question": "What is the permission model for B2B users viewing company orders?",
+            "category": "Business/Security",
+            "priority": "HIGH",
+            "stakeholders": [
+              {
+                "role": "Security Architect",
+                "name": "Maria Janssen",
+                "email": "maria.janssen@company.nl"
+              },
+              {
+                "role": "Product Owner",
+                "name": "Sarah van der Berg",
+                "email": "sarah.vdberg@company.nl"
+              }
+            ],
+            "proposed_answer": {
+              "confidence": "HIGH",
+              "suggestion": "Implement role-based access:\n\nAdmin Role (Purchasing Manager):\n- See all orders for their Account\n- Can cancel any company order\n- Access to company-wide statistics\n\nStandard User:\n- See only orders where they are listed as Contact\n- Can cancel only their own orders\n- Personal statistics only",
+              "rationale": "This model passed GDPR compliance review. Balances usability with data privacy requirements.",
+              "legal_considerations": [
+                "GDPR Article 6: Must have legitimate interest or consent",
+                "Add consent checkbox during portal registration",
+                "Log all order access for audit trail (GDPR Article 30)"
+              ],
+              "technical_implementation": [
+                "Use Salesforce Permission Sets",
+                "Add checkbox on Contact: Order_Admin__c",
+                "Sharing rules: Order OWD = Private, share via Contact lookup"
+              ]
+            },
+            "documentation_search": {
+              "found": true,
+              "sources": [
+                {
+                  "title": "GDPR Compliance - B2B Data Access",
+                  "excerpt": "Employee access to company data: requires documented business need...",
+                  "link": "https://confluence.company.com/gdpr-b2b",
+                  "relevance": 95
+                }
+              ]
+            }
+          }
+        ],
+        "medium": [
+          {
+            "id": "Q004",
+            "question": "What happens if a customer tries to cancel an order that's already shipped?",
+            "category": "Business Logic",
+            "priority": "MEDIUM",
+            "stakeholders": [
+              {
+                "role": "Product Owner",
+                "name": "Sarah van der Berg",
+                "email": "sarah.vdberg@company.nl"
+              }
+            ],
+            "proposed_answer": {
+              "confidence": "HIGH",
+              "suggestion": "If status IN ('Shipped', 'In_Transit', 'Delivered'):\n- Hide 'Cancel Order' button\n- Show message: 'This order has been shipped and cannot be cancelled.'\n- Offer alternative: 'Contact Support for Returns' (link to support page)\n\nIf status = 'New' or 'Processing':\n- Show 'Cancel Order' button with confirmation dialog\n- Update Status = 'Cancelled' on confirm\n- Send confirmation email\n- Trigger refund process if payment captured",
+              "rationale": "Standard e-commerce pattern, prevents customer frustration",
+              "technical_implementation": [
+                "Apex validation rule on Order update",
+                "Lightning component: disable button based on status",
+                "Email template: Order_Cancelled_Confirmation",
+                "Flow: Trigger_Refund_Process"
+              ],
+              "risk": "Edge case: Order shipped between page load and cancel click - add server-side validation"
+            },
+            "documentation_search": {
+              "found": true,
+              "sources": [
+                {
+                  "title": "Order Cancellation Policy",
+                  "excerpt": "Customers can cancel up until shipping. After shipping, returns process applies...",
+                  "link": "https://sharepoint.company.com/policies/cancellation"
+                }
+              ]
+            }
+          }
+        ],
+        "low": [
+          {
+            "id": "Q005",
+            "question": "Should mobile users have a different UI/UX than desktop?",
+            "category": "UX",
+            "priority": "LOW",
+            "stakeholders": [
+              {
+                "role": "UX Designer",
+                "name": "Emma Visser",
+                "email": "emma.visser@company.nl"
+              }
+            ],
+            "proposed_answer": {
+              "confidence": "HIGH",
+              "suggestion": "Recommendation: Responsive design, not separate UX\n- Use Experience Cloud's responsive templates\n- Mobile adaptations: Stack cards vertically, larger touch targets (min 44px), hamburger menu, swipe gestures\n- Same components, different layout\n- Do NOT build separate mobile app (out of scope)",
+              "rationale": "Faster time to market, easier maintenance",
+              "alternatives": [
+                "Native mobile app (6+ months additional development)",
+                "Progressive Web App (PWA) approach",
+                "Mobile-first design with desktop enhancement"
+              ]
+            },
+            "documentation_search": {
+              "found": true,
+              "sources": [
+                {
+                  "title": "Mobile Design Standards",
+                  "excerpt": "All customer-facing features must be mobile-responsive...",
+                  "link": "https://confluence.company.com/mobile-standards"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "generated_at": "2024-11-19T14:30:00Z",
+    "total_pbis": 1,
+    "total_questions": 5,
+    "critical_questions": 2,
+    "high_questions": 1,
+    "medium_questions": 1,
+    "low_questions": 1,
+    "stakeholders_identified": [
+      "sarah.vdberg@company.nl",
+      "mark.hendriksen@company.nl",
+      "peter.devries@company.nl",
+      "robert.vandenberg@company.nl",
+      "maria.janssen@company.nl",
+      "emma.visser@company.nl"
+    ],
+    "model_used": "claude-3-5-haiku-20241022",
+    "generation_duration_ms": 45000
+  }
+}
