@@ -1,0 +1,87 @@
+{
+  "eventType": "refinement",
+  "confidence": 0.92,
+  "detectionMethod": "keywords",
+  "reasoning": "Detected refinement meeting with high confidence based on keywords: refinement, requirements, scope, acceptance criteria, user story.",
+  "pipelineConfig": {
+    "pipelineName": "refinement_pipeline",
+    "version": "1.0.0",
+    "steps": [
+      {
+        "name": "Event Detection",
+        "handler": "eventDetection",
+        "input": ["transcript", "summary"],
+        "output": ["eventType", "confidence"]
+      },
+      {
+        "name": "Extract Candidate PBIs",
+        "handler": "extractPBIs",
+        "input": ["transcript"],
+        "output": ["candidates"]
+      },
+      {
+        "name": "Score Confidence",
+        "handler": "scoreConfidence",
+        "input": ["candidates"],
+        "output": ["scoredCandidates"]
+      },
+      {
+        "name": "Enrich with Context",
+        "handler": "enrichContext",
+        "input": ["scoredCandidates", "transcript"],
+        "output": ["enrichedCandidates"]
+      },
+      {
+        "name": "Check Risks & Conflicts",
+        "handler": "checkRisks",
+        "input": ["enrichedCandidates"],
+        "output": ["validatedCandidates"]
+      },
+      {
+        "name": "Generate Questions & Proposals",
+        "handler": "generateProposals",
+        "input": ["validatedCandidates"],
+        "output": ["proposals"]
+      },
+      {
+        "name": "Run Readiness Checker",
+        "handler": "checkReadiness",
+        "input": ["proposals"],
+        "output": ["readyItems"]
+      },
+      {
+        "name": "Final Output",
+        "handler": "generateOutput",
+        "input": ["readyItems"],
+        "output": ["finalOutput"]
+      }
+    ]
+  },
+  "matchedKeywords": [
+    "refinement",
+    "requirements",
+    "scope",
+    "acceptance criteria"
+  ],
+  "processingTimeMs": 42,
+  "metadata": {
+    "transcriptMetadata": {
+      "meetingId": "ff_20251118_140000",
+      "meetingTitle": "Backlog Refinement Session",
+      "duration": 720,
+      "participants": ["Tom", "Sarah", "Mark", "Lisa"]
+    },
+    "summaryStats": {
+      "actionItems": 9,
+      "questions": 8,
+      "decisions": 6,
+      "keyTopics": 2
+    },
+    "detectionDetails": {
+      "tier1Score": 0.92,
+      "tier1Matches": 7,
+      "fallthroughToTier2": false,
+      "fallthroughToTier3": false
+    }
+  }
+}

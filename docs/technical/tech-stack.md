@@ -20,8 +20,9 @@
 1. Modular pipeline (isolated steps)
 2. Event-driven (async)
 3. **MCP-first** for external data access (see [MCP Architecture](mcp-architecture.md))
-4. API-first
-5. Horizontally scalable
+4. **Privacy-first** with reversible anonymization (see [Data Privacy & Anonymization](data-privacy-anonymization.md))
+5. API-first
+6. Horizontally scalable
 
 ## Key Technical Decisions
 
