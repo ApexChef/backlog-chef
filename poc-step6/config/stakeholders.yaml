@@ -1,0 +1,237 @@
+# Stakeholder Registry for Backlog Chef
+# This file defines the stakeholder roles and their responsibilities for question routing
+
+roles:
+  - id: product_owner
+    title: Product Owner
+    domains:
+      - Business
+      - Requirements
+      - Prioritization
+      - User Stories
+      - Acceptance Criteria
+    default_assignee:
+      name: Sarah van der Berg
+      email: sarah.vdberg@company.nl
+    backup_assignee:
+      name: Michael Chen
+      email: michael.chen@company.nl
+
+  - id: scrum_master
+    title: Scrum Master
+    domains:
+      - Process
+      - Timeline
+      - Sprint Planning
+      - Team Capacity
+      - Dependencies
+    default_assignee:
+      name: Tom de Vries
+      email: tom.devries@company.nl
+    backup_assignee:
+      name: Lisa Johnson
+      email: lisa.johnson@company.nl
+
+  - id: tech_lead
+    title: Technical Lead
+    domains:
+      - Technical
+      - Architecture
+      - Technology Stack
+      - System Design
+      - Performance
+    default_assignee:
+      name: Alex Rodriguez
+      email: alex.rodriguez@company.nl
+    backup_assignee:
+      name: David Kim
+      email: david.kim@company.nl
+
+  - id: security_architect
+    title: Security Architect
+    domains:
+      - Security
+      - Authentication
+      - Authorization
+      - GDPR
+      - Compliance
+      - Data Protection
+    default_assignee:
+      name: Maria Janssen
+      email: maria.janssen@company.nl
+    backup_assignee:
+      name: Robert Singh
+      email: robert.singh@company.nl
+
+  - id: ux_designer
+    title: UX Designer
+    domains:
+      - UX
+      - UI
+      - User Experience
+      - Design
+      - Accessibility
+      - Mobile
+    default_assignee:
+      name: Emma Visser
+      email: emma.visser@company.nl
+    backup_assignee:
+      name: Sophie Martin
+      email: sophie.martin@company.nl
+
+  - id: business_analyst
+    title: Business Analyst
+    domains:
+      - Data
+      - Analytics
+      - Reporting
+      - Metrics
+      - Business Logic
+      - Workflows
+    default_assignee:
+      name: Mark Hendriksen
+      email: mark.hendriksen@company.nl
+    backup_assignee:
+      name: Jennifer Wang
+      email: jennifer.wang@company.nl
+
+  - id: salesforce_admin
+    title: Salesforce Administrator
+    domains:
+      - Salesforce
+      - Configuration
+      - Licenses
+      - Platform
+      - Limits
+      - Permissions
+    default_assignee:
+      name: Peter de Vries
+      email: peter.devries@company.nl
+    backup_assignee:
+      name: Anna Schmidt
+      email: anna.schmidt@company.nl
+
+  - id: integration_architect
+    title: Integration Architect
+    domains:
+      - Integration
+      - API
+      - External Systems
+      - Middleware
+      - Data Sync
+    default_assignee:
+      name: Kevin Park
+      email: kevin.park@company.nl
+    backup_assignee:
+      name: Rachel Green
+      email: rachel.green@company.nl
+
+  - id: qa_lead
+    title: QA Lead
+    domains:
+      - Testing
+      - Quality
+      - Test Data
+      - Automation
+      - Regression
+    default_assignee:
+      name: Julia Anderson
+      email: julia.anderson@company.nl
+    backup_assignee:
+      name: Carlos Mendez
+      email: carlos.mendez@company.nl
+
+  - id: devops_engineer
+    title: DevOps Engineer
+    domains:
+      - Deployment
+      - Infrastructure
+      - CI/CD
+      - Monitoring
+      - Performance
+    default_assignee:
+      name: Frank Mueller
+      email: frank.mueller@company.nl
+    backup_assignee:
+      name: Nina Patel
+      email: nina.patel@company.nl
+
+  - id: logistics_manager
+    title: Logistics Manager
+    domains:
+      - Logistics
+      - Shipping
+      - Delivery
+      - Supply Chain
+      - Order Fulfillment
+    default_assignee:
+      name: Johan Bakker
+      email: johan.bakker@company.nl
+    backup_assignee:
+      name: Hans Weber
+      email: hans.weber@company.nl
+
+  - id: legal_advisor
+    title: Legal Advisor
+    domains:
+      - Legal
+      - Compliance
+      - GDPR
+      - Contracts
+      - Privacy
+      - Terms
+    default_assignee:
+      name: Christine van Dijk
+      email: christine.vandijk@company.nl
+    backup_assignee:
+      name: Paul Thompson
+      email: paul.thompson@company.nl
+
+  - id: finance_manager
+    title: Finance Manager
+    domains:
+      - Budget
+      - Cost
+      - ROI
+      - Licensing
+      - Procurement
+    default_assignee:
+      name: Robert van den Berg
+      email: robert.vandenberg@company.nl
+    backup_assignee:
+      name: Sandra Lee
+      email: sandra.lee@company.nl
+
+# Domain to Role Mapping for automatic routing
+domain_mapping:
+  Business: [product_owner, business_analyst]
+  Technical: [tech_lead, integration_architect]
+  Security: [security_architect, legal_advisor]
+  UX: [ux_designer]
+  UI: [ux_designer]
+  Data: [business_analyst, integration_architect]
+  Performance: [tech_lead, devops_engineer]
+  Testing: [qa_lead]
+  Legal: [legal_advisor]
+  GDPR: [security_architect, legal_advisor]
+  Compliance: [legal_advisor, security_architect]
+  Budget: [finance_manager, product_owner]
+  Salesforce: [salesforce_admin, tech_lead]
+  Integration: [integration_architect]
+  Logistics: [logistics_manager]
+  Process: [scrum_master, business_analyst]
+  Architecture: [tech_lead, integration_architect]
+
+# Priority-based escalation rules
+escalation_rules:
+  CRITICAL:
+    - product_owner
+    - tech_lead
+    - security_architect
+  HIGH:
+    - product_owner
+    - relevant_domain_expert
+  MEDIUM:
+    - relevant_domain_expert
+  LOW:
+    - relevant_domain_expert
