@@ -1,0 +1,43 @@
+{
+  "name": "poc-step5-risk-analysis",
+  "version": "1.0.0",
+  "description": "POC Step 5: Check Risks & Conflicts - AI-powered risk analysis for enriched PBIs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "clean": "rm -rf dist output/*.json",
+    "analyze": "npm run build && node dist/index.js analyze"
+  },
+  "keywords": [
+    "risk-analysis",
+    "pbi",
+    "backlog",
+    "ai",
+    "claude"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3",
+    "axios": "^1.7.2",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "winston": "^3.13.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.9",
+    "@typescript-eslint/eslint-plugin": "^7.14.1",
+    "@typescript-eslint/parser": "^7.14.1",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2"
+  }
+}
