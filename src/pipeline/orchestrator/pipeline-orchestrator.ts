@@ -15,6 +15,7 @@ import { PipelineStep } from '../steps/base-step';
 import { EventDetectionStep } from '../steps/step1-event-detection';
 import { ExtractCandidatesStep } from '../steps/step2-extract-candidates';
 import { ScoreConfidenceStep } from '../steps/step3-score-confidence';
+import { GenerateProposalsStep } from '../steps/step6-generate-proposals';
 
 /**
  * Main pipeline orchestrator
@@ -36,7 +37,8 @@ export class PipelineOrchestrator {
       new EventDetectionStep(),
       new ExtractCandidatesStep(),
       new ScoreConfidenceStep(),
-      // TODO: Add remaining steps (4-7) as they're implemented
+      new GenerateProposalsStep(),
+      // TODO: Add remaining steps (4, 5, 7) as they're implemented
     ];
   }
 

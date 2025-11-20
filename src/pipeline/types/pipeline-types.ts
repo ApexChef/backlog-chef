@@ -117,15 +117,108 @@ export interface CheckRisksResult {
 }
 
 /**
+ * Priority levels for questions from Step 6
+ */
+export type QuestionPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+
+/**
+ * Confidence levels for proposals from Step 6
+ */
+export type ProposalConfidence = 'LOW' | 'MEDIUM' | 'HIGH';
+
+/**
+ * Question categories from Step 6
+ */
+export type QuestionCategory =
+  | 'Business'
+  | 'Technical'
+  | 'Security'
+  | 'UX'
+  | 'UI'
+  | 'Data'
+  | 'Performance'
+  | 'Testing'
+  | 'Legal'
+  | 'GDPR'
+  | 'Compliance'
+  | 'Budget'
+  | 'Salesforce'
+  | 'Integration'
+  | 'Logistics'
+  | 'Process'
+  | 'Architecture'
+  | 'Business/Security'
+  | 'Technical/Budget'
+  | 'Data/Performance'
+  | 'Business/Technical'
+  | 'Business Logic'
+  | 'UX/Content';
+
+/**
+ * Stakeholder information from Step 6
+ */
+export interface Stakeholder {
+  role: string;
+  name: string;
+  email: string;
+}
+
+/**
+ * Documentation source from Step 6
+ */
+export interface DocumentationSource {
+  title: string;
+  excerpt: string;
+  link: string;
+  relevance?: number;
+  note?: string;
+}
+
+/**
+ * Documentation search result from Step 6
+ */
+export interface DocumentationSearch {
+  found: boolean;
+  sources?: DocumentationSource[];
+  note?: string;
+}
+
+/**
+ * Proposed answer from Step 6
+ */
+export interface ProposedAnswer {
+  confidence: ProposalConfidence;
+  suggestion: string;
+  rationale: string;
+  alternatives?: string[];
+  legal_considerations?: string[];
+  performance_recommendations?: string[];
+  risk?: string;
+  technical_implementation?: string[];
+  localization_note?: string;
+}
+
+/**
  * Question with proposed answer from Step 6
  */
 export interface QuestionWithAnswer {
+  id: string;
   question: string;
-  category: 'functional' | 'technical' | 'acceptance' | 'scope' | 'dependencies';
-  priority: 'must_answer' | 'should_answer' | 'nice_to_have';
-  proposed_answer: string;
-  confidence: 'high' | 'medium' | 'low';
-  rationale: string;
+  category: QuestionCategory;
+  priority: QuestionPriority;
+  stakeholders: Stakeholder[];
+  proposed_answer: ProposedAnswer;
+  documentation_search: DocumentationSearch;
+}
+
+/**
+ * Questions grouped by priority
+ */
+export interface QuestionsByPriority {
+  critical: QuestionWithAnswer[];
+  high: QuestionWithAnswer[];
+  medium: QuestionWithAnswer[];
+  low: QuestionWithAnswer[];
 }
 
 /**
@@ -133,12 +226,19 @@ export interface QuestionWithAnswer {
  */
 export interface GenerateProposalsResult {
   pbis_with_questions: Array<{
-    pbi: CandidatePBI;
-    scores: ConfidenceScore;
-    context: ContextEnrichment;
-    risks: RiskAssessment;
-    questions: QuestionWithAnswer[];
+    pbi_id: string;
+    title: string;
+    unanswered_questions: QuestionsByPriority;
+    total_questions: number;
   }>;
+  metadata: {
+    total_questions: number;
+    critical_questions: number;
+    high_questions: number;
+    medium_questions: number;
+    low_questions: number;
+    stakeholders_identified: string[];
+  };
 }
 
 /**
