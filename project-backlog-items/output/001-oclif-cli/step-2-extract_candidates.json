@@ -1,0 +1,44 @@
+{
+  "step": "extract_candidates",
+  "timestamp": "2025-11-20T12:35:03.663Z",
+  "runId": "1763642092924",
+  "cost": {
+    "step_cost_usd": 0,
+    "total_cost_usd": 0.0043136
+  },
+  "timing": {
+    "step_duration_ms": 6747,
+    "total_duration_ms": 10738
+  },
+  "result": {
+    "candidates": [
+      {
+        "id": "PBI-001",
+        "title": "As a user, I want a global CLI for backlog-chef so that I can process transcripts from anywhere",
+        "description": "Implement an OCLIF-based CLI that allows global installation and command-line processing of meeting transcripts. The CLI will provide a professional interface for using the backlog-chef tool.",
+        "acceptance_criteria": [
+          "User can install globally with \"npm install -g backlog-chef\"",
+          "User can run \"backlog-chef process [file]\" to process any transcript",
+          "Command supports --format, --output, --verbose, --help flags",
+          "Supports TXT, JSON, and XML input formats",
+          "Auto-generated help text explains all options",
+          "\"npm start\" still works for local development",
+          "Proper error messages when files don't exist or API keys missing",
+          "Documentation updated with CLI usage examples"
+        ],
+        "notes": [
+          "Use OCLIF (Open CLI Framework)",
+          "Core pipeline logic remains unchanged",
+          "Minimal changes to existing code structure",
+          "Version bump to 0.2.0"
+        ],
+        "mentioned_by": [
+          "Alwin",
+          "Claude",
+          "Developer"
+        ]
+      }
+    ],
+    "total_found": 1
+  }
+}

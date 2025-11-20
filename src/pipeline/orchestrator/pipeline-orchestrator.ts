@@ -23,6 +23,7 @@ import { GenerateProposalsStep } from '../steps/step6-generate-proposals';
 import { ReadinessCheckerStep } from '../steps/step7-readiness-checker';
 import { FormatOutputStep } from '../steps/step8-format-output';
 import { StepOutputWriter, PBIOutputWriter, HTMLFormatter } from '../output';
+import { detectOutputPath, generateRunDirectory } from '../utils/output-path-detector';
 
 /**
  * Main pipeline orchestrator
@@ -34,14 +35,33 @@ export class PipelineOrchestrator {
   private pbiWriter?: PBIOutputWriter;
   private htmlFormatter?: HTMLFormatter;
 
-  constructor(router: ModelRouter, options?: { outputDir?: string; writeStepOutputs?: boolean }) {
+  constructor(router: ModelRouter, options?: { inputPath?: string; outputDir?: string; writeStepOutputs?: boolean }) {
     this.router = router;
     this.steps = this.initializeSteps();
 
     // Initialize output writers if enabled
     if (options?.writeStepOutputs !== false) {
-      const outputDir = options?.outputDir || 'output';
-      this.stepWriter = new StepOutputWriter(outputDir, true);
+      // Detect smart output path if inputPath is provided
+      let outputDir = options?.outputDir || process.env.OUTPUT_DIR || 'output';
+      let useRunSubdir = true; // Whether to create run-{timestamp} subdirectory
+
+      if (options?.inputPath) {
+        const pathConfig = detectOutputPath(options.inputPath, outputDir);
+
+        if (pathConfig.isProjectPBI) {
+          // For project PBIs, use the detected path directly (already includes item name)
+          outputDir = pathConfig.outputDir;
+          useRunSubdir = false; // Don't create run-{timestamp} for project PBIs
+          console.log(`📂 Project PBI detected - output: ${outputDir}`);
+        } else {
+          // For regular inputs, use default output with timestamp
+          outputDir = outputDir;
+          useRunSubdir = true;
+        }
+      }
+
+      // Create step writer with optional run subdirectory
+      this.stepWriter = new StepOutputWriter(outputDir, true, useRunSubdir);
       const runId = this.stepWriter.getRunId();
       const runDir = this.stepWriter.getRunDir();
       this.pbiWriter = new PBIOutputWriter(runDir, runId, true);

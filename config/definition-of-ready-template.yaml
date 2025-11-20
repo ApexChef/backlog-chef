@@ -1,0 +1,108 @@
+# Definition of Ready for Backlog Chef Project
+#
+# This file defines the criteria that must be met before a PBI can be started.
+# When a PBI doesn't meet these criteria, refinement tasks will be generated.
+#
+# Instructions:
+# 1. Fill in your team's actual Definition of Ready items below
+# 2. For each item, specify:
+#    - id: Unique identifier (dor-001, dor-002, etc.)
+#    - requirement: What must be present/clear before work starts
+#    - verification: How to check if this requirement is met
+#    - refinement_task: What task to create if this is missing
+#    - priority: How critical is this? (critical, high, medium, low)
+#
+# Example format:
+#
+# definition_of_ready:
+#   - id: dor-001
+#     requirement: "User story follows standard format"
+#     verification: "Title contains 'As a... I want... so that...'"
+#     refinement_task: "Rewrite user story in standard format with PO"
+#     priority: high
+#
+#   - id: dor-002
+#     requirement: "Acceptance criteria are defined"
+#     verification: "At least 3 acceptance criteria listed"
+#     refinement_task: "Work with PO to define clear acceptance criteria"
+#     priority: critical
+
+# ============================================================================
+# YOUR DEFINITION OF READY - FILL IN BELOW
+# ============================================================================
+
+definition_of_ready:
+
+  # Story Clarity
+  - id: dor-001
+    requirement: "TODO: Add your story clarity requirement"
+    verification: "TODO: How do you verify the story is clear?"
+    refinement_task: "TODO: What should be done to make it clear?"
+    priority: high
+
+  # Acceptance Criteria
+  - id: dor-002
+    requirement: "TODO: Add your acceptance criteria requirement"
+    verification: "TODO: How do you verify AC are complete?"
+    refinement_task: "TODO: What task to define AC?"
+    priority: critical
+
+  # Dependencies
+  - id: dor-003
+    requirement: "TODO: Add your dependencies requirement"
+    verification: "TODO: How do you verify dependencies identified?"
+    refinement_task: "TODO: What task to identify dependencies?"
+    priority: medium
+
+  # Estimation
+  - id: dor-004
+    requirement: "TODO: Add your estimation requirement"
+    verification: "TODO: How do you verify effort estimated?"
+    refinement_task: "TODO: What task to estimate effort?"
+    priority: medium
+
+  # Technical Approach
+  - id: dor-005
+    requirement: "TODO: Add your technical approach requirement"
+    verification: "TODO: How do you verify approach is clear?"
+    refinement_task: "TODO: What task to define approach?"
+    priority: high
+
+  # Design/UX
+  - id: dor-006
+    requirement: "TODO: Add your design requirement (if applicable)"
+    verification: "TODO: How do you verify design is ready?"
+    refinement_task: "TODO: What task to complete design?"
+    priority: medium
+
+  # Test Strategy
+  - id: dor-007
+    requirement: "TODO: Add your test strategy requirement"
+    verification: "TODO: How do you verify test approach defined?"
+    refinement_task: "TODO: What task to define test strategy?"
+    priority: medium
+
+# ============================================================================
+# NOTES:
+# ============================================================================
+#
+# Priority levels:
+# - critical: PBI cannot start without this (blocks sprint planning)
+# - high: Should be resolved before sprint planning
+# - medium: Good to have, but can be refined during sprint
+# - low: Nice to have, can be addressed as needed
+#
+# Common DoR items teams use:
+# - Story format and clarity
+# - Acceptance criteria defined
+# - Dependencies identified
+# - Story estimated (story points)
+# - Design mockups available
+# - Technical approach discussed
+# - Performance requirements clear
+# - Security considerations identified
+# - Test strategy defined
+# - No blocking impediments
+#
+# Refinement tasks will be generated when DoR items are missing.
+# These tasks help the team get the PBI to "ready" state.

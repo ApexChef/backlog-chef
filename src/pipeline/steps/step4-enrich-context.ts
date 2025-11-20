@@ -195,8 +195,8 @@ ${scoredPBI.pbi.acceptance_criteria ? `Acceptance Criteria:\n${scoredPBI.pbi.acc
   }
 
   /**
-   * Search for context using AI
-   * (In production, this would query real systems like Azure DevOps, Confluence, etc.)
+   * Search for context using real project documentation
+   * Reads TABLE-OF-CONTENTS.md and searches relevant docs based on keywords
    */
   private async searchForContext(
     scoredPBI: any,
@@ -204,60 +204,216 @@ ${scoredPBI.pbi.acceptance_criteria ? `Acceptance Criteria:\n${scoredPBI.pbi.acc
     context: PipelineContext,
     router: ModelRouter
   ): Promise<RawContextSearch> {
-    const systemPrompt = `You are simulating a search system that finds relevant historical context for Product Backlog Items.
+    // Step 1: Read TABLE-OF-CONTENTS.md
+    const fs = await import('fs');
+    const path = await import('path');
 
-Based on the PBI and search queries, generate realistic examples of:
-1. Similar Work - Past PBIs that addressed similar problems (2-4 items)
-2. Past Decisions - Architectural or business decisions relevant to this work (1-3 items)
-3. Technical Documentation - Relevant technical specs or guidelines (1-3 items)
+    const tocPath = path.join(__dirname, '../../../docs/TABLE-OF-CONTENTS.md');
+    let tocContent = '';
 
-Make the references realistic with plausible IDs, dates, and links to enterprise systems (Azure DevOps, Confluence, SharePoint).
+    try {
+      tocContent = fs.readFileSync(tocPath, 'utf-8');
+    } catch (error) {
+      console.warn(`  [Warning] Could not read TABLE-OF-CONTENTS.md: ${error}`);
+      // Fall back to empty search if TOC doesn't exist
+      return {
+        similar_work: [],
+        past_decisions: [],
+        technical_docs: [],
+      };
+    }
+
+    // Step 2: Use AI to identify relevant documents from TOC
+    const relevantDocs = await this.identifyRelevantDocs(
+      scoredPBI,
+      searchQuery,
+      tocContent,
+      context,
+      router
+    );
+
+    // Step 3: Read the actual documentation files
+    const docContents = await this.readDocumentationFiles(relevantDocs);
+
+    // Step 4: Use AI to extract context from real documentation
+    const extractedContext = await this.extractContextFromDocs(
+      scoredPBI,
+      searchQuery,
+      docContents,
+      context,
+      router
+    );
+
+    return extractedContext;
+  }
+
+  /**
+   * Use AI to identify which docs from TOC are most relevant
+   */
+  private async identifyRelevantDocs(
+    scoredPBI: any,
+    searchQuery: SearchQuery,
+    tocContent: string,
+    context: PipelineContext,
+    router: ModelRouter
+  ): Promise<string[]> {
+    const systemPrompt = `You are analyzing a documentation Table of Contents to find relevant documents for a Product Backlog Item.
+
+Given the PBI and its search queries (keywords, concepts, technologies), identify the 3-5 MOST RELEVANT documentation files from the Table of Contents.
+
+Focus on documents that would contain:
+1. Similar past work or features
+2. Architectural decisions relevant to this PBI
+3. Technical implementation guidelines
+4. Constraints or patterns that apply
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "relevant_docs": [
+    "docs/path/to/doc1.md",
+    "docs/path/to/doc2.md"
+  ]
+}
+
+Return only the file paths from the TOC, not invented paths.`;
+
+    const userPrompt = `Find relevant documentation for this PBI:
+
+Title: ${scoredPBI.pbi.title}
+Description: ${scoredPBI.pbi.description}
+
+Search Keywords: ${searchQuery.keywords.join(', ')}
+Concepts: ${searchQuery.concepts.join(', ')}
+Technologies: ${searchQuery.technologies.join(', ')}
+
+TABLE OF CONTENTS:
+${tocContent}
+
+Select the 3-5 most relevant documents from the TOC above.`;
+
+    const responseContent = await this.makeAIRequest(
+      router,
+      this.name,
+      systemPrompt,
+      userPrompt,
+      context
+    );
+
+    const response = this.parseJSONResponse<{ relevant_docs: string[] }>(
+      responseContent,
+      'Relevant Docs Identification'
+    );
+
+    return response.relevant_docs || [];
+  }
+
+  /**
+   * Read actual documentation files from disk
+   */
+  private async readDocumentationFiles(
+    docPaths: string[]
+  ): Promise<Array<{ path: string; content: string }>> {
+    const fs = await import('fs');
+    const path = await import('path');
+    const results: Array<{ path: string; content: string }> = [];
+
+    for (const docPath of docPaths) {
+      try {
+        const fullPath = path.join(__dirname, '../../../', docPath);
+        const content = fs.readFileSync(fullPath, 'utf-8');
+        results.push({ path: docPath, content });
+      } catch (error) {
+        console.warn(`  [Warning] Could not read ${docPath}: ${error}`);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Extract structured context from actual documentation using AI
+   */
+  private async extractContextFromDocs(
+    scoredPBI: any,
+    searchQuery: SearchQuery,
+    docContents: Array<{ path: string; content: string }>,
+    context: PipelineContext,
+    router: ModelRouter
+  ): Promise<RawContextSearch> {
+    if (docContents.length === 0) {
+      return {
+        similar_work: [],
+        past_decisions: [],
+        technical_docs: [],
+      };
+    }
+
+    const systemPrompt = `You are extracting relevant context from real project documentation to enrich a Product Backlog Item.
+
+Analyze the provided documentation and extract:
+1. Similar Work - Past features or implementations that relate to this PBI (if found in docs)
+2. Past Decisions - Architectural decisions or patterns documented that apply (if found)
+3. Technical Documentation - Relevant technical guidelines or specifications (if found)
+
+For each item, provide:
+- ref: Document reference (use the doc filename)
+- title: Brief descriptive title
+- Specific details from the ACTUAL documentation content (not invented)
+- link: Use the doc path as the link
+
+If certain categories have no relevant information in the docs, return empty arrays for those categories.
 
 Respond ONLY with valid JSON in this exact format:
 {
   "similar_work": [
     {
-      "ref": "PBI-2023-156",
-      "title": "Title of past work",
-      "similarity": 85,
-      "learnings": ["Learning 1", "Learning 2"],
-      "link": "https://dev.azure.com/company/project/_workitems/edit/156"
+      "ref": "filename.md",
+      "title": "Brief title from doc",
+      "similarity": 75,
+      "learnings": ["Actual learning from doc"],
+      "link": "docs/path/to/doc.md"
     }
   ],
   "past_decisions": [
     {
-      "ref": "ADR-2024-03",
-      "title": "Architecture Decision Title",
-      "decision": "What was decided",
-      "rationale": "Why it was decided",
-      "constraints": "Any constraints",
-      "assigned_architect": "Architect Name",
-      "date": "2024-03-15"
+      "ref": "filename.md",
+      "title": "Decision title from doc",
+      "decision": "What was decided (from doc)",
+      "rationale": "Why (from doc)",
+      "constraints": "Constraints mentioned",
+      "date": "Date if mentioned"
     }
   ],
   "technical_docs": [
     {
-      "ref": "CONF-2024-89",
-      "title": "Technical Document Title",
-      "relevant_sections": ["Section 1", "Section 2"],
-      "content": "Brief excerpt of relevant content",
-      "note": "Why this document is relevant",
-      "link": "https://confluence.company.com/display/TECH/Doc89"
+      "ref": "filename.md",
+      "title": "Doc title",
+      "relevant_sections": ["Section names from doc"],
+      "content": "Brief excerpt from actual doc",
+      "note": "Why this doc is relevant",
+      "link": "docs/path/to/doc.md"
     }
   ]
 }`;
 
-    const userPrompt = `Find context for this PBI:
+    const docsText = docContents
+      .map(
+        (doc) =>
+          `=== ${doc.path} ===\n${doc.content.substring(0, 3000)}...\n`
+      )
+      .join('\n\n');
 
-Title: ${scoredPBI.pbi.title}
-Description: ${scoredPBI.pbi.description}
+    const userPrompt = `Extract relevant context for this PBI from the actual project documentation:
 
-Search Queries:
-Keywords: ${searchQuery.keywords.join(', ')}
-Concepts: ${searchQuery.concepts.join(', ')}
-Technologies: ${searchQuery.technologies.join(', ')}
+PBI Title: ${scoredPBI.pbi.title}
+PBI Description: ${scoredPBI.pbi.description}
 
-Quality Score: ${scoredPBI.scores.overall_score}/100`;
+Search Keywords: ${searchQuery.keywords.join(', ')}
+
+DOCUMENTATION CONTENT:
+${docsText}
+
+Extract ONLY information that actually exists in the documentation above. Do not invent references.`;
 
     const responseContent = await this.makeAIRequest(
       router,
@@ -269,7 +425,7 @@ Quality Score: ${scoredPBI.scores.overall_score}/100`;
 
     const response = this.parseJSONResponse<RawContextSearch>(
       responseContent,
-      'Context Search'
+      'Context Extraction from Real Docs'
     );
 
     return {

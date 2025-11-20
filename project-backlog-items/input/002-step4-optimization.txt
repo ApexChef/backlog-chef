@@ -1,0 +1,146 @@
+BACKLOG REFINEMENT MEETING - Step 4 Optimization (Cost & Performance)
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude), Performance Engineer (Team)
+
+---
+
+Product Owner: We just dogfooded our own pipeline and noticed Step 4 (Enrich with Context) takes 37 seconds and costs $0.006 per PBI. That's going to add up fast when processing multiple meetings with 5-10 PBIs each.
+
+Tech Lead: You're right. The bottleneck is that we're sending the entire TABLE-OF-CONTENTS.md (3,213 tokens) to the AI for every single PBI. That's the most expensive API call in Step 4.
+
+Performance Engineer: What's causing the slowness? The token count or the actual processing?
+
+Tech Lead: Both. The AI has to analyze 3,213 tokens of TOC content, then we read multiple full documentation files from disk, then send those to AI for extraction. We're doing 4 API calls per PBI just for context enrichment.
+
+Product Owner: What are our options for optimization?
+
+Tech Lead: I see three main approaches:
+
+**Option 1: Cache TABLE-OF-CONTENTS Analysis**
+- Parse TOC once at startup, build an in-memory index
+- Use simple keyword matching instead of AI for doc selection
+- Only use AI for the final extraction step
+- Pros: Fastest, cheapest (reduces 1 expensive API call)
+- Cons: Less intelligent doc selection
+
+**Option 2: Use Embeddings + Vector Database**
+- Create embeddings for each doc in TOC
+- Store in lightweight vector DB (ChromaDB, in-memory)
+- Do semantic search instead of full TOC analysis
+- Pros: Smart matching, very fast, moderate cost
+- Cons: Adds dependency, initial embedding cost
+
+**Option 3: Hybrid Approach**
+- Cache TOC structure with keywords
+- Use simple keyword matching for first pass (narrow to 10 docs)
+- Use AI only on those 10 docs to pick final 3-5
+- Pros: Balance of speed and intelligence
+- Cons: Still requires some AI processing
+
+Performance Engineer: What about the documentation reading? That's I/O bound.
+
+Tech Lead: Good point. We could also:
+- Cache frequently accessed docs in memory
+- Implement TTL-based cache (5 minutes)
+- Pre-load common docs at startup
+
+Product Owner: What's the realistic improvement we're targeting?
+
+Tech Lead: Let's set some goals:
+- **Time**: Reduce Step 4 from 37s to under 10s (70% improvement)
+- **Cost**: Reduce from $0.006 to $0.002 per PBI (66% reduction)
+- **Quality**: Maintain current accuracy of doc selection
+
+Performance Engineer: Option 3 sounds best - the hybrid approach. We get speed gains without losing intelligence.
+
+Product Owner: Agreed. Let me draft the acceptance criteria:
+
+**Acceptance Criteria:**
+1. Step 4 completes in under 10 seconds per PBI (currently 37s)
+2. Cost per PBI reduced to $0.002 or less (currently $0.006)
+3. TABLE-OF-CONTENTS.md is parsed once at startup, not per PBI
+4. Documentation files are cached in memory with 5-minute TTL
+5. Doc selection uses keyword pre-filtering before AI analysis
+6. Maintains current doc selection accuracy (validated by comparing outputs)
+7. Cache invalidation when docs/ folder is modified
+
+Product Owner: What about the implementation approach?
+
+Tech Lead: Here's the plan:
+1. **Phase 1**: Implement in-memory TOC cache with keyword index
+   - Parse TOC at startup
+   - Build keyword → doc mapping
+   - Store in memory
+
+2. **Phase 2**: Add keyword-based pre-filtering
+   - Match PBI keywords against TOC keywords
+   - Narrow from 37 docs to ~10 candidates
+
+3. **Phase 3**: Use AI only for final selection
+   - Send only 10 candidate docs (not full TOC)
+   - AI picks best 3-5
+   - Much smaller token count
+
+4. **Phase 4**: Add doc content caching
+   - Cache frequently read docs (LRU cache)
+   - 5-minute TTL
+   - Max 50 docs in cache
+
+Performance Engineer: What about file system watch for cache invalidation?
+
+Tech Lead: Good idea. We can use `fs.watch()` to detect when docs are modified and invalidate cache automatically.
+
+Product Owner: Any risks or trade-offs?
+
+Tech Lead: Main risks:
+- **Memory usage**: Caching docs will increase memory footprint (probably 5-10MB)
+- **Stale cache**: If someone updates docs, cache might be stale for up to 5 minutes
+- **Complexity**: More moving parts to maintain
+
+But the benefits far outweigh the risks. This is essential for production use.
+
+Performance Engineer: How do we validate that quality doesn't degrade?
+
+Tech Lead: We run the same test PBIs through both old and new implementation, compare the selected docs. As long as we're getting the same or better doc matches, we're good.
+
+Product Owner: Estimation?
+
+Tech Lead: This is medium complexity. I'd estimate 5-8 story points:
+- TOC parsing and indexing: 2 points
+- Keyword pre-filtering logic: 2 points
+- Cache implementation with TTL: 2 points
+- File system watch + invalidation: 1 point
+- Testing and validation: 1 point
+
+Performance Engineer: Dependencies?
+
+Tech Lead: No external dependencies needed. We can use built-in Node.js modules:
+- `fs` for file operations
+- `fs.watch()` for file system events
+- Simple Map/WeakMap for caching
+
+Product Owner: This seems ready for implementation. Let's summarize:
+
+**SUMMARY:**
+- **Feature**: Step 4 Performance Optimization - Reduce cost and latency
+- **User Story**: As a user running the pipeline, I want Step 4 to complete in under 10 seconds so that processing large meetings doesn't take forever
+- **Priority**: HIGH - Blocks production use at scale
+- **Estimate**: 5-8 story points
+- **Dependencies**: None
+- **Risks**: Memory usage increase (~5-10MB), cache staleness (5 min max)
+
+**Key Optimizations:**
+1. Parse TOC once at startup (not per PBI)
+2. Keyword-based pre-filtering before AI analysis
+3. In-memory caching with TTL
+4. File system watch for automatic cache invalidation
+
+**Expected Improvements:**
+- Time: 37s → <10s (70% faster)
+- Cost: $0.006 → $0.002 per PBI (66% cheaper)
+
+Performance Engineer: I'm confident this will hit our targets.
+
+Tech Lead: Agreed. This is essential infrastructure for production use.
+
+Product Owner: Perfect. Let's add this to the sprint backlog right after the OCLIF CLI feature. Thanks everyone!

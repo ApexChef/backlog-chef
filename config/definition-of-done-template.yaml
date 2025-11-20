@@ -1,0 +1,108 @@
+# Definition of Done for Backlog Chef Project
+#
+# This file defines the criteria that must be met before a PBI is considered "done".
+# Each item will be used to generate verification tasks during PBI processing.
+#
+# Instructions:
+# 1. Fill in your team's actual Definition of Done items below
+# 2. For each item, specify:
+#    - id: Unique identifier (dod-001, dod-002, etc.)
+#    - category: Type of work (code_quality, testing, documentation, deployment, process)
+#    - requirement: What must be done
+#    - verification: How to verify it's done
+#    - automated: Can this be checked automatically? (true/false)
+#    - task_template: Template for the task that will be generated
+#    - agent_hint: Which Claude Code agent or tool can help (optional)
+#
+# Example format:
+#
+# definition_of_done:
+#   - id: dod-001
+#     category: code_quality
+#     requirement: "Code follows TypeScript best practices"
+#     verification: "ESLint passes with no errors"
+#     automated: true
+#     task_template: "Run ESLint and fix all violations"
+#     agent_hint: "bash: npm run lint"
+#
+#   - id: dod-002
+#     category: testing
+#     requirement: "Unit tests written for new code"
+#     verification: "Test coverage >= 80%"
+#     automated: true
+#     task_template: "Write unit tests for {component}"
+#     agent_hint: "pact-test-engineer agent"
+
+# ============================================================================
+# YOUR DEFINITION OF DONE - FILL IN BELOW
+# ============================================================================
+
+definition_of_done:
+
+  # Code Quality Items
+  - id: dod-001
+    category: code_quality
+    requirement: "TODO: Add your code quality requirement"
+    verification: "TODO: How do you verify this?"
+    automated: false
+    task_template: "TODO: What task should be created?"
+    agent_hint: ""
+
+  # Testing Items
+  - id: dod-002
+    category: testing
+    requirement: "TODO: Add your testing requirement"
+    verification: "TODO: How do you verify this?"
+    automated: false
+    task_template: "TODO: What task should be created?"
+    agent_hint: ""
+
+  # Documentation Items
+  - id: dod-003
+    category: documentation
+    requirement: "TODO: Add your documentation requirement"
+    verification: "TODO: How do you verify this?"
+    automated: false
+    task_template: "TODO: What task should be created?"
+    agent_hint: ""
+
+  # Deployment Items
+  - id: dod-004
+    category: deployment
+    requirement: "TODO: Add your deployment requirement"
+    verification: "TODO: How do you verify this?"
+    automated: false
+    task_template: "TODO: What task should be created?"
+    agent_hint: ""
+
+  # Process Items (Reviews, Approvals, etc.)
+  - id: dod-005
+    category: process
+    requirement: "TODO: Add your process requirement"
+    verification: "TODO: How do you verify this?"
+    automated: false
+    task_template: "TODO: What task should be created?"
+    agent_hint: ""
+
+# ============================================================================
+# NOTES:
+# ============================================================================
+#
+# Agent hints can be:
+# - Claude Code agent names: "pact-test-engineer", "documentor", "clean-apex-architect"
+# - Bash commands: "bash: npm test", "bash: npm run build"
+# - Tools: "Read", "Write", "Edit", "Bash"
+# - "Requires human approval" for manual steps
+#
+# Task template variables you can use:
+# - {component} - Name of the component being worked on
+# - {feature} - Name of the feature
+# - {reviewer} - Name of the reviewer
+# - {acceptance_criteria} - The acceptance criteria being addressed
+#
+# Categories help organize tasks:
+# - code_quality: Coding standards, linting, formatting
+# - testing: Unit tests, integration tests, E2E tests
+# - documentation: README, API docs, code comments
+# - deployment: CI/CD, staging, production
+# - process: Reviews, approvals, stakeholder signoff

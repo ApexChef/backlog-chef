@@ -1,0 +1,352 @@
+BACKLOG REFINEMENT MEETING - Definition of Done → Task Generation
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: I want to connect the Definition of Done with task generation. When we have a PBI, we should automatically generate tasks based on our DoD checklist.
+
+Tech Lead: That's smart. The Definition of Done is essentially a quality checklist - every item on that list becomes a verifiable task.
+
+Product Owner: Exactly! And this ties into Definition of Ready as well. The DoR tells us if a PBI is ready to START work, and the DoD tells us when it's DONE.
+
+Tech Lead: So we'd have two different task generation modes:
+1. **Pre-work tasks** (based on Definition of Ready gaps)
+2. **Implementation tasks** (based on Definition of Done requirements)
+
+Product Owner: Right. Let me provide you with our actual Definition of Done, and you can design how to turn that into tasks.
+
+---
+
+## FEATURE: Definition of Done → Task Generation
+
+### User Story
+As a developer, I want tasks automatically generated from the Definition of Done so that I don't miss any completion criteria when implementing a PBI.
+
+### Concept
+
+When a PBI is created, the system should:
+
+1. **Check Definition of Ready (DoR)**
+   - Identify which DoR criteria are NOT met
+   - Generate "refinement tasks" to close those gaps
+   - Example: "DoR Gap: No acceptance criteria defined → Task: Define acceptance criteria with PO"
+
+2. **Generate Implementation Tasks from Definition of Done (DoD)**
+   - Read the team's DoD checklist
+   - For each DoD item, create a corresponding task
+   - Link tasks to acceptance criteria
+   - Example: "DoD: Code reviewed → Task: Request code review from team"
+
+3. **Map DoD Items to Task Types**
+   - Some DoD items are coding tasks
+   - Some are testing tasks
+   - Some are documentation tasks
+   - Some are approval/review tasks
+
+4. **Make Tasks Executable**
+   - Each task should be actionable
+   - Include acceptance criteria for the task itself
+   - Reference the agent/skill that can execute it (from Feature #003)
+
+---
+
+## Definition of Done Template
+
+**Location:** `config/definition-of-done.yaml`
+
+The Product Owner will provide the actual DoD. Here's a template structure:
+
+```yaml
+definition_of_done:
+  # Code Quality
+  - id: dod-001
+    category: code_quality
+    requirement: "Code follows project coding standards"
+    verification: "Linting passes without errors"
+    automated: true
+    task_template: "Run linter and fix all violations"
+    agent_hint: "Can be automated with bash (npm run lint)"
+
+  - id: dod-002
+    category: code_quality
+    requirement: "Code is reviewed by at least one team member"
+    verification: "PR approved by reviewer"
+    automated: false
+    task_template: "Request code review from {reviewer}"
+    agent_hint: "Requires human review"
+
+  # Testing
+  - id: dod-003
+    category: testing
+    requirement: "Unit tests written for new code"
+    verification: "Test coverage >= 80%"
+    automated: true
+    task_template: "Write unit tests for {component}"
+    agent_hint: "pact-test-engineer agent"
+
+  - id: dod-004
+    category: testing
+    requirement: "All tests pass"
+    verification: "npm test exits 0"
+    automated: true
+    task_template: "Run test suite and ensure all tests pass"
+    agent_hint: "Can be automated with bash (npm test)"
+
+  # Documentation
+  - id: dod-005
+    category: documentation
+    requirement: "README updated with new features"
+    verification: "README.md modified in PR"
+    automated: false
+    task_template: "Update README.md with {feature} documentation"
+    agent_hint: "documentor agent"
+
+  - id: dod-006
+    category: documentation
+    requirement: "API documentation generated"
+    verification: "JSDoc comments present"
+    automated: true
+    task_template: "Add JSDoc comments to public APIs"
+    agent_hint: "documentor agent"
+
+  # Deployment
+  - id: dod-007
+    category: deployment
+    requirement: "Code deployed to staging environment"
+    verification: "Staging deployment successful"
+    automated: true
+    task_template: "Deploy to staging and verify"
+    agent_hint: "Requires CI/CD pipeline"
+
+  - id: dod-008
+    category: deployment
+    requirement: "Product Owner accepts the work"
+    verification: "PO approval in ticket"
+    automated: false
+    task_template: "Demo to PO and obtain acceptance"
+    agent_hint: "Requires human approval"
+```
+
+---
+
+## Definition of Ready Template
+
+**Location:** `config/definition-of-ready.yaml`
+
+```yaml
+definition_of_ready:
+  - id: dor-001
+    requirement: "User story is clear and understandable"
+    verification: "Story follows 'As a... I want... so that...' format"
+    refinement_task: "Rewrite user story in standard format"
+
+  - id: dor-002
+    requirement: "Acceptance criteria are defined"
+    verification: "At least 3 acceptance criteria listed"
+    refinement_task: "Work with PO to define acceptance criteria"
+
+  - id: dor-003
+    requirement: "Dependencies identified"
+    verification: "Blocking issues listed in 'depends_on' field"
+    refinement_task: "Identify and document all dependencies"
+
+  - id: dor-004
+    requirement: "Effort estimated"
+    verification: "Story points assigned"
+    refinement_task: "Conduct planning poker to estimate effort"
+
+  - id: dor-005
+    requirement: "Technical approach discussed"
+    verification: "Notes field contains technical approach"
+    refinement_task: "Tech lead documents proposed approach"
+```
+
+---
+
+## Task Generation Logic
+
+### Step 1: Check Definition of Ready
+```
+For each DoR criterion:
+  IF criterion NOT met in PBI:
+    CREATE refinement_task
+    SET priority = HIGH
+    SET type = "pre_work"
+```
+
+### Step 2: Generate Implementation Tasks from DoD
+```
+For each DoD criterion:
+  IF criterion is automated:
+    CREATE automated_task
+    SET agent = DoD.agent_hint
+  ELSE:
+    CREATE manual_task
+    SET requires_human = true
+
+  SET category = DoD.category
+  SET verification = DoD.verification
+```
+
+### Step 3: Map Tasks to Acceptance Criteria
+```
+For each acceptance_criterion in PBI:
+  IDENTIFY related DoD items
+  CREATE implementation_task
+  LINK to acceptance_criterion
+
+Example:
+  AC: "User can install globally with npm install -g"
+  → Task: "Configure package.json for global installation"
+  → DoD: dod-001 (linting), dod-003 (unit tests), dod-007 (deployment)
+```
+
+---
+
+## Output Format: Generated Tasks
+
+```json
+{
+  "pbi": {
+    "id": "PBI-001",
+    "title": "Global CLI for backlog-chef",
+    ...
+  },
+  "tasks": {
+    "pre_work": [
+      {
+        "id": "TASK-001",
+        "type": "refinement",
+        "title": "Define technical approach",
+        "description": "Tech lead documents proposed OCLIF implementation approach",
+        "dor_reference": "dor-005",
+        "status": "todo",
+        "requires_human": true
+      }
+    ],
+    "implementation": [
+      {
+        "id": "TASK-002",
+        "type": "code",
+        "title": "Configure package.json for global installation",
+        "description": "Update package.json with bin field and proper entry point",
+        "acceptance_criteria_ref": "AC-001",
+        "dod_references": ["dod-001", "dod-002"],
+        "category": "code_quality",
+        "agent_hint": "pact-backend-coder",
+        "estimated_effort": "1 hour",
+        "status": "todo"
+      },
+      {
+        "id": "TASK-003",
+        "type": "test",
+        "title": "Write unit tests for CLI command parsing",
+        "description": "Test all CLI flags and input format handling",
+        "acceptance_criteria_ref": "AC-002",
+        "dod_references": ["dod-003", "dod-004"],
+        "category": "testing",
+        "agent_hint": "pact-test-engineer",
+        "estimated_effort": "2 hours",
+        "status": "todo"
+      },
+      {
+        "id": "TASK-004",
+        "type": "documentation",
+        "title": "Update README with CLI usage examples",
+        "description": "Add installation and usage section to README.md",
+        "acceptance_criteria_ref": "AC-008",
+        "dod_references": ["dod-005", "dod-006"],
+        "category": "documentation",
+        "agent_hint": "documentor",
+        "estimated_effort": "30 minutes",
+        "status": "todo"
+      }
+    ],
+    "verification": [
+      {
+        "id": "TASK-005",
+        "type": "review",
+        "title": "Request code review",
+        "description": "Get PR reviewed and approved",
+        "dod_references": ["dod-002"],
+        "requires_human": true,
+        "status": "todo"
+      },
+      {
+        "id": "TASK-006",
+        "type": "acceptance",
+        "title": "Demo to Product Owner",
+        "description": "Show working CLI to PO and get acceptance",
+        "dod_references": ["dod-008"],
+        "requires_human": true,
+        "status": "todo"
+      }
+    ]
+  },
+  "task_summary": {
+    "total_tasks": 6,
+    "pre_work_tasks": 1,
+    "implementation_tasks": 3,
+    "verification_tasks": 2,
+    "automated_tasks": 3,
+    "manual_tasks": 3,
+    "estimated_total_effort": "4.5 hours"
+  }
+}
+```
+
+---
+
+## Acceptance Criteria
+
+**For this Feature:**
+
+1. System reads Definition of Ready from `config/definition-of-ready.yaml`
+2. System reads Definition of Done from `config/definition-of-done.yaml`
+3. During Step 7 (Readiness Checker), system generates tasks based on DoR/DoD
+4. Tasks are categorized: pre_work, implementation, verification
+5. Each task references the DoR/DoD item it satisfies
+6. Tasks that can be automated include agent hints
+7. Tasks that require human input are flagged
+8. Task output is included in PBI JSON
+9. Tasks are linked to acceptance criteria where applicable
+10. Summary shows total effort estimate
+
+---
+
+## Questions for Product Owner
+
+1. **What's your actual Definition of Done?** (Please provide the list)
+2. **What's your actual Definition of Ready?** (Please provide the list)
+3. **Task granularity**: Should we break down tasks further, or keep them high-level?
+4. **Effort estimation**: Should tasks include time estimates? If so, how to calculate?
+5. **Task dependencies**: Should we show task order/dependencies?
+6. **Integration**: Where do these tasks go? (GitHub Issues? Azure DevOps? Just JSON?)
+
+---
+
+## Implementation Notes
+
+- Add new pipeline step: "Step 7.5: Generate Tasks from DoD"
+- Or integrate into existing Step 7 (Readiness Checker)
+- DoR check could be part of Step 7 too (identify gaps)
+- Need to decide: YAML or JSON for DoR/DoD config files?
+- Consider task template variables: {component}, {feature}, {reviewer}
+
+---
+
+## Dependencies
+
+- Feature #003 (Agent/Skill awareness) - to populate agent hints
+- DoR/DoD definitions from Product Owner
+- Decision on task management integration (GitHub, Azure DevOps, etc.)
+
+---
+
+## Success Metrics
+
+- % of DoD items that generate valid tasks
+- Developer feedback on task accuracy/usefulness
+- Reduction in "forgot to update README" type issues
+- Time saved in task planning per PBI

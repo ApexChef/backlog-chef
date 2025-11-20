@@ -1,0 +1,250 @@
+BACKLOG REFINEMENT MEETING - Agent & Skill-Aware PBI System
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: I've been thinking about the end goal here. We're generating PBIs, but ultimately I want Claude Code to execute the development work. For that to work, PBIs need to tell Claude Code WHAT it's allowed to do, WHICH agents to use, and WHICH skills to apply.
+
+Tech Lead: So you're talking about embedding execution metadata directly into the PBI structure?
+
+Product Owner: Exactly! Right now, when I tell Claude Code to "implement this PBI," it has to figure out everything from scratch. But what if the PBI already knew:
+1. Which Claude Code agents are suitable for this work
+2. Which skills from the skill library are needed
+3. What boundaries and responsibilities Claude has
+4. Which tools it's allowed to use
+
+Tech Lead: That's a paradigm shift. Instead of "here's a task, figure it out," it becomes "here's a task with a pre-mapped execution plan."
+
+Product Owner: Right! And here's the key question: When Backlog Chef creates a PBI, should it analyze the Claude Code skill library and agent registry to suggest which ones apply?
+
+Tech Lead: Interesting. We'd need to either:
+- Option A: Real-time lookup of skills/agents during PBI generation
+- Option B: Create a local index/cache of available skills and agents
+- Option C: Shallow copy of skill descriptions into Backlog Chef's knowledge base
+
+Product Owner: I'm leaning toward Option B or C. We don't want to slow down PBI generation with constant lookups. But we need enough context to make intelligent suggestions.
+
+Tech Lead: What happens when Backlog Chef encounters a PBI that doesn't match ANY existing agent or skill?
+
+Product Owner: THAT'S the cool part! The system should flag it and say:
+"⚠️ No suitable agent found for this task. Recommend creating new agent: [proposed name]"
+"⚠️ No matching skill found. Recommend creating new skill: [proposed name]"
+
+Tech Lead: So the human-in-the-loop reviews these recommendations and either:
+1. Creates the new agent/skill with proper naming conventions and corporate standards
+2. Realizes this task should be reassigned to an existing agent
+3. Breaks down the PBI further
+
+Product Owner: Exactly! The human provides the guardrails, corporate standards, and naming conventions. The AI does the pattern matching and execution.
+
+---
+
+FEATURE BREAKDOWN:
+
+## Feature 1: Skill Library Integration
+
+**User Story:**
+As Backlog Chef, I want to analyze the Claude Code skill library when generating PBIs so that I can recommend which skills are needed for implementation.
+
+**Acceptance Criteria:**
+- Backlog Chef maintains a local index of Claude Code skills
+- Each skill index entry includes: name, description, use cases, keywords
+- During PBI generation (Step 4 or 6), analyze PBI content against skill index
+- Recommend 1-3 most relevant skills in PBI output
+- Flag PBIs that don't match any skills with "Recommend new skill creation"
+- Provide reasoning for skill recommendations
+
+**Technical Approach:**
+- Create `skills-index.json` in Backlog Chef's config folder
+- Parse `.claude/skills/*.md` files (or read from Claude Code Skills API if available)
+- Extract skill name, description, use case keywords
+- During Step 4 (Enrich with Context), add skill matching logic
+- Output format: `pbi.execution.recommended_skills: [...]`
+
+**Notes:**
+- Initial sync: Manual or one-time script to build skills index
+- Refresh strategy: Periodic (weekly?) or on-demand
+- Consider version tracking (skill library might evolve)
+
+---
+
+## Feature 2: AI Agent Registry Integration
+
+**User Story:**
+As Backlog Chef, I want to identify which Claude Code agents can execute a PBI so that Claude Code knows which agent to invoke.
+
+**Acceptance Criteria:**
+- Backlog Chef maintains a local registry of Claude Code agents
+- Each agent entry includes: name, description, capabilities, tool access
+- During PBI generation, analyze task type and suggest suitable agents
+- Recommend primary agent and optional secondary agents
+- Flag tasks requiring new agent creation
+- Include agent boundaries and responsibilities in PBI
+
+**Technical Approach:**
+- Create `agents-registry.json` in Backlog Chef's config folder
+- Extract agent metadata from Claude Code configuration
+- Agent fields: name, description, tools_available, task_types, constraints
+- Match PBI characteristics to agent capabilities
+- Output format: `pbi.execution.recommended_agents: [{primary: ..., secondary: [...]}]`
+
+**Notes:**
+- Agent types to index: pact-*, clean-apex-architect, documentor, etc.
+- Include tool permissions (Read, Write, Edit, Bash, etc.)
+- Consider multi-agent workflows (e.g., architect → coder → tester)
+
+---
+
+## Feature 3: Execution Boundaries in PBI
+
+**User Story:**
+As a developer using Claude Code, I want PBIs to specify what Claude is allowed to do so that execution is safe and controlled.
+
+**Acceptance Criteria:**
+- PBI includes execution boundaries section
+- Specifies allowed tools (Read, Write, Edit, Bash commands, etc.)
+- Defines file/folder scope (which parts of codebase can be modified)
+- Lists testing requirements (must run tests before commit, etc.)
+- Includes safety constraints (no destructive operations, require approval for X)
+- References relevant skills and agents
+
+**Output Structure:**
+```json
+{
+  "execution": {
+    "recommended_agents": ["pact-backend-coder", "documentor"],
+    "recommended_skills": ["typescript-development", "oclif-cli-development"],
+    "boundaries": {
+      "allowed_tools": ["Read", "Write", "Edit", "Bash"],
+      "restricted_commands": ["rm -rf", "git push --force"],
+      "file_scope": ["src/", "tests/", "README.md"],
+      "approval_required_for": ["package.json changes", "API breaking changes"]
+    },
+    "testing_requirements": {
+      "must_pass_tests": true,
+      "must_build": true,
+      "coverage_threshold": 80
+    },
+    "responsibility": "Implement OCLIF CLI with global installation support"
+  }
+}
+```
+
+---
+
+## Feature 4: New Agent/Skill Recommendation
+
+**User Story:**
+As Backlog Chef, I want to detect when a PBI requires capabilities not covered by existing agents or skills so that we can expand the system intelligently.
+
+**Acceptance Criteria:**
+- During PBI analysis, compare task requirements against known agents/skills
+- Calculate "coverage score" (0-100%) for agent/skill match
+- If coverage < 60%, flag as "new agent/skill needed"
+- Provide recommendation with suggested name and description
+- Include reasoning for why existing agents/skills don't fit
+- Human reviews and creates new agent/skill with proper standards
+
+**Output Format:**
+```json
+{
+  "execution": {
+    "agent_coverage_score": 45,
+    "recommendations": [
+      {
+        "type": "new_agent",
+        "suggested_name": "salesforce-lwc-specialist",
+        "rationale": "This PBI requires Lightning Web Component expertise not covered by existing agents",
+        "capabilities_needed": ["LWC development", "Lightning testing", "Component library creation"]
+      }
+    ]
+  }
+}
+```
+
+---
+
+## Feature 5: Re-Refinement Meeting Generator
+
+**User Story:**
+As a product team, I want to automatically schedule follow-up refinement meetings for low-scoring PBIs so that we can improve quality before sprint planning.
+
+**Acceptance Criteria:**
+- After pipeline completes, group PBIs by readiness score
+- Identify PBIs with score < 70 (configurable threshold)
+- Generate "Re-Refinement Meeting" agenda with:
+  - List of PBIs needing work
+  - All open questions for each PBI
+  - All recommendations for each PBI
+  - Risk flags that need mitigation
+- Output agenda as markdown and/or meeting invite format
+- Allow updating existing PBIs (not just creating new ones)
+
+**Workflow:**
+1. First refinement meeting → generates PBIs with scores
+2. System identifies low-scoring PBIs
+3. Generates re-refinement agenda focusing on gaps
+4. Team meets, discusses open questions
+5. Run pipeline again with "update mode" to enrich existing PBIs
+6. PBI JSON gets updated with new information, re-scored
+
+**Technical Approach:**
+- Add `--update-pbi [id]` flag to pipeline
+- Pipeline recognizes existing PBI and merges new information
+- Re-run scoring, risk analysis, readiness check
+- Track PBI version history (v1, v2, etc.)
+
+---
+
+PRIORITIZATION:
+
+**Phase 1 (Foundation):**
+1. Feature 3: Execution Boundaries in PBI (enables Claude Code to work safely)
+2. Feature 1: Skill Library Integration (helps match work to capabilities)
+
+**Phase 2 (Intelligence):**
+3. Feature 2: AI Agent Registry Integration (smart agent selection)
+4. Feature 4: New Agent/Skill Recommendation (system evolution)
+
+**Phase 3 (Workflow):**
+5. Feature 5: Re-Refinement Meeting Generator (continuous improvement)
+
+---
+
+QUESTIONS FOR REFINEMENT:
+
+1. **Skill/Agent Index Format**: JSON? YAML? Database?
+2. **Sync Strategy**: Manual? Automated? Real-time API?
+3. **Version Tracking**: How to handle skill/agent evolution over time?
+4. **Override Mechanism**: Can humans override agent/skill recommendations?
+5. **Multi-Agent Workflows**: How to describe sequential agent execution (architect → coder → tester)?
+6. **Skill Namespacing**: How to organize skills (salesforce/*, typescript/*, etc.)?
+
+---
+
+DEPENDENCIES:
+
+- Claude Code Skills API (if available) for skill metadata
+- Claude Code Agent Registry (need to extract from .claude/config or similar)
+- Schema definition for execution metadata in PBI JSON
+- UI/CLI for reviewing new agent/skill recommendations
+
+---
+
+RISKS:
+
+- **Coupling Risk**: Tight coupling between Backlog Chef and Claude Code structure
+- **Maintenance Burden**: Keeping skill/agent index in sync with Claude Code
+- **Recommendation Accuracy**: False positives/negatives in agent/skill matching
+- **Complexity**: Adding too many features could make PBIs overwhelming
+
+---
+
+SUCCESS METRICS:
+
+- % of PBIs with agent/skill recommendations
+- % of recommendations accepted by humans
+- Reduction in "Claude doesn't know what to do" scenarios
+- Time saved in agent/skill selection during implementation
+- Number of new agents/skills created via recommendations

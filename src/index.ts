@@ -46,12 +46,7 @@ async function main() {
       config = createDefaultRouterConfig();
     }
 
-    // 3. Create router and orchestrator
-    console.log('Creating pipeline orchestrator...');
-    const router = new ModelRouter(providers, config);
-    const orchestrator = new PipelineOrchestrator(router);
-
-    // 4. Parse input file (supports TXT, JSON, XML)
+    // 3. Get input path
     const inputPath = process.argv[2] || path.join(__dirname, '../examples/sample-transcript.txt');
 
     if (!fs.existsSync(inputPath)) {
@@ -60,6 +55,13 @@ async function main() {
           'Usage: npm start [path/to/input.txt|.json|.xml]'
       );
     }
+
+    // 4. Create router and orchestrator with smart path detection
+    console.log('Creating pipeline orchestrator...');
+    const router = new ModelRouter(providers, config);
+    const orchestrator = new PipelineOrchestrator(router, { inputPath });
+
+    // 5. Parse input file (supports TXT, JSON, XML)
 
     console.log('Parsing input file...');
     const parser = new InputParser();
@@ -75,7 +77,7 @@ async function main() {
     // Get transcript for processing (enriched if available)
     const transcript = InputParser.getTranscriptForProcessing(parsedInput);
 
-    // 5. Execute pipeline
+    // 6. Execute pipeline
     const output = await orchestrator.execute(
       {
         transcript,
@@ -94,7 +96,7 @@ async function main() {
       }
     );
 
-    // 6. Save output
+    // 7. Save legacy output file (for backwards compatibility)
     const outputDir = path.join(__dirname, '../output');
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
@@ -105,7 +107,7 @@ async function main() {
 
     console.log(`\n✓ Output saved to: ${outputPath}\n`);
 
-    // 7. Print final cost summary
+    // 8. Print final cost summary
     router.getCostStatistics();
   } catch (error) {
     console.error('\n❌ Pipeline execution failed:', (error as Error).message);
