@@ -44,7 +44,8 @@
       "Bash(open:*)",
       "Bash(tree:*)",
       "Bash(find:*)",
-      "Bash(watch -n 5:*)"
+      "Bash(watch -n 5:*)",
+      "Skill(oclif-cli-development)"
     ],
     "deny": [],
     "ask": []

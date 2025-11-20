@@ -1,0 +1,222 @@
+{
+  "event_type": "refinement",
+  "pbis": [
+    {
+      "pbi": {
+        "id": "PBI-001",
+        "title": "As a user, I want a global CLI for backlog-chef so that I can process transcripts from anywhere on my system",
+        "description": "Implement an OCLIF-based CLI that allows global installation and command-line processing of meeting transcripts. The CLI will provide a professional interface for using the backlog-chef tool.",
+        "acceptance_criteria": [
+          "User can install globally with \"npm install -g backlog-chef\"",
+          "User can run \"backlog-chef process [file]\" to process any transcript",
+          "Command supports --format, --output, --verbose, --help flags",
+          "All three input formats (TXT, JSON, XML) work seamlessly",
+          "Auto-generated help text explains all options",
+          "\"npm start\" still works for local development",
+          "Proper error messages when files don't exist or API keys missing",
+          "Documentation updated with CLI usage examples"
+        ],
+        "notes": [
+          "Use OCLIF (Open CLI Framework)",
+          "Maintain existing pipeline logic",
+          "Version bump from 0.1.0 to 0.2.0",
+          "Future commands may include validate, analyze, and config"
+        ],
+        "mentioned_by": [
+          "Product Owner",
+          "Tech Lead",
+          "Developer"
+        ]
+      },
+      "scores": {
+        "overall_score": 92,
+        "completeness": 95,
+        "clarity": 90,
+        "actionability": 90,
+        "testability": 95,
+        "missing_elements": [
+          "Specific performance requirements",
+          "Error handling details"
+        ],
+        "strengths": [
+          "Comprehensive acceptance criteria",
+          "Clear user story with defined goal",
+          "Detailed technical approach with OCLIF",
+          "Multiple input format support",
+          "Explicit CLI command structure"
+        ],
+        "concerns": [
+          "Potential complexity in supporting multiple input formats",
+          "Need for robust error handling",
+          "Ensuring backwards compatibility"
+        ]
+      },
+      "context": {
+        "similar_work": [
+          {
+            "ref": "PBI-2023-342",
+            "title": "Create Global CLI for Project Transcript Analyzer",
+            "similarity": 88,
+            "learnings": [
+              "OCLIF provides robust CLI scaffolding",
+              "Global installation requires careful npm configuration",
+              "Implement comprehensive error handling for file processing"
+            ],
+            "link": "https://dev.azure.com/company/backlog-tools/_workitems/edit/342"
+          },
+          {
+            "ref": "PBI-2023-219",
+            "title": "Command Line Interface for Document Processing Utility",
+            "similarity": 75,
+            "learnings": [
+              "Use TypeScript for strong typing in CLI arguments",
+              "Design flexible input format parsing",
+              "Implement verbose and quiet logging modes"
+            ],
+            "link": "https://dev.azure.com/company/productivity-tools/_workitems/edit/219"
+          }
+        ],
+        "past_decisions": [
+          {
+            "ref": "ADR-2024-07",
+            "title": "Standardize CLI Development Approach",
+            "decision": "Adopt OCLIF as primary CLI framework for Node.js tools",
+            "rationale": "Provides robust command generation, extensibility, and cross-platform support",
+            "constraints": "Must support global npm installation, TypeScript typing",
+            "assigned_architect": "Elena Rodriguez",
+            "date": "2024-02-22"
+          },
+          {
+            "ref": "ADR-2023-95",
+            "title": "Command Line Tool User Experience Guidelines",
+            "decision": "Implement consistent error handling and output formatting across CLI tools",
+            "rationale": "Improve developer and user experience through standardized interfaces",
+            "constraints": "Provide clear, actionable error messages",
+            "assigned_architect": "Michael Chen",
+            "date": "2023-11-15"
+          }
+        ],
+        "technical_docs": [
+          {
+            "ref": "CONF-2024-56",
+            "title": "Enterprise CLI Development Standards",
+            "relevant_sections": [
+              "Global Package Configuration",
+              "TypeScript CLI Development",
+              "Input Validation Patterns"
+            ],
+            "content": "Guidelines for creating enterprise-grade command-line tools with focus on usability, error handling, and cross-platform compatibility",
+            "note": "Provides comprehensive template for CLI tool development",
+            "link": "https://confluence.company.com/display/DEV/CLI-Standards"
+          },
+          {
+            "ref": "CONF-2023-211",
+            "title": "OCLIF Best Practices for Enterprise Tools",
+            "relevant_sections": [
+              "Plugin Architecture",
+              "Global Installation Strategies",
+              "Command Generation Techniques"
+            ],
+            "content": "Detailed guide on leveraging OCLIF for robust, scalable CLI applications",
+            "note": "Critical reference for implementing global CLI tools",
+            "link": "https://confluence.company.com/display/ARCH/OCLIF-Guide"
+          }
+        ],
+        "risk_flags": [
+          {
+            "type": "Technical Complexity",
+            "severity": "HIGH",
+            "message": "Multiple input format support could introduce parsing challenges and increase code complexity"
+          },
+          {
+            "type": "Configuration Risk",
+            "severity": "MEDIUM",
+            "message": "Global npm installation may require careful package.json configuration to ensure proper executable path resolution"
+          },
+          {
+            "type": "Performance Concern",
+            "severity": "MEDIUM",
+            "message": "Lack of specific performance requirements could lead to inefficient transcript processing for large files"
+          },
+          {
+            "type": "Error Handling",
+            "severity": "HIGH",
+            "message": "Insufficient error handling could result in poor user experience with unclear failure modes during transcript processing"
+          }
+        ],
+        "suggestions": [
+          "Add explicit performance benchmarks for transcript processing, specifying maximum acceptable processing time per file size category",
+          "Define comprehensive error handling strategy with specific error codes and user-friendly messages for common failure scenarios like invalid file formats or permission issues",
+          "Include TypeScript type definitions for CLI command arguments and configuration to ensure strong type safety and improve developer experience",
+          "Specify the minimum required Node.js version and any critical system dependencies needed for global CLI installation",
+          "Create a detailed configuration section outlining supported transcript formats, input validation rules, and default processing behaviors"
+        ]
+      },
+      "risks": {
+        "risks": [
+          {
+            "type": "technical_debt",
+            "severity": "high",
+            "description": "Complex input format parsing across multiple transcript types could introduce significant implementation challenges and potential parsing errors",
+            "mitigation": "Create an extensible input format adapter pattern, implement comprehensive input validation, and develop a standardized parsing interface with clear error handling"
+          },
+          {
+            "type": "blocker",
+            "severity": "medium",
+            "description": "Global npm installation may encounter configuration challenges with executable path resolution and system compatibility",
+            "mitigation": "Carefully configure package.json, test installation across multiple OS environments, and provide explicit installation instructions with potential workarounds"
+          },
+          {
+            "type": "resource",
+            "severity": "medium",
+            "description": "Lack of explicit performance requirements could lead to inefficient implementation and potential scalability issues",
+            "mitigation": "Define clear performance benchmarks for transcript processing, implement profiling, and establish maximum processing time thresholds per file size category"
+          },
+          {
+            "type": "scope_creep",
+            "severity": "high",
+            "description": "Insufficient error handling strategy could expand scope through repeated refinements and user experience improvements",
+            "mitigation": "Develop comprehensive error handling framework with standardized error codes, create detailed error documentation, and implement flexible logging mechanisms"
+          }
+        ],
+        "overall_risk_level": "high"
+      },
+      "questions": [],
+      "readiness": {
+        "readiness_status": "🟡 NEEDS REFINEMENT",
+        "readiness_score": 82,
+        "blocking_issues": [
+          "Performance requirements not fully defined",
+          "Error handling details incomplete",
+          "Some high and critical unanswered questions remain"
+        ],
+        "warnings": [
+          "Potential complexity in multiple input format support",
+          "Need to ensure backwards compatibility",
+          "High overall risk level"
+        ],
+        "recommendations": [
+          "Provide detailed error handling specifications",
+          "Define specific performance benchmarks for CLI operations",
+          "Clarify and resolve remaining unanswered questions",
+          "Create a comprehensive backwards compatibility testing plan",
+          "Specify exact performance requirements for different input formats"
+        ],
+        "sprint_ready": false,
+        "estimated_refinement_time": "1 day"
+      }
+    }
+  ],
+  "metadata": {
+    "processed_at": "2025-11-20T12:04:10.299Z",
+    "total_pbis": 1,
+    "ready_count": 0,
+    "needs_refinement_count": 1,
+    "not_ready_count": 0,
+    "total_cost_usd": 0.046987200000000014,
+    "total_duration_ms": 196829,
+    "models_used": [
+      "anthropic/claude-3-5-haiku-20241022"
+    ]
+  }
+}

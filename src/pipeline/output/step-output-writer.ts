@@ -15,10 +15,13 @@ export class StepOutputWriter {
   private runId: string;
   private enabled: boolean;
 
-  constructor(outputDir: string, enabled: boolean = true) {
+  constructor(outputDir: string, enabled: boolean = true, useRunSubdir: boolean = true) {
     this.baseOutputDir = outputDir;
     this.runId = Date.now().toString();
-    this.runDir = path.join(outputDir, `run-${this.runId}`);
+
+    // If useRunSubdir is false, write directly to outputDir (for project PBIs)
+    // If useRunSubdir is true, create run-{timestamp} subdirectory (default behavior)
+    this.runDir = useRunSubdir ? path.join(outputDir, `run-${this.runId}`) : outputDir;
     this.enabled = enabled;
 
     if (this.enabled && !fs.existsSync(this.runDir)) {

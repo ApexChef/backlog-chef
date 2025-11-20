@@ -1,0 +1,112 @@
+# Definition of Ready - Salesforce Team
+#
+# Dutch: Definitie van Gereed (DoR)
+# Criteria die vervuld moeten zijn voordat een PBI in een sprint kan worden opgenomen
+#
+
+definition_of_ready:
+  # Functionele Beschrijving
+  - id: dor-sf-001
+    requirement: "Functionele beschrijving"
+    requirement_nl: "Functionele beschrijving aanwezig"
+    verification: "PBI bevat duidelijke beschrijving van gewenste functionaliteit"
+    refinement_task: "Schrijf functionele beschrijving met product owner"
+    priority: critical
+    category: functional
+
+  # Acceptatiecriteria
+  - id: dor-sf-002
+    requirement: "Acceptance criteria defined"
+    requirement_nl: "Acceptatiecriteria gedefinieerd"
+    verification: "Minimaal 3 testbare acceptatiecriteria aanwezig"
+    refinement_task: "Definieer testbare acceptatiecriteria met PO en key-user"
+    priority: critical
+    category: functional
+
+  # Afhankelijkheden
+  - id: dor-sf-003
+    requirement: "Dependencies identified"
+    requirement_nl: "Afhankelijkheden duidelijk"
+    verification: "Alle technische en functionele afhankelijkheden gedocumenteerd"
+    refinement_task: "Identificeer en documenteer alle afhankelijkheden"
+    priority: high
+    category: technical
+
+  # Oplossingsrichting
+  - id: dor-sf-004
+    requirement: "Solution direction defined"
+    requirement_nl: "Oplossingsrichting (technische refinement)"
+    verification: "Technische aanpak besproken en gedocumenteerd in notes"
+    refinement_task: "Technisch refinement met tech lead - definieer oplossingsrichting"
+    priority: high
+    category: technical
+
+  # Test Script en Data
+  - id: dor-sf-005
+    requirement: "Test script and test data ready"
+    requirement_nl: "Test script en testdata klaar"
+    verification: "Test script geschreven en testdata voorbereid"
+    refinement_task: "Maak test script en bereid testdata voor"
+    priority: high
+    category: testing
+
+  # Nederlandse Vertaling
+  - id: dor-sf-006
+    requirement: "Dutch translation provided"
+    requirement_nl: "Vertaling naar Nederlands bijgeleverd"
+    verification: "Alle UI labels en berichten hebben Nederlandse vertaling"
+    refinement_task: "Lever Nederlandse vertalingen aan voor alle teksten"
+    priority: medium
+    category: localization
+
+  # Proces
+  - id: dor-sf-007
+    requirement: "Process concept defined"
+    requirement_nl: "Concept proces"
+    verification: "Proces flow gedocumenteerd of aangepast"
+    refinement_task: "Documenteer proces flow met proces analist"
+    priority: medium
+    category: process
+
+  # Demo Strategie
+  - id: dor-sf-008
+    requirement: "Demo approach defined"
+    requirement_nl: "Hoe gaan we deze story demonstreren?"
+    verification: "Demo scenario beschreven"
+    refinement_task: "Definieer demo scenario met PO"
+    priority: medium
+    category: process
+
+  # Key-user Akkoord
+  - id: dor-sf-009
+    requirement: "Key-user approval obtained"
+    requirement_nl: "Key-user moet akkoord zijn"
+    verification: "Key-user heeft story gereviewed en akkoord gegeven"
+    refinement_task: "Review story met key-user en verkrijg akkoord"
+    priority: high
+    category: approval
+
+  # Story Points
+  - id: dor-sf-010
+    requirement: "Story points assigned"
+    requirement_nl: "Voorzien van Story points"
+    verification: "Story points toegekend via planning poker"
+    refinement_task: "Schat inspanning met planning poker"
+    priority: high
+    category: estimation
+
+  # MoSCoW Prioriteit
+  - id: dor-sf-011
+    requirement: "MoSCoW priority defined"
+    requirement_nl: "MoSCoW prioriteit ingevuld"
+    verification: "MoSCoW prioriteit (Must/Should/Could/Won't) toegekend"
+    refinement_task: "Bepaal MoSCoW prioriteit met product owner"
+    priority: high
+    category: prioritization
+
+# Metadata
+metadata:
+  team: "Salesforce Team"
+  language: "Dutch (NL)"
+  last_updated: "2025-11-20"
+  version: "1.0"

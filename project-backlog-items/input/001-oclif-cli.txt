@@ -1,0 +1,114 @@
+BACKLOG REFINEMENT MEETING - OCLIF CLI Implementation
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude), Developer (Team)
+
+---
+
+Product Owner: Alright team, let's discuss improving our developer experience. Right now, users have to clone the repo and run "npm start" which isn't professional for a production tool. We need a proper CLI.
+
+Tech Lead: I completely agree. The current approach works for development but not for end users. We should use OCLIF - the Open CLI Framework that Salesforce uses for their CLI plugins. It's battle-tested and gives us everything we need.
+
+Developer: What would the user experience look like with OCLIF?
+
+Tech Lead: Users would install globally with "npm install -g backlog-chef" and then run commands like "backlog-chef process meeting.txt" from anywhere on their system. Much more professional.
+
+Product Owner: Exactly. What commands do we need initially?
+
+Tech Lead: We should start with a "process" command as the core functionality. It takes a transcript file path as an argument and runs the full 8-step pipeline.
+
+Developer: What about configuration options? Right now everything is hardcoded.
+
+Product Owner: Good point. We should support flags. At minimum:
+- --format: Choose output format (devops, obsidian, confluence)
+- --output: Custom output directory instead of default
+- --verbose: Debug logging for troubleshooting
+- --help: Auto-generated help text
+
+Tech Lead: OCLIF generates the help text automatically based on our command definitions. We also get input validation for free.
+
+Developer: Should we support multiple input formats?
+
+Product Owner: Yes, we already support TXT, JSON, and XML in the current code. The CLI should handle all three transparently.
+
+Tech Lead: The InputParser already handles that. We just need to wire it up to the OCLIF command structure.
+
+Developer: What about backward compatibility?
+
+Product Owner: "npm start" should still work for development. But production usage becomes the global CLI. We're not breaking anything, just adding a better interface.
+
+Tech Lead: Agreed. The core pipeline code stays the same. We're just changing the entry point.
+
+Product Owner: Let me draft acceptance criteria:
+1. User can install globally with "npm install -g backlog-chef"
+2. User can run "backlog-chef process [file]" to process any transcript
+3. Command supports --format, --output, --verbose, --help flags
+4. All three input formats (TXT, JSON, XML) work seamlessly
+5. Auto-generated help text explains all options
+6. "npm start" still works for local development
+7. Proper error messages when files don't exist or API keys missing
+
+Developer: What about the bin configuration in package.json?
+
+Tech Lead: We'll add a bin entry pointing to the OCLIF executable. We also need to restructure the code slightly - move our main logic into src/commands/process.ts following OCLIF conventions.
+
+Product Owner: Any risks or dependencies?
+
+Tech Lead: Main risk is breaking the existing pipeline during restructuring. We should be careful not to change core logic, just wrap it in OCLIF commands. The pipeline orchestrator stays exactly the same.
+
+Developer: Do we need tests?
+
+Tech Lead: We should add basic command tests, but let's not block on comprehensive test coverage. The pipeline logic already works, we're just adding a CLI wrapper.
+
+Product Owner: How much effort is this?
+
+Tech Lead: I estimate 3-5 story points. Tasks include:
+1. Install OCLIF dependencies
+2. Create src/commands/process.ts with the process command
+3. Move current index.ts logic into the command
+4. Add bin configuration to package.json
+5. Test global installation locally with "npm link"
+6. Update README with CLI usage examples
+
+Developer: Any other commands we should plan for future?
+
+Product Owner: Eventually we'll want:
+- "backlog-chef validate [file]" - Just run readiness checks
+- "backlog-chef analyze [file]" - Show confidence scores without full processing
+- "backlog-chef config" - Manage configuration
+
+But let's not build those now. One command is enough to prove the concept.
+
+Tech Lead: Agreed. We can add more commands later as needed. OCLIF makes it easy to add new commands incrementally.
+
+Product Owner: Technical approach looks solid. Any blockers?
+
+Developer: None that I can see. This is mostly plumbing work.
+
+Tech Lead: One thing - we should update the documentation after this is done. Both the README and docs/technical/architecture.md should reflect the new CLI interface.
+
+Product Owner: Good catch. Let's add that as an acceptance criterion:
+8. Documentation updated with CLI usage examples
+
+Developer: Should we version this as a breaking change?
+
+Product Owner: No, we're adding functionality, not removing it. This can be a minor version bump - from 0.1.0 to 0.2.0.
+
+Tech Lead: Makes sense. We're still pre-1.0 so we have flexibility anyway.
+
+Product Owner: Alright, I think we have enough detail. Let's summarize:
+
+SUMMARY:
+- Feature: OCLIF-based CLI for professional command-line interface
+- User Story: As a user, I want to install backlog-chef globally and run it from anywhere, so that I don't have to clone the repo and run npm start
+- Priority: HIGH - This is essential for making the tool usable by external teams
+- Estimate: 3-5 story points
+- Dependencies: None
+- Risks: Minor - mainly avoiding breaking existing functionality during restructuring
+
+Does everyone agree this is ready for sprint planning?
+
+Developer: Yes, clear enough to implement.
+
+Tech Lead: Agreed. Let's do it.
+
+Product Owner: Great! I'll add this to the sprint backlog. Thanks everyone.
