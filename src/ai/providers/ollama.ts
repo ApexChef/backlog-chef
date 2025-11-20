@@ -107,7 +107,7 @@ export class OllamaProvider extends BaseLocalProvider {
         throw new Error(`Ollama API returned ${response.status}: ${response.statusText}`);
       }
 
-      const data: OllamaChatCompletionResponse = await response.json();
+      const data = await response.json() as OllamaChatCompletionResponse;
       const duration = Date.now() - startTime;
 
       // Extract content from first choice
@@ -249,7 +249,7 @@ export class OllamaProvider extends BaseLocalProvider {
         return [];
       }
 
-      const data: OllamaTagsResponse = await response.json();
+      const data = await response.json() as OllamaTagsResponse;
       return data.models.map((model) => model.name);
     } catch {
       return [];

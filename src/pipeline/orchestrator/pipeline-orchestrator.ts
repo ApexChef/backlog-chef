@@ -125,11 +125,35 @@ export class PipelineOrchestrator {
    * Generate final pipeline output
    */
   private generateOutput(context: PipelineContext): PipelineOutput {
+    // Use readiness assessment if available, otherwise use scored PBIs
+    const pbis = context.readinessAssessed
+      ? context.readinessAssessed.assessed_pbis
+      : context.scoredPBIs?.scored_pbis.map((item) => ({
+          pbi: item.pbi,
+          scores: item.scores,
+          context: {
+            similar_work: [],
+            past_decisions: [],
+            technical_docs: [],
+            risk_flags: [],
+            suggestions: [],
+          },
+          risks: { risks: [], overall_risk_level: 'low' as const },
+          questions: [],
+          readiness: {
+            readiness_status: '🟡 NEEDS REFINEMENT' as const,
+            readiness_score: item.scores.overall_score,
+            blocking_issues: [],
+            warnings: [],
+            recommendations: [],
+            sprint_ready: false,
+          },
+        })) || [];
+
     // Count readiness statuses
-    // TODO: Update when readiness checker is implemented
-    const readyCount = 0;
-    const needsRefinementCount = 0;
-    const notReadyCount = 0;
+    const readyCount = pbis.filter((p) => p.readiness.readiness_status === '🟢 READY').length;
+    const needsRefinementCount = pbis.filter((p) => p.readiness.readiness_status === '🟡 NEEDS REFINEMENT').length;
+    const notReadyCount = pbis.filter((p) => p.readiness.readiness_status === '🔴 NOT READY').length;
 
     // Get total duration
     const totalDuration = Date.now() - context.startTime;
@@ -139,22 +163,7 @@ export class PipelineOrchestrator {
 
     return {
       event_type: context.eventDetection?.event_type || 'unknown',
-      pbis: context.scoredPBIs?.scored_pbis.map((item) => ({
-        pbi: item.pbi,
-        scores: item.scores,
-        context: {}, // TODO: Add when context enrichment is implemented
-        risks: { risks: [], overall_risk_level: 'low' }, // TODO: Add when risk checking is implemented
-        questions: [], // TODO: Add when question generation is implemented
-        readiness: {
-          // TODO: Add when readiness checker is implemented
-          readiness_status: '🟡 NEEDS REFINEMENT',
-          readiness_score: item.scores.overall_score,
-          blocking_issues: [],
-          warnings: [],
-          recommendations: [],
-          sprint_ready: false,
-        },
-      })) || [],
+      pbis,
       metadata: {
         processed_at: new Date().toISOString(),
         total_pbis: context.extractedCandidates?.total_found || 0,
