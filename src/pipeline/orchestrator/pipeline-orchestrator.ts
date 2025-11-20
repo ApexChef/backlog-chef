@@ -15,7 +15,10 @@ import { PipelineStep } from '../steps/base-step';
 import { EventDetectionStep } from '../steps/step1-event-detection';
 import { ExtractCandidatesStep } from '../steps/step2-extract-candidates';
 import { ScoreConfidenceStep } from '../steps/step3-score-confidence';
+import { EnrichContextStep } from '../steps/step4-enrich-context';
+import { CheckRisksStep } from '../steps/step5-check-risks';
 import { GenerateProposalsStep } from '../steps/step6-generate-proposals';
+import { ReadinessCheckerStep } from '../steps/step7-readiness-checker';
 
 /**
  * Main pipeline orchestrator
@@ -37,8 +40,11 @@ export class PipelineOrchestrator {
       new EventDetectionStep(),
       new ExtractCandidatesStep(),
       new ScoreConfidenceStep(),
+      new EnrichContextStep(),
+      new CheckRisksStep(),
       new GenerateProposalsStep(),
-      // TODO: Add remaining steps (4, 5, 7) as they're implemented
+      new ReadinessCheckerStep(),
+      // Step 8 (Final Output) is handled by generateOutput()
     ];
   }
 
