@@ -14,6 +14,8 @@ export interface PipelineInput {
     meeting_duration?: string;
     participants?: string[];
     source?: string;
+    // Allow any additional metadata from input parsers (Fireflies, etc.)
+    [key: string]: any;
   };
 }
 
@@ -71,13 +73,59 @@ export interface ScoreConfidenceResult {
 }
 
 /**
+ * Similar work reference from Step 4
+ */
+export interface SimilarWork {
+  ref: string;
+  title: string;
+  similarity: number;
+  learnings: string[];
+  link: string;
+}
+
+/**
+ * Past decision from Step 4
+ */
+export interface PastDecision {
+  ref: string;
+  title: string;
+  decision: string;
+  rationale: string;
+  constraints?: string;
+  assigned_architect?: string;
+  date?: string;
+}
+
+/**
+ * Technical documentation reference from Step 4
+ */
+export interface TechnicalDoc {
+  ref: string;
+  title: string;
+  relevant_sections?: string[];
+  content?: string;
+  note?: string;
+  link: string;
+}
+
+/**
+ * Risk flag from Step 4
+ */
+export interface RiskFlag {
+  type: string;
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  message: string;
+}
+
+/**
  * Context enrichment from Step 4
  */
 export interface ContextEnrichment {
-  similar_work?: string[];
-  related_decisions?: string[];
-  technical_context?: string;
-  dependencies?: string[];
+  similar_work: SimilarWork[];
+  past_decisions: PastDecision[];
+  technical_docs: TechnicalDoc[];
+  risk_flags: RiskFlag[];
+  suggestions: string[];
 }
 
 /**

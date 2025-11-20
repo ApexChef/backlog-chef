@@ -4,6 +4,8 @@
  * Coordinates execution of all pipeline steps with the AI router
  */
 
+import fs from 'fs';
+import path from 'path';
 import { ModelRouter } from '../../ai/router';
 import {
   PipelineInput,
@@ -15,7 +17,12 @@ import { PipelineStep } from '../steps/base-step';
 import { EventDetectionStep } from '../steps/step1-event-detection';
 import { ExtractCandidatesStep } from '../steps/step2-extract-candidates';
 import { ScoreConfidenceStep } from '../steps/step3-score-confidence';
+import { EnrichContextStep } from '../steps/step4-enrich-context';
+import { CheckRisksStep } from '../steps/step5-check-risks';
 import { GenerateProposalsStep } from '../steps/step6-generate-proposals';
+import { ReadinessCheckerStep } from '../steps/step7-readiness-checker';
+import { FormatOutputStep } from '../steps/step8-format-output';
+import { StepOutputWriter, PBIOutputWriter, HTMLFormatter } from '../output';
 
 /**
  * Main pipeline orchestrator
@@ -23,10 +30,23 @@ import { GenerateProposalsStep } from '../steps/step6-generate-proposals';
 export class PipelineOrchestrator {
   private router: ModelRouter;
   private steps: PipelineStep[];
+  private stepWriter?: StepOutputWriter;
+  private pbiWriter?: PBIOutputWriter;
+  private htmlFormatter?: HTMLFormatter;
 
-  constructor(router: ModelRouter) {
+  constructor(router: ModelRouter, options?: { outputDir?: string; writeStepOutputs?: boolean }) {
     this.router = router;
     this.steps = this.initializeSteps();
+
+    // Initialize output writers if enabled
+    if (options?.writeStepOutputs !== false) {
+      const outputDir = options?.outputDir || 'output';
+      this.stepWriter = new StepOutputWriter(outputDir, true);
+      const runId = this.stepWriter.getRunId();
+      const runDir = this.stepWriter.getRunDir();
+      this.pbiWriter = new PBIOutputWriter(runDir, runId, true);
+      this.htmlFormatter = new HTMLFormatter(runDir, runId);
+    }
   }
 
   /**
@@ -37,8 +57,11 @@ export class PipelineOrchestrator {
       new EventDetectionStep(),
       new ExtractCandidatesStep(),
       new ScoreConfidenceStep(),
+      new EnrichContextStep(),
+      new CheckRisksStep(),
       new GenerateProposalsStep(),
-      // TODO: Add remaining steps (4, 5, 7) as they're implemented
+      new ReadinessCheckerStep(),
+      new FormatOutputStep(),
     ];
   }
 
@@ -78,10 +101,34 @@ export class PipelineOrchestrator {
 
         // Execute step
         currentContext = await step.execute(currentContext, this.router);
+
+        // Write step output
+        if (this.stepWriter) {
+          this.stepWriter.writeStepOutput(step.name, currentContext);
+        }
       }
 
       // Generate final output
       const output = this.generateOutput(currentContext);
+
+      // Write individual PBI files
+      if (this.pbiWriter) {
+        this.pbiWriter.writePBIs(output);
+      }
+
+      // Write final summary JSON
+      if (this.stepWriter) {
+        const summaryPath = path.join(this.stepWriter.getRunDir(), 'summary.json');
+        fs.writeFileSync(summaryPath, JSON.stringify(output, null, 2), 'utf-8');
+        console.log(`\n📊 Summary: ${summaryPath}`);
+      }
+
+      // Generate HTML preview
+      if (this.htmlFormatter) {
+        const htmlPath = this.htmlFormatter.generate(output);
+        console.log(`🌐 HTML Preview: ${htmlPath}`);
+        console.log(`   Open in browser: file://${htmlPath}\n`);
+      }
 
       // Print summary
       this.printSummary(output);
@@ -119,11 +166,35 @@ export class PipelineOrchestrator {
    * Generate final pipeline output
    */
   private generateOutput(context: PipelineContext): PipelineOutput {
+    // Use readiness assessment if available, otherwise use scored PBIs
+    const pbis = context.readinessAssessed
+      ? context.readinessAssessed.assessed_pbis
+      : context.scoredPBIs?.scored_pbis.map((item) => ({
+          pbi: item.pbi,
+          scores: item.scores,
+          context: {
+            similar_work: [],
+            past_decisions: [],
+            technical_docs: [],
+            risk_flags: [],
+            suggestions: [],
+          },
+          risks: { risks: [], overall_risk_level: 'low' as const },
+          questions: [],
+          readiness: {
+            readiness_status: '🟡 NEEDS REFINEMENT' as const,
+            readiness_score: item.scores.overall_score,
+            blocking_issues: [],
+            warnings: [],
+            recommendations: [],
+            sprint_ready: false,
+          },
+        })) || [];
+
     // Count readiness statuses
-    // TODO: Update when readiness checker is implemented
-    const readyCount = 0;
-    const needsRefinementCount = 0;
-    const notReadyCount = 0;
+    const readyCount = pbis.filter((p) => p.readiness.readiness_status === '🟢 READY').length;
+    const needsRefinementCount = pbis.filter((p) => p.readiness.readiness_status === '🟡 NEEDS REFINEMENT').length;
+    const notReadyCount = pbis.filter((p) => p.readiness.readiness_status === '🔴 NOT READY').length;
 
     // Get total duration
     const totalDuration = Date.now() - context.startTime;
@@ -133,22 +204,7 @@ export class PipelineOrchestrator {
 
     return {
       event_type: context.eventDetection?.event_type || 'unknown',
-      pbis: context.scoredPBIs?.scored_pbis.map((item) => ({
-        pbi: item.pbi,
-        scores: item.scores,
-        context: {}, // TODO: Add when context enrichment is implemented
-        risks: { risks: [], overall_risk_level: 'low' }, // TODO: Add when risk checking is implemented
-        questions: [], // TODO: Add when question generation is implemented
-        readiness: {
-          // TODO: Add when readiness checker is implemented
-          readiness_status: '🟡 NEEDS REFINEMENT',
-          readiness_score: item.scores.overall_score,
-          blocking_issues: [],
-          warnings: [],
-          recommendations: [],
-          sprint_ready: false,
-        },
-      })) || [],
+      pbis,
       metadata: {
         processed_at: new Date().toISOString(),
         total_pbis: context.extractedCandidates?.total_found || 0,

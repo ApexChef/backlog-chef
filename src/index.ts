@@ -4,11 +4,16 @@
  * Production implementation of the Backlog Intelligence system
  */
 
+// Load environment variables from .env file
+import dotenv from 'dotenv';
+dotenv.config();
+
 import fs from 'fs';
 import path from 'path';
 import { createProviderRegistry, loadRouterConfig } from './ai/config';
 import { ModelRouter } from './ai/router';
 import { PipelineOrchestrator } from './pipeline';
+import { InputParser } from './pipeline/input';
 
 /**
  * Example usage of the Backlog Chef pipeline
@@ -46,25 +51,35 @@ async function main() {
     const router = new ModelRouter(providers, config);
     const orchestrator = new PipelineOrchestrator(router);
 
-    // 4. Load example transcript (or use command line argument)
-    const transcriptPath = process.argv[2] || path.join(__dirname, '../examples/sample-transcript.txt');
+    // 4. Parse input file (supports TXT, JSON, XML)
+    const inputPath = process.argv[2] || path.join(__dirname, '../examples/sample-transcript.txt');
 
-    if (!fs.existsSync(transcriptPath)) {
+    if (!fs.existsSync(inputPath)) {
       throw new Error(
-        `Transcript file not found: ${transcriptPath}\n` +
-          'Usage: npm start [path/to/transcript.txt]'
+        `Input file not found: ${inputPath}\n` +
+          'Usage: npm start [path/to/input.txt|.json|.xml]'
       );
     }
 
-    const transcript = fs.readFileSync(transcriptPath, 'utf-8');
+    console.log('Parsing input file...');
+    const parser = new InputParser();
+    const parsedInput = parser.parse(inputPath);
+
+    // Print input context summary
+    const contextSummary = InputParser.buildContextSummary(parsedInput);
+    if (contextSummary) {
+      console.log('\nInput Context:');
+      console.log(contextSummary);
+    }
+
+    // Get transcript for processing (enriched if available)
+    const transcript = InputParser.getTranscriptForProcessing(parsedInput);
 
     // 5. Execute pipeline
     const output = await orchestrator.execute(
       {
         transcript,
-        metadata: {
-          source: transcriptPath,
-        },
+        metadata: parsedInput.metadata as any, // Extended metadata from input parsers
       },
       {
         // Pipeline options

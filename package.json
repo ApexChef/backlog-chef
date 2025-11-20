@@ -1,0 +1,43 @@
+{
+  "name": "backlog-chef",
+  "version": "0.1.0",
+  "description": "AI-powered system for transforming meeting transcripts into high-quality Product Backlog Items",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "clean": "rm -rf dist",
+    "test": "echo \"Tests not yet implemented\" && exit 0"
+  },
+  "keywords": [
+    "scrum",
+    "agile",
+    "pbi",
+    "product-backlog",
+    "ai",
+    "llm",
+    "meeting-transcripts"
+  ],
+  "author": "Backlog Chef Team",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.7.9",
+    "dotenv": "^17.2.3",
+    "js-yaml": "^4.1.0",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

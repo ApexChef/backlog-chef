@@ -1,0 +1,87 @@
+# Minimal PBI Extraction Configuration
+#
+# This profile contains ONLY the mandatory dependencies required to extract
+# user stories (PBIs) from a meeting transcript.
+#
+# Use this when:
+# - You need quick extraction without analysis
+# - Cost optimization is critical
+# - You'll refine PBIs manually later
+# - You want the fastest possible processing
+
+name: minimal-pbi-extraction
+description: Extract basic user stories with minimal processing
+
+# Only the absolutely required steps
+enabled_steps:
+  - detect_event_type    # Step 1: Required to know meeting type
+  - extract_candidates   # Step 2: Required to get PBIs from transcript
+
+# All other steps are disabled
+disabled_steps:
+  - score_confidence     # Optional: Quality scoring
+  - enrich_context       # Optional: Historical context
+  - check_risks          # Optional: Risk analysis
+  - generate_proposals   # Optional: Questions generation
+  - readiness_checker    # Optional: Sprint readiness
+  - format_output        # Optional: HTML/Markdown output
+
+# What you get with this configuration
+output:
+  event_type: true          # Meeting type (refinement, planning, etc.)
+  total_pbis: true          # Count of extracted PBIs
+  pbis:
+    - id: true              # PBI-001, PBI-002, etc.
+    - title: true           # User story title
+    - description: true     # Full description
+    - user_persona: true    # Who this is for
+    - acceptance_criteria: true  # Success conditions
+    - technical_notes: true # Implementation hints
+
+# What you DON'T get (disabled steps)
+excluded_output:
+  - quality_scores        # From score_confidence
+  - completeness_metrics  # From score_confidence
+  - similar_work         # From enrich_context
+  - past_decisions       # From enrich_context
+  - technical_docs       # From enrich_context
+  - risk_flags           # From enrich_context
+  - risks                # From check_risks
+  - questions            # From generate_proposals
+  - readiness_assessment # From readiness_checker
+  - html_preview         # From format_output
+
+# Performance characteristics
+performance:
+  estimated_cost_usd: 0.01 - 0.02
+  estimated_time_seconds: 5 - 10
+  cost_savings_vs_complete: "80-90%"
+  time_savings_vs_complete: "95%"
+
+# Dependencies enforced by this configuration
+dependencies:
+  step_1_detect_event_type:
+    depends_on: ["transcript"]
+    provides: ["event_type", "confidence"]
+
+  step_2_extract_candidates:
+    depends_on: ["event_type"]
+    provides: ["candidates", "total_found"]
+
+# Example usage
+usage:
+  cli: "npm start -- --profile minimal"
+  code: |
+    const output = await orchestrator.execute(input, {
+      steps: {
+        only: ['detect_event_type', 'extract_candidates']
+      }
+    });
+
+# When to upgrade to more complete profiles
+upgrade_when:
+  - "You need to know PBI quality/completeness"
+  - "You want to identify risks or dependencies"
+  - "You need sprint-readiness assessment"
+  - "You want actionable questions for refinement"
+  - "You need beautiful HTML output for stakeholders"

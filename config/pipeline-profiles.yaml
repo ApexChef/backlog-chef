@@ -1,0 +1,192 @@
+# Pipeline Profiles
+#
+# Different pipeline configurations for various use cases
+# Each profile defines which steps to run and their dependencies
+
+profiles:
+  # Minimal profile - just extract PBIs
+  minimal:
+    description: "Extract basic user stories from meeting transcript"
+    enabled_steps:
+      - detect_event_type      # Required: Know meeting type
+      - extract_candidates     # Required: Get PBIs from transcript
+
+    use_cases:
+      - "Quick extraction of PBIs during live meeting"
+      - "Initial transcript processing for review"
+      - "Low-cost processing for large volumes"
+
+    output_includes:
+      - event_type
+      - candidate_pbis
+
+    estimated_cost: "$0.01 - 0.02 per meeting"
+    estimated_time: "5-10 seconds"
+
+  # Basic profile - extract and score
+  basic:
+    description: "Extract user stories with quality scoring"
+    enabled_steps:
+      - detect_event_type      # Required: Know meeting type
+      - extract_candidates     # Required: Get PBIs from transcript
+      - score_confidence       # Assess quality of each PBI
+
+    use_cases:
+      - "Standard PBI extraction with quality metrics"
+      - "Identify which PBIs need refinement"
+      - "Get completeness assessment"
+
+    output_includes:
+      - event_type
+      - candidate_pbis
+      - quality_scores
+      - completeness_metrics
+
+    estimated_cost: "$0.02 - 0.04 per meeting"
+    estimated_time: "15-30 seconds"
+
+  # Enhanced profile - add context and questions
+  enhanced:
+    description: "Extract PBIs with context enrichment and actionable questions"
+    enabled_steps:
+      - detect_event_type      # Required: Know meeting type
+      - extract_candidates     # Required: Get PBIs from transcript
+      - score_confidence       # Assess quality
+      - enrich_context         # Add similar work, docs, flags
+      - generate_proposals     # Create questions with answers
+
+    use_cases:
+      - "Detailed PBI analysis with historical context"
+      - "Generate questions for Product Owner"
+      - "Find similar past work and decisions"
+
+    output_includes:
+      - event_type
+      - candidate_pbis
+      - quality_scores
+      - context_enrichment
+      - suggested_questions
+
+    estimated_cost: "$0.08 - 0.15 per meeting"
+    estimated_time: "60-120 seconds"
+
+  # Complete profile - full pipeline (default)
+  complete:
+    description: "Full pipeline with sprint-readiness assessment"
+    enabled_steps:
+      - detect_event_type      # Required: Know meeting type
+      - extract_candidates     # Required: Get PBIs from transcript
+      - score_confidence       # Assess quality
+      - enrich_context         # Add similar work, docs, flags
+      - check_risks            # Identify blockers and dependencies
+      - generate_proposals     # Create questions with answers
+      - readiness_checker      # Validate against Definition of Ready
+      - format_output          # Generate HTML, Markdown, etc.
+
+    use_cases:
+      - "Sprint planning preparation"
+      - "Complete backlog refinement analysis"
+      - "Production-ready PBI generation"
+
+    output_includes:
+      - event_type
+      - candidate_pbis
+      - quality_scores
+      - context_enrichment
+      - risk_analysis
+      - suggested_questions
+      - readiness_assessment
+      - formatted_outputs
+
+    estimated_cost: "$0.10 - 0.20 per meeting"
+    estimated_time: "120-180 seconds"
+
+  # Risk-focused profile - emphasize risk analysis
+  risk_focused:
+    description: "Focus on risk identification and mitigation"
+    enabled_steps:
+      - detect_event_type      # Required: Know meeting type
+      - extract_candidates     # Required: Get PBIs from transcript
+      - score_confidence       # Assess quality
+      - enrich_context         # Critical for risk detection
+      - check_risks            # Main focus: comprehensive risk analysis
+      - readiness_checker      # Validate readiness with risk awareness
+
+    use_cases:
+      - "High-stakes projects requiring risk analysis"
+      - "Complex dependencies identification"
+      - "Regulatory or compliance-sensitive work"
+
+    output_includes:
+      - event_type
+      - candidate_pbis
+      - quality_scores
+      - context_enrichment
+      - detailed_risk_analysis
+      - readiness_with_risks
+
+    estimated_cost: "$0.08 - 0.12 per meeting"
+    estimated_time: "90-120 seconds"
+
+  # Fast profile - optimized for speed
+  fast:
+    description: "Quick extraction with minimal processing (parallel execution)"
+    enabled_steps:
+      - detect_event_type      # Required: Know meeting type
+      - extract_candidates     # Required: Get PBIs from transcript
+      - score_confidence       # Quick quality check
+
+    parallel_execution: true   # Enable parallel processing where possible
+
+    use_cases:
+      - "Real-time meeting transcription"
+      - "Immediate feedback during meetings"
+      - "High-volume batch processing"
+
+    output_includes:
+      - event_type
+      - candidate_pbis
+      - quality_scores
+
+    estimated_cost: "$0.02 - 0.03 per meeting"
+    estimated_time: "10-15 seconds"
+
+# Default profile to use if none specified
+default_profile: complete
+
+# Allow custom profiles by combining steps
+allow_custom_profiles: true
+
+# Step dependencies (enforced by pipeline)
+step_dependencies:
+  detect_event_type:
+    depends_on: []
+    required_by: [extract_candidates]
+
+  extract_candidates:
+    depends_on: [detect_event_type]
+    required_by: [score_confidence]
+
+  score_confidence:
+    depends_on: [extract_candidates]
+    required_by: [enrich_context, generate_proposals]
+
+  enrich_context:
+    depends_on: [score_confidence]
+    required_by: [check_risks]
+
+  check_risks:
+    depends_on: [enrich_context]
+    required_by: [readiness_checker]
+
+  generate_proposals:
+    depends_on: [score_confidence]
+    required_by: [readiness_checker]
+
+  readiness_checker:
+    depends_on: [check_risks]
+    required_by: [format_output]
+
+  format_output:
+    depends_on: [readiness_checker]
+    required_by: []
