@@ -1,0 +1,253 @@
+{
+  "risk_analysis": [
+    {
+      "id": "PBI-001",
+      "title": "Customer Self-Service Order Portal",
+      "risks": {
+        "CRITICAL": [
+          {
+            "type": "BLOCKING_DEPENDENCY",
+            "description": "Limited Experience Cloud Licenses",
+            "detail": "Current license pool is 500, which may be insufficient for full implementation",
+            "action_required": "Verify license capacity and potentially purchase additional licenses before project start",
+            "assigned_to": "Alex (Architect)",
+            "confidence": 0.9,
+            "evidence": [
+              "Current license pool: 500 login-based licenses",
+              "Risk flag for LICENSE_CAPACITY with HIGH severity"
+            ]
+          }
+        ],
+        "HIGH": [
+          {
+            "type": "TECHNICAL_COMPLEXITY",
+            "description": "Performance Challenges with Large Data Sets",
+            "detail": "Previous similar projects experienced performance issues with >1000 records per user",
+            "action_required": "Implement robust pagination and caching strategy",
+            "assigned_to": "Technical Lead",
+            "confidence": 0.85,
+            "evidence": [
+              "Performance risk flag with MEDIUM severity",
+              "Previous project learning: 'Performance issues with > 1000 records per user'"
+            ]
+          }
+        ],
+        "MEDIUM": [
+          {
+            "type": "ESTIMATION_UNCERTAINTY",
+            "description": "Potential Estimation Inaccuracy",
+            "detail": "Historical similar project had significant estimation overrun",
+            "action_required": "Conduct detailed technical spike and refine estimation",
+            "assigned_to": "Project Manager",
+            "confidence": 0.75,
+            "evidence": [
+              "Previous project estimated 13 points, actually 21 points",
+              "Some technical unknowns around API and license limitations"
+            ]
+          },
+          {
+            "type": "MISSING_STAKEHOLDER",
+            "description": "Incomplete Stakeholder Confirmation",
+            "detail": "Some stakeholder requirement confirmations are still pending",
+            "action_required": "Complete stakeholder interviews and requirement validation",
+            "assigned_to": "Product Owner",
+            "confidence": 0.7,
+            "evidence": [
+              "Refinement completeness score of 75",
+              "Some stakeholder requirement confirmations are still pending"
+            ]
+          }
+        ],
+        "LOW": []
+      },
+      "conflicts": [
+        {
+          "type": "RESOURCE_CONFLICT",
+          "description": "Limited Experience Cloud License Pool",
+          "detail": "Potential conflict with other ongoing portal implementations",
+          "resolution": "Consolidate license usage and prioritize projects",
+          "assigned_to": "IT Resource Manager",
+          "related_items": [
+            "PBI-2023-156",
+            "PBI-2023-198"
+          ]
+        }
+      ],
+      "complexity_score": 7.5,
+      "recommended_split": true,
+      "split_suggestion": "Consider splitting into phases: 1) Basic order tracking, 2) Advanced features like cancellation, 3) Full permission and security implementation",
+      "analysis_confidence": 0.88,
+      "analyzed_at": "2025-11-19T10:32:42.010Z"
+    },
+    {
+      "id": "PBI-002",
+      "title": "Customer-Friendly Order Status Labels",
+      "risks": {
+        "CRITICAL": [],
+        "HIGH": [],
+        "MEDIUM": [
+          {
+            "type": "ESTIMATION_UNCERTAINTY",
+            "description": "Incomplete technical requirements and implementation details",
+            "detail": "PBI lacks specific technical implementation approach and performance considerations",
+            "action_required": "Conduct detailed technical design workshop with UX and engineering teams",
+            "assigned_to": "Tom (SM)",
+            "confidence": 0.75,
+            "evidence": [
+              "hasAllRequirements score is only 70%",
+              "No specific performance or technical implementation details provided"
+            ]
+          },
+          {
+            "type": "TECHNICAL_COMPLEXITY",
+            "description": "Potential performance challenges with order status label changes",
+            "detail": "Previous similar implementations had performance challenges with status workflows",
+            "action_required": "Conduct performance testing and create optimization strategy",
+            "assigned_to": "Lisa (Dev)",
+            "confidence": 0.65,
+            "evidence": [
+              "PERFORMANCE_RISK flag in context enrichment",
+              "Similar PBI-2024-112 noted performance and error handling challenges"
+            ]
+          }
+        ],
+        "LOW": [
+          {
+            "type": "DATA_INCONSISTENCY",
+            "description": "Potential mismatch between discussed and actual order statuses",
+            "detail": "Technical documentation suggests more statuses exist than discussed",
+            "action_required": "Validate complete list of order statuses with product team",
+            "assigned_to": "Sarah (PO)",
+            "confidence": 0.5,
+            "evidence": [
+              "CONF-Status-Picklist note: 'More statuses exist than discussed in meeting!'",
+              "Incomplete refinement score of 65%"
+            ]
+          }
+        ]
+      },
+      "conflicts": [
+        {
+          "type": "EXISTING_WORK",
+          "description": "Potential overlap with recent order status workflow projects",
+          "detail": "Similar recent PBIs dealt with order status and workflow automation",
+          "resolution": "Review learnings from PBI-2024-112 and PBI-2023-234",
+          "assigned_to": "Tom (SM)",
+          "related_items": [
+            "PBI-2024-112",
+            "PBI-2023-234"
+          ]
+        }
+      ],
+      "complexity_score": 4.5,
+      "recommended_split": false,
+      "split_suggestion": null,
+      "analysis_confidence": 0.85,
+      "analyzed_at": "2025-11-19T10:32:39.981Z"
+    },
+    {
+      "id": "PBI-003",
+      "title": "B2B Account Permission Model",
+      "risks": {
+        "CRITICAL": [
+          {
+            "type": "BLOCKING_DEPENDENCY",
+            "description": "License and Resource Constraints",
+            "detail": "Potential bottleneck with Experience Cloud licenses",
+            "action_required": "Verify current license availability and budget for additional licenses",
+            "assigned_to": "IT Procurement",
+            "confidence": 0.8,
+            "evidence": [
+              "Previous project required additional Experience Cloud licenses mid-project",
+              "External User licenses may be needed"
+            ]
+          }
+        ],
+        "HIGH": [
+          {
+            "type": "UNRESOLVED_DECISION",
+            "description": "Incomplete Technical Implementation Details",
+            "detail": "Lacks specific authentication mechanism and detailed security implementation",
+            "action_required": "Conduct a detailed technical design workshop to define authentication and permission model specifics",
+            "assigned_to": "Maria (Security Architect)",
+            "confidence": 0.85,
+            "evidence": [
+              "Lacks explicit authentication mechanism specified",
+              "Integration details with Salesforce are high-level",
+              "Role-based permission logic needs more detailed definition"
+            ]
+          },
+          {
+            "type": "TECHNICAL_COMPLEXITY",
+            "description": "GDPR Compliance and Permission Model Complexity",
+            "detail": "Implementing account-based visibility with complex permission rules",
+            "action_required": "Create comprehensive RBAC matrix and conduct legal review",
+            "assigned_to": "Legal Team & Security Team",
+            "confidence": 0.75,
+            "evidence": [
+              "GDPR compliance requirement exists",
+              "Need for account-based visibility instead of user-based access",
+              "Requires audit trail for all data access"
+            ]
+          }
+        ],
+        "MEDIUM": [
+          {
+            "type": "ESTIMATION_UNCERTAINTY",
+            "description": "Uncertain Project Estimation",
+            "detail": "Historical similar projects had significant estimation challenges",
+            "action_required": "Conduct detailed estimation workshop with lessons learned from similar projects",
+            "assigned_to": "Project Manager",
+            "confidence": 0.65,
+            "evidence": [
+              "Initial estimate 13 points, actual 21 points in similar project",
+              "Complexity of GDPR compliance not fully explored",
+              "Salesforce integration adds additional complexity"
+            ]
+          }
+        ],
+        "LOW": []
+      },
+      "conflicts": [
+        {
+          "type": "EXISTING_WORK",
+          "description": "Overlap with Previous B2B Permission Projects",
+          "detail": "Similar projects revealed unexpected complexities in permission models",
+          "resolution": "Review and incorporate learnings from previous implementations",
+          "assigned_to": "Solution Architect",
+          "related_items": [
+            "PBI-2024-045",
+            "PBI-2023-156"
+          ]
+        },
+        {
+          "type": "RESOURCE_CONFLICT",
+          "description": "Potential Resource Constraints",
+          "detail": "Legal review and technical implementation may strain team capacity",
+          "resolution": "Allocate dedicated resources and plan for potential timeline extension",
+          "assigned_to": "Project Manager",
+          "related_items": [
+            "Meeting-2024-09-20"
+          ]
+        }
+      ],
+      "complexity_score": 7.5,
+      "recommended_split": true,
+      "split_suggestion": "Break into smaller stories: 1) Permission Model Design, 2) Salesforce Integration, 3) GDPR Compliance Implementation, 4) Audit Trail Development",
+      "analysis_confidence": 0.85,
+      "analyzed_at": "2025-11-19T10:32:45.141Z"
+    }
+  ],
+  "metadata": {
+    "analyzed_at": "2025-11-19T10:32:45.141Z",
+    "total_analyzed": 3,
+    "critical_risks": 2,
+    "high_risks": 3,
+    "medium_risks": 5,
+    "low_risks": 1,
+    "total_conflicts": 4,
+    "high_complexity_items": 2,
+    "model_used": "claude-3-5-haiku-20241022",
+    "analysis_duration_ms": 16173
+  }
+}

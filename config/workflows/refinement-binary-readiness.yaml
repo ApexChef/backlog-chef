@@ -1,0 +1,56 @@
+# Refinement Meeting - Binary Readiness (No Scores)
+# Full pipeline but readiness is simple READY/NOT READY without numeric scores
+# Use this for: Teams who prefer binary decisions, avoiding score debates
+
+name: "Refinement Meeting - Binary Readiness"
+description: "Complete pipeline with binary READY/NOT READY evaluation (no numeric scores)"
+version: "1.0.0"
+
+pipeline:
+  steps:
+
+    # Steps 1-6: Full processing
+    - step_id: "01-event-detection"
+      enabled: true
+      config_file: "config/steps/step-01-event-detection.yaml"
+
+    - step_id: "02-extract-candidates"
+      enabled: true
+      config_file: "config/steps/step-02-extract-candidates.yaml"
+
+    - step_id: "03-score-confidence"
+      enabled: true
+      config_file: "config/steps/step-03-score-confidence.yaml"
+
+    - step_id: "04-enrich-context"
+      enabled: true
+      config_file: "config/steps/step-04-enrich-context.yaml"
+
+    - step_id: "05-check-risks"
+      enabled: true
+      config_file: "config/steps/step-05-check-risks.yaml"
+
+    - step_id: "06-generate-questions"
+      enabled: true
+      config_file: "config/steps/step-06-generate-questions.yaml"
+
+    # Step 7: Readiness Checker WITHOUT numeric scoring
+    - step_id: "07-readiness-checker"
+      enabled: true
+      config_file: "config/steps/step-07-readiness-checker-no-scoring.yaml"  # Use binary variant
+      description: "Binary ready/not-ready evaluation without numeric scores"
+
+    # Step 8: Full output
+    - step_id: "08-final-output"
+      enabled: true
+      config_file: "config/steps/step-08-final-output.yaml"
+
+global:
+  llm:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.3
+    max_tokens: 8000
+
+  logging:
+    level: "info"

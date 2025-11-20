@@ -1,0 +1,6 @@
+# Output folder for pipeline runs
+# Each run creates a folder: run-{timestamp}/
+
+# Ignore all output files except .gitkeep
+*
+!.gitkeep

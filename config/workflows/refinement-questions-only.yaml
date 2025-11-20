@@ -1,0 +1,107 @@
+# Refinement Meeting - Questions Only
+# Generate comprehensive questions with proposed answers, skip all analysis
+# Use this for: Pre-refinement prep, distributed refinement, async follow-up
+
+name: "Refinement Meeting - Questions Generator"
+description: "Extract PBIs and generate comprehensive questions with proposed answers - skip all analysis and readiness checks"
+version: "1.0.0"
+
+pipeline:
+  steps:
+
+    # Step 1: Event Detection (basic)
+    - step_id: "01-event-detection"
+      enabled: true
+      config_file: "config/steps/step-01-event-detection.yaml"
+
+    # Step 2: Extract Candidates (full)
+    - step_id: "02-extract-candidates"
+      enabled: true
+      config_file: "config/steps/step-02-extract-candidates.yaml"
+
+    # Step 3: DISABLED
+    - step_id: "03-score-confidence"
+      enabled: false
+
+    # Step 4: DISABLED
+    - step_id: "04-enrich-context"
+      enabled: false
+
+    # Step 5: DISABLED
+    - step_id: "05-check-risks"
+      enabled: false
+
+    # Step 6: Generate Questions (FOCUS - with all subtasks)
+    - step_id: "06-generate-questions"
+      enabled: true
+      config_file: "config/steps/step-06-generate-questions.yaml"
+      subtasks:
+        - name: "identify_unanswered_questions"
+          enabled: true
+          implementation: "src/pipeline/steps/06-generate-questions/subtasks/identify-unanswered-questions.ts"
+          config:
+            include_all_question_types: true
+            min_priority: "LOW"  # Include even low-priority questions
+
+        - name: "classify_by_domain"
+          enabled: true
+          implementation: "src/pipeline/steps/06-generate-questions/subtasks/classify-by-domain.ts"
+
+        - name: "route_to_stakeholders"
+          enabled: true
+          implementation: "src/pipeline/steps/06-generate-questions/subtasks/route-to-stakeholders.ts"
+          config:
+            stakeholder_registry: "config/stakeholders.yaml"
+            include_backup_stakeholders: true
+
+        - name: "generate_proposed_answers"
+          enabled: true
+          implementation: "src/pipeline/steps/06-generate-questions/subtasks/generate-proposed-answers.ts"
+          config:
+            confidence_threshold_to_propose: 0.5  # Lower threshold - more proposals
+            max_alternatives: 5                    # More alternatives
+            include_rationale: true
+            include_tradeoffs: true
+
+        - name: "search_documentation"
+          enabled: true
+          implementation: "src/pipeline/steps/06-generate-questions/subtasks/search-documentation.ts"
+          config:
+            confluence_enabled: true
+            sharepoint_enabled: true
+            github_enabled: true
+            timeout_seconds: 60  # Allow more time for search
+
+    # Step 7: DISABLED
+    - step_id: "07-readiness-checker"
+      enabled: false
+
+    # Step 8: Output (focus on question format)
+    - step_id: "08-final-output"
+      enabled: true
+      config_file: "config/steps/step-08-final-output.yaml"
+      subtasks:
+        - name: "format_for_devops"
+          enabled: true
+          implementation: "src/pipeline/steps/08-final-output/subtasks/format-for-devops.ts"
+        - name: "format_for_obsidian"
+          enabled: true
+          implementation: "src/pipeline/steps/08-final-output/subtasks/format-for-obsidian.ts"
+        - name: "format_for_confluence"
+          enabled: false
+        - name: "generate_summary_email"
+          enabled: true
+          implementation: "src/pipeline/steps/08-final-output/subtasks/generate-summary-email.ts"
+          config:
+            template: "question-summary"
+            include_proposed_answers: true
+
+global:
+  llm:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.4  # Slightly higher for more creative question generation
+    max_tokens: 8000
+
+  logging:
+    level: "info"

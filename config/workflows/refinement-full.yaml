@@ -1,0 +1,82 @@
+# Refinement Meeting - Full Pipeline
+# Complete 8-step pipeline with all quality checks enabled
+# Use this for: Production processing, comprehensive analysis
+
+name: "Refinement Meeting - Full Pipeline"
+description: "Complete 8-step pipeline with all quality checks, context enrichment, and readiness evaluation"
+version: "1.0.0"
+
+pipeline:
+  steps:
+
+    # Step 1: Event Detection
+    - step_id: "01-event-detection"
+      enabled: true
+      config_file: "config/steps/step-01-event-detection.yaml"
+      description: "Identify meeting type and validate transcript quality"
+
+    # Step 2: Extract Candidate PBIs
+    - step_id: "02-extract-candidates"
+      enabled: true
+      config_file: "config/steps/step-02-extract-candidates.yaml"
+      description: "Parse transcript and extract potential PBIs with acceptance criteria"
+
+    # Step 3: Score Confidence
+    - step_id: "03-score-confidence"
+      enabled: true
+      config_file: "config/steps/step-03-score-confidence.yaml"
+      description: "Calculate confidence scores and identify missing elements"
+
+    # Step 4: Enrich with Context
+    - step_id: "04-enrich-context"
+      enabled: true
+      config_file: "config/steps/step-04-enrich-context.yaml"
+      description: "Search for similar work, past estimates, and technical documentation"
+
+    # Step 5: Check Risks & Conflicts
+    - step_id: "05-check-risks"
+      enabled: true
+      config_file: "config/steps/step-05-check-risks.yaml"
+      description: "Detect dependencies, scope creep, and technical blockers"
+
+    # Step 6: Generate Questions & Proposals
+    - step_id: "06-generate-questions"
+      enabled: true
+      config_file: "config/steps/step-06-generate-questions.yaml"
+      description: "Identify unanswered questions and generate proposed answers"
+
+    # Step 7: Run Readiness Checker
+    - step_id: "07-readiness-checker"
+      enabled: true
+      config_file: "config/steps/step-07-readiness-checker.yaml"
+      description: "Evaluate against Definition of Ready with readiness scores"
+
+    # Step 8: Final Output
+    - step_id: "08-final-output"
+      enabled: true
+      config_file: "config/steps/step-08-final-output.yaml"
+      description: "Format output for Azure DevOps, Obsidian, and Confluence"
+
+# Global Configuration
+global:
+  llm:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.3
+    max_tokens: 8000
+
+  logging:
+    level: "info"
+    output_dir: "logs/pipeline"
+    include_timestamps: true
+
+  error_handling:
+    retry_count: 3
+    retry_delay_ms: 1000
+    fail_on_step_error: false
+    continue_on_subtask_error: true
+
+  performance:
+    parallel_processing: true
+    max_concurrent_pbis: 5
+    cache_enabled: true

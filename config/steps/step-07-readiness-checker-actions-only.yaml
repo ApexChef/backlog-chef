@@ -1,0 +1,66 @@
+# Step 7: Readiness Checker - Actions Only
+# Variant: Skip evaluation, just generate recommended actions from gaps
+
+step_id: "07-readiness-checker"
+name: "Generate Action Items from Gaps"
+description: "Assumes evaluation already done in Step 6, only generates action recommendations"
+version: "1.0.0"
+
+subtasks:
+
+  # DISABLED: Evaluation already done in previous step
+  - name: "evaluate_readiness_criteria"
+    enabled: false
+    reason: "Evaluation performed in Step 6, results already in context"
+
+  # Use existing gap data from Step 6
+  - name: "categorize_gaps"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/categorize-gaps.ts"
+    order: 1
+    config:
+      # Read gaps from previous step instead of evaluating
+      input_source: "context.step_06_gaps"
+      categories:
+        - severity: "blocking"
+          fails_readiness: true
+        - severity: "warning"
+          fails_readiness: false
+        - severity: "suggestion"
+          fails_readiness: false
+
+  # DISABLED: No scoring needed
+  - name: "calculate_readiness_score"
+    enabled: false
+
+  # Focus on action generation
+  - name: "recommend_next_actions"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/recommend-next-actions.ts"
+    order: 2
+    config:
+      prioritization_strategy: "quick_wins"  # Prioritize easy wins first
+      action_categories:
+        - category: "immediate"
+          filter: "blocking"
+          max_actions: 15  # More actions allowed
+        - category: "this_week"
+          filter: "warning"
+          max_actions: 10
+        - category: "backlog"
+          filter: "suggestion"
+          max_actions: 20
+
+      # Enhanced action details
+      include_owner_suggestions: true
+      include_time_estimates: true
+      include_dependencies: true
+      include_acceptance_criteria: true  # Add AC for each action
+
+output:
+  format: "markdown"  # Output as markdown checklist
+  include_fields:
+    - "pbi_id"
+    - "title"
+    - "recommended_next_actions"
+  template: "config/templates/action-checklist.md"

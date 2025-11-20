@@ -1,0 +1,196 @@
+# Definition of Ready Configuration
+# This defines the criteria that must be met before a PBI can be considered "Ready" for sprint planning
+
+criteria:
+  # BLOCKING CRITERIA - Must pass for PBI to be ready
+  blocking:
+    - id: has_clear_business_value
+      name: "Has Clear Business Value"
+      description: "The PBI articulates clear business value and user need"
+      weight: 15
+      evaluation_prompt: |
+        Does this PBI clearly explain:
+        - Who the user is
+        - What problem it solves
+        - Why it matters (business impact)
+
+    - id: has_acceptance_criteria
+      name: "Has Acceptance Criteria"
+      description: "Testable acceptance criteria are defined"
+      weight: 15
+      evaluation_prompt: |
+        Are there specific, testable acceptance criteria that:
+        - Define when the work is done
+        - Can be verified by QA/stakeholders
+        - Cover happy path and error scenarios
+
+    - id: scope_is_defined
+      name: "Scope is Defined"
+      description: "In-scope and out-of-scope items are explicitly stated"
+      weight: 10
+      evaluation_prompt: |
+        Is the scope clearly bounded with:
+        - What IS included
+        - What is NOT included
+        - Any deferred functionality
+
+    - id: has_technical_approach
+      name: "Has Technical Approach"
+      description: "Technical approach or solution direction is agreed upon"
+      weight: 10
+      evaluation_prompt: |
+        Is there agreement on:
+        - Which technology/platform to use
+        - Architectural direction
+        - Integration points
+
+    - id: dependencies_resolved
+      name: "Dependencies Resolved"
+      description: "All blocking dependencies are identified and resolved"
+      weight: 15
+      evaluation_prompt: |
+        Are dependencies managed:
+        - External dependencies identified
+        - Blocking work completed or scheduled
+        - Third-party approvals obtained
+        - Budget/licensing secured
+
+    - id: key_questions_answered
+      name: "Key Questions Answered"
+      description: "All critical questions have been answered"
+      weight: 15
+      evaluation_prompt: |
+        Have critical questions been resolved:
+        - Business logic questions answered
+        - Data requirements clarified
+        - Permission/security decisions made
+
+    - id: estimable_by_team
+      name: "Estimable by Team"
+      description: "The team has enough information to estimate the work"
+      weight: 10
+      evaluation_prompt: |
+        Can the team estimate this work:
+        - Sufficient technical detail
+        - Unknowns identified
+        - Similar past work to reference
+        - Confidence level acceptable (>60%)
+
+  # WARNING CRITERIA - Should pass but won't block sprint entry
+  warning:
+    - id: small_enough_for_sprint
+      name: "Small Enough for Sprint"
+      description: "PBI can be completed within a single sprint"
+      weight: 5
+      evaluation_prompt: |
+        Is this work appropriately sized:
+        - Fits within sprint timebox
+        - Not overly complex (complexity < 8/10)
+        - Can be split if too large
+
+    - id: design_approved
+      name: "Design Approved"
+      description: "UX/UI designs have been reviewed and approved"
+      weight: 3
+      evaluation_prompt: |
+        Are designs ready:
+        - Mockups/wireframes created
+        - UX designer has reviewed
+        - Design tokens/patterns defined
+
+    - id: performance_baseline
+      name: "Performance Baseline"
+      description: "Performance requirements are defined"
+      weight: 2
+      evaluation_prompt: |
+        Are performance criteria clear:
+        - Response time requirements
+        - Data volume considerations
+        - Scalability needs
+
+  # SUGGESTION CRITERIA - Nice to have, improves quality
+  suggestion:
+    - id: has_test_strategy
+      name: "Has Test Strategy"
+      description: "Testing approach is documented"
+      weight: 2
+      evaluation_prompt: |
+        Is testing planned:
+        - Unit test approach
+        - Integration test needs
+        - UAT plan
+
+    - id: documentation_complete
+      name: "Documentation Complete"
+      description: "Technical documentation is prepared or planned"
+      weight: 1
+      evaluation_prompt: |
+        Is documentation considered:
+        - Technical design doc created/planned
+        - API documentation needed
+        - User guide requirements
+
+    - id: monitoring_defined
+      name: "Monitoring Defined"
+      description: "Monitoring and alerting strategy is defined"
+      weight: 1
+      evaluation_prompt: |
+        Is observability planned:
+        - What metrics to track
+        - Error logging strategy
+        - Performance monitoring
+
+# Readiness Status Thresholds
+thresholds:
+  ready: 85          # Score >= 85 = READY
+  needs_refinement: 60  # Score 60-84 = NEEDS REFINEMENT
+  not_ready: 0       # Score < 60 = NOT READY
+
+# Severity Levels
+severity:
+  blocking:
+    emoji: "❌"
+    label: "BLOCKING FAILURES"
+    description: "Must be resolved before sprint"
+
+  warning:
+    emoji: "⚠️"
+    label: "WARNINGS"
+    description: "Should be addressed but not blocking"
+
+  suggestion:
+    emoji: "💡"
+    label: "SUGGESTIONS"
+    description: "Nice to have, improves quality"
+
+# Status Icons
+status_icons:
+  ready: "🟢 READY"
+  needs_refinement: "🟡 NEEDS REFINEMENT"
+  not_ready: "🔴 NOT READY"
+  deferred: "🔵 DEFERRED"
+  future_phase: "⚪ FUTURE PHASE"
+
+# Action Priority Levels
+action_priorities:
+  critical:
+    label: "CRITICAL"
+    description: "Must be done immediately, blocks sprint entry"
+
+  high:
+    label: "HIGH"
+    description: "Important, needed before sprint starts"
+
+  medium:
+    label: "MEDIUM"
+    description: "Should be done, improves quality"
+
+  low:
+    label: "LOW"
+    description: "Nice to have, can be deferred"
+
+# Confidence Levels for ETAs
+confidence_levels:
+  - high: "HIGH"      # >80% confident in estimate
+  - medium: "MEDIUM"  # 50-80% confident
+  - low: "LOW"        # <50% confident

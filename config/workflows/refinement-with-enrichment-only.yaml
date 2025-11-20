@@ -1,0 +1,118 @@
+# Refinement Meeting - With Context Enrichment Only
+# Focus on historical context and similar work, skip readiness checking
+# Use this for: Learning from past work, identifying patterns, estimation help
+
+name: "Refinement Meeting - Context Enrichment Focus"
+description: "Extract PBIs, enrich with historical context and similar work, generate questions - no readiness evaluation"
+version: "1.0.0"
+
+pipeline:
+  steps:
+
+    # Step 1: Event Detection
+    - step_id: "01-event-detection"
+      enabled: true
+      config_file: "config/steps/step-01-event-detection.yaml"
+
+    # Step 2: Extract Candidates
+    - step_id: "02-extract-candidates"
+      enabled: true
+      config_file: "config/steps/step-02-extract-candidates.yaml"
+
+    # Step 3: Score Confidence
+    - step_id: "03-score-confidence"
+      enabled: true
+      config_file: "config/steps/step-03-score-confidence.yaml"
+
+    # Step 4: Enrich with Context (FOCUS OF THIS WORKFLOW)
+    - step_id: "04-enrich-context"
+      enabled: true
+      config_file: "config/steps/step-04-enrich-context.yaml"
+      subtasks:
+        - name: "search_similar_pbis"
+          enabled: true
+          implementation: "src/pipeline/steps/04-enrich-context/subtasks/search-similar-pbis.ts"
+          config:
+            similarity_threshold: 0.70  # Lower threshold for more results
+            max_results: 10             # More results than default
+            sources:
+              - "azure_devops"
+              - "jira"
+
+        - name: "retrieve_past_estimates"
+          enabled: true
+          implementation: "src/pipeline/steps/04-enrich-context/subtasks/retrieve-past-estimates.ts"
+          config:
+            include_velocity_data: true
+            lookback_months: 24  # 2 years of history
+
+        - name: "search_technical_docs"
+          enabled: true
+          implementation: "src/pipeline/steps/04-enrich-context/subtasks/search-technical-docs.ts"
+          config:
+            sources:
+              - type: "confluence"
+                spaces: ["DEV", "ARCH", "GDPR", "PLATFORM"]
+              - type: "sharepoint"
+                sites: ["technical-docs", "architecture"]
+              - type: "github"
+                repos: ["internal/knowledge-base", "internal/architecture-docs"]
+
+        - name: "retrieve_team_history"
+          enabled: true
+          implementation: "src/pipeline/steps/04-enrich-context/subtasks/retrieve-team-history.ts"
+          config:
+            include_decision_log: true
+            include_retrospectives: true
+
+    # Step 5: Check Risks (basic only)
+    - step_id: "05-check-risks"
+      enabled: true
+      config_file: "config/steps/step-05-check-risks.yaml"
+      subtasks:
+        - name: "detect_dependencies"
+          enabled: true
+          implementation: "src/pipeline/steps/05-check-risks/subtasks/detect-dependencies.ts"
+        # Skip other risk checks
+        - name: "identify_scope_creep"
+          enabled: false
+        - name: "check_technical_blockers"
+          enabled: false
+        - name: "validate_resource_availability"
+          enabled: false
+
+    # Step 6: Generate Questions
+    - step_id: "06-generate-questions"
+      enabled: true
+      config_file: "config/steps/step-06-generate-questions.yaml"
+
+    # Step 7: DISABLED - Team does manual readiness assessment
+    - step_id: "07-readiness-checker"
+      enabled: false
+
+    # Step 8: Output (Obsidian + DevOps)
+    - step_id: "08-final-output"
+      enabled: true
+      config_file: "config/steps/step-08-final-output.yaml"
+      subtasks:
+        - name: "format_for_devops"
+          enabled: true
+          implementation: "src/pipeline/steps/08-final-output/subtasks/format-for-devops.ts"
+        - name: "format_for_obsidian"
+          enabled: true
+          implementation: "src/pipeline/steps/08-final-output/subtasks/format-for-obsidian.ts"
+        - name: "format_for_confluence"
+          enabled: false
+        - name: "generate_summary_email"
+          enabled: true
+          implementation: "src/pipeline/steps/08-final-output/subtasks/generate-summary-email.ts"
+
+global:
+  llm:
+    provider: "anthropic"
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.3
+    max_tokens: 8000
+
+  logging:
+    level: "info"

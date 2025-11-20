@@ -1,0 +1,61 @@
+# Step 7: Readiness Checker - Without Scoring
+# Variant configuration: Binary ready/not-ready without numeric scores
+
+step_id: "07-readiness-checker"
+name: "Run Readiness Checker (Binary Mode)"
+description: "Simple binary evaluation: Ready or Not Ready, no numeric scores"
+version: "1.0.0"
+
+subtasks:
+
+  # Evaluate criteria (required)
+  - name: "evaluate_readiness_criteria"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/evaluate-readiness-criteria.ts"
+    order: 1
+    config:
+      definition_of_ready: "config/definition-of-ready.yaml"
+      evaluation_mode: "binary"  # Pass/fail only, no partial credit
+
+  # Categorize gaps (required)
+  - name: "categorize_gaps"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/categorize-gaps.ts"
+    order: 2
+    config:
+      categories:
+        - severity: "blocking"
+          fails_readiness: true
+          emoji: "❌"
+        - severity: "warning"
+          fails_readiness: false
+          emoji: "⚠️"
+        - severity: "suggestion"
+          fails_readiness: false
+          emoji: "💡"
+
+  # DISABLED: No numeric scoring
+  - name: "calculate_readiness_score"
+    enabled: false
+    reason: "Team prefers simple ready/not-ready status without numeric scores"
+
+  # Recommend actions (required)
+  - name: "recommend_next_actions"
+    enabled: true
+    implementation: "src/pipeline/steps/07-readiness-checker/subtasks/recommend-next-actions.ts"
+    order: 3
+    config:
+      prioritization_strategy: "severity_first"
+      include_owner_suggestions: true
+      include_time_estimates: true
+
+output:
+  include_fields:
+    - "pbi_id"
+    - "title"
+    - "readiness_status"  # Only "READY" or "NOT READY"
+    - "definition_of_ready_checklist"
+    - "recommended_next_actions"
+
+  exclude_fields:
+    - "readiness_score"  # Explicitly excluded
