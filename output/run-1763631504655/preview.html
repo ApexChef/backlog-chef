@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backlog Chef - Pipeline Output</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #1f2937;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+        }
+
+        .header-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .header-meta {
+            margin-top: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-refinement {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .summary {
+            padding: 40px;
+            background: #f9fafb;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        .summary-ready .summary-value {
+            color: #10b981;
+        }
+
+        .summary-refinement .summary-value {
+            color: #f59e0b;
+        }
+
+        .summary-not-ready .summary-value {
+            color: #ef4444;
+        }
+
+        .pbi-list {
+            padding: 40px;
+        }
+
+        .pbi-list h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            color: #1f2937;
+        }
+
+        .pbi-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .pbi-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .pbi-header {
+            padding: 20px;
+            cursor: pointer;
+            background: #f9fafb;
+            transition: background 0.2s;
+        }
+
+        .pbi-header:hover {
+            background: #f3f4f6;
+        }
+
+        .pbi-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .pbi-id {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pbi-title {
+            flex: 1;
+            font-size: 1.2rem;
+            color: #1f2937;
+        }
+
+        .expand-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .pbi-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-ready {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-refinement {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-not-ready {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .risk-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .risk-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .risk-low {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-score {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .pbi-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .pbi-content.expanded {
+            max-height: 10000px;
+        }
+
+        .pbi-section {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .pbi-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #374151;
+        }
+
+        .criteria-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .criteria-list li {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: #f9fafb;
+            border-left: 3px solid #10b981;
+            border-radius: 4px;
+        }
+
+        .scores-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .score-item {
+            display: grid;
+            grid-template-columns: 120px 1fr 50px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .score-label {
+            font-weight: 500;
+            color: #4b5563;
+        }
+
+        .score-bar-container {
+            background: #e5e7eb;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .score-bar {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .score-value {
+            text-align: right;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .score-list {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .score-list ul {
+            margin-top: 8px;
+            margin-left: 20px;
+        }
+
+        .context-group {
+            margin-bottom: 16px;
+        }
+
+        .context-item {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .similarity {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+
+        .risk-item {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+
+        .risk-item.risk-high {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .risk-item.risk-medium {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+
+        .risk-item.risk-low {
+            background: #f0fdf4;
+            border-color: #10b981;
+        }
+
+        .risk-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .risk-type {
+            font-weight: 600;
+        }
+
+        .risk-severity {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .risk-mitigation {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .question-item {
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .question-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .question-priority {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .priority-critical {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .priority-high {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .priority-medium {
+            background: #fef3c7;
+            color: #78350f;
+        }
+
+        .priority-low {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .question-category {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .question-text {
+            font-weight: 500;
+            margin: 8px 0;
+        }
+
+        .proposed-answer {
+            margin-top: 12px;
+            padding: 12px;
+            background: #eff6ff;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .readiness-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .readiness-card.status-ready {
+            background: #d1fae5;
+        }
+
+        .readiness-card.status-refinement {
+            background: #fef3c7;
+        }
+
+        .readiness-card.status-not-ready {
+            background: #fee2e2;
+        }
+
+        .readiness-status {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .readiness-score {
+            font-size: 1.2rem;
+        }
+
+        .readiness-list {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .readiness-blocking {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .readiness-warning {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .readiness-recommendations {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .readiness-list ul {
+            margin-top: 8px;
+            margin-left: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content h1 {
+                font-size: 2rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .score-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .pbi-title-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+    <header class="header">
+        <div class="header-content">
+            <h1>🍴 Backlog Chef</h1>
+            <p class="subtitle">AI-Powered Product Backlog Intelligence</p>
+        </div>
+        <div class="header-meta">
+            <span class="badge badge-refinement">REFINEMENT</span>
+            <span class="meta-item">📅 11/20/2025, 10:47:09 AM</span>
+            <span class="meta-item">💰 $0.1211</span>
+            <span class="meta-item">⏱️ 524.5s</span>
+        </div>
+    </header>
+        
+    <section class="summary">
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-value">3</div>
+                <div class="summary-label">Total PBIs</div>
+            </div>
+            <div class="summary-card summary-ready">
+                <div class="summary-value">0</div>
+                <div class="summary-label">✅ Ready for Sprint</div>
+            </div>
+            <div class="summary-card summary-refinement">
+                <div class="summary-value">3</div>
+                <div class="summary-label">⚠️ Needs Refinement</div>
+            </div>
+            <div class="summary-card summary-not-ready">
+                <div class="summary-value">0</div>
+                <div class="summary-label">🔴 Not Ready</div>
+            </div>
+        </div>
+    </section>
+        
+    <section class="pbi-list">
+        <h2>Product Backlog Items</h2>
+        
+    <div class="pbi-card">
+        <div class="pbi-header" onclick="togglePBI(0)">
+            <div class="pbi-title-row">
+                <span class="pbi-id">PBI-001</span>
+                <h3 class="pbi-title">As a user, I want to log in with Google or Microsoft account</h3>
+                <span class="expand-icon" id="icon-0">▼</span>
+            </div>
+            <div class="pbi-badges">
+                <span class="badge status-refinement">⚠️ Needs Refinement</span>
+                <span class="badge risk-high">⚠️ HIGH RISK</span>
+                <span class="badge badge-score">📊 88/100</span>
+            </div>
+        </div>
+
+        <div class="pbi-content" id="content-0">
+            
+            <div class="pbi-section">
+                <h4>📋 Description</h4>
+                <p>Implement OAuth authentication support for Google and Microsoft login on the application&#039;s login page</p>
+            </div>
+
+            
+            <div class="pbi-section">
+                <h4>✅ Acceptance Criteria</h4>
+                <ul class="criteria-list"><li>User can click &quot;Sign in with Google&quot; button on login page</li><li>User can click &quot;Sign in with Microsoft&quot; button on login page</li><li>Successful authentication creates user account if it doesn&#039;t exist</li><li>Existing users can link their social accounts to current account</li><li>All existing security measures apply to social login users</li><li>Show clear error message if OAuth provider authentication fails</li></ul>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>📊 Quality Scores</h4>
+                <div class="scores-grid">
+                    
+                    <div class="score-item">
+                        <div class="score-label">Overall</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 88%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">88</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Completeness</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 95%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">95</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Clarity</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 85%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">85</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Actionability</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 90%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">90</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Testability</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 85%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">85</div>
+                    </div>
+                </div>
+                <div class="score-list"><strong>💪 Strengths:</strong><ul><li>Comprehensive acceptance criteria</li><li>Clear user story</li><li>Considers account linking</li><li>Includes testing considerations</li></ul></div><div class="score-list"><strong>⚠️ Concerns:</strong><ul><li>Potential complexity of OAuth implementation</li><li>Need for robust error handling</li><li>Security implications of social login</li></ul></div><div class="score-list"><strong>❌ Missing:</strong><ul><li>Performance impact of OAuth</li><li>Specific error handling details</li></ul></div>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>🔍 Historical Context</h4>
+                <div class="context-group"><strong>Similar Work:</strong>
+                <div class="context-item">
+                    <strong>PBI-2023-342</strong>: Implement Social Login for User Authentication
+                    <span class="similarity">90% match</span>
+                    <ul><li>Use OAuth 2.0 standard implementation</li><li>Ensure secure token management</li><li>Handle account linking scenarios</li></ul>
+                </div>
+                <div class="context-item">
+                    <strong>PBI-2022-215</strong>: Add Google and Microsoft SSO to Enterprise Portal
+                    <span class="similarity">85% match</span>
+                    <ul><li>Configure separate client credentials for each provider</li><li>Implement fallback authentication methods</li><li>Manage user consent and permissions</li></ul>
+                </div></div>
+                <div class="context-group"><strong>Past Decisions:</strong>
+                <div class="context-item">
+                    <strong>ADR-2023-12</strong>: Identity Provider Authentication Strategy
+                    <p><em>Standardize OAuth 2.0 and OpenID Connect for third-party logins</em></p>
+                    <small>Architect: Elena Rodriguez</small>
+                </div>
+                <div class="context-item">
+                    <strong>ADR-2024-05</strong>: Social Login Security Guidelines
+                    <p><em>Implement token validation, secure storage, and periodic credential rotation</em></p>
+                    <small>Architect: Michael Chen</small>
+                </div></div>
+                <div class="context-group"><strong>Technical Documentation:</strong>
+                <div class="context-item">
+                    <strong>CONF-2023-267</strong>: OAuth 2.0 Implementation Guidelines
+                    <p>Comprehensive guide for implementing social login across platforms</p>
+                </div>
+                <div class="context-item">
+                    <strong>CONF-2024-42</strong>: Identity Provider Integration Patterns
+                    <p>Specific guidance for the proposed social login implementation</p>
+                </div></div>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>⚠️ Risks (HIGH)</h4>
+                
+                <div class="risk-item risk-high">
+                    <div class="risk-header">
+                        <span class="risk-type">technical_debt</span>
+                        <span class="risk-severity">high</span>
+                    </div>
+                    <p>Complex OAuth implementation with potential security vulnerabilities in token management and client credential configuration</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Implement comprehensive OAuth security framework with encrypted token storage, strict validation mechanisms, and secure credential management</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-header">
+                        <span class="risk-type">blocker</span>
+                        <span class="risk-severity">medium</span>
+                    </div>
+                    <p>Performance overhead from external OAuth provider authentication calls could introduce latency in login process</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Implement caching mechanisms, set strict timeout limits, and conduct performance benchmarking of OAuth authentication flows</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-header">
+                        <span class="risk-type">resource</span>
+                        <span class="risk-severity">medium</span>
+                    </div>
+                    <p>Requires specialized OAuth and security expertise to implement robust authentication across multiple identity providers</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Engage security specialists, conduct code reviews, and potentially use well-tested OAuth libraries to reduce implementation complexity</div>
+                </div>
+                <div class="risk-item risk-low">
+                    <div class="risk-header">
+                        <span class="risk-type">scope_creep</span>
+                        <span class="risk-severity">low</span>
+                    </div>
+                    <p>Potential expansion of authentication requirements beyond initial Google and Microsoft login scope</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Clearly define initial implementation boundaries, create extensible authentication framework for future provider additions</div>
+                </div>
+            </div>
+            
+            
+            <div class="pbi-section">
+                <h4>🎯 Readiness Assessment</h4>
+                <div class="readiness-card status-refinement">
+                    <div class="readiness-status">🟡 NEEDS REFINEMENT</div>
+                    <div class="readiness-score">Score: 75/100</div>
+                </div>
+                <div class="readiness-list readiness-blocking"><strong>🔴 Blocking Issues:</strong><ul><li>Missing performance impact details for OAuth</li><li>Incomplete error handling specifications</li><li>Unanswered security implementation questions</li></ul></div><div class="readiness-list readiness-warning"><strong>⚠️ Warnings:</strong><ul><li>High risk implementation</li><li>Multiple unresolved questions</li><li>Potential complexity in OAuth integration</li></ul></div><div class="readiness-list readiness-recommendations"><strong>💡 Recommendations:</strong><ul><li>Provide detailed security implementation plan</li><li>Specify exact error handling mechanisms</li><li>Document performance testing approach for OAuth flow</li><li>Clarify specific security measures for social login users</li><li>Define fallback mechanisms for authentication failures</li></ul></div>
+            </div>
+            <div class="pbi-section"><h4>📝 Additional Notes</h4><ul><li>Need test accounts for Google and Microsoft</li><li>Requires mock services for automated testing</li><li>Consider OAuth provider downtime scenarios</li></ul><p><strong>Mentioned by:</strong> Sarah, Mike, Lisa, John</p></div>
+    
+        </div>
+    </div>
+
+    <div class="pbi-card">
+        <div class="pbi-header" onclick="togglePBI(1)">
+            <div class="pbi-title-row">
+                <span class="pbi-id">PBI-002</span>
+                <h3 class="pbi-title">As a user, I want to export dashboard data to Excel</h3>
+                <span class="expand-icon" id="icon-1">▼</span>
+            </div>
+            <div class="pbi-badges">
+                <span class="badge status-refinement">⚠️ Needs Refinement</span>
+                <span class="badge risk-high">⚠️ HIGH RISK</span>
+                <span class="badge badge-score">📊 88/100</span>
+            </div>
+        </div>
+
+        <div class="pbi-content" id="content-1">
+            
+            <div class="pbi-section">
+                <h4>📋 Description</h4>
+                <p>Add Excel export functionality for dashboard metrics table with specific requirements</p>
+            </div>
+
+            
+            <div class="pbi-section">
+                <h4>✅ Acceptance Criteria</h4>
+                <ul class="criteria-list"><li>Export button is visible on the dashboard</li><li>Clicking export generates an Excel file</li><li>Excel file includes all columns from the dashboard table</li><li>File name includes the date and time of export</li><li>Export preserves the current filter selections</li><li>Maximum export limit of 5,000 rows</li><li>Export process should be asynchronous with loading spinner</li></ul>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>📊 Quality Scores</h4>
+                <div class="scores-grid">
+                    
+                    <div class="score-item">
+                        <div class="score-label">Overall</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 88%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">88</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Completeness</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 95%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">95</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Clarity</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 85%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">85</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Actionability</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 85%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">85</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Testability</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 90%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">90</div>
+                    </div>
+                </div>
+                <div class="score-list"><strong>💪 Strengths:</strong><ul><li>Detailed acceptance criteria</li><li>Clear export limitations</li><li>Specified asynchronous export mechanism</li></ul></div><div class="score-list"><strong>⚠️ Concerns:</strong><ul><li>Potential complexity with large dataset handling</li><li>Specific performance requirements not fully defined</li></ul></div><div class="score-list"><strong>❌ Missing:</strong><ul><li>Performance benchmark for large exports</li><li>Error handling specifications</li></ul></div>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>🔍 Historical Context</h4>
+                <div class="context-group"><strong>Similar Work:</strong>
+                <div class="context-item">
+                    <strong>PBI-2023-342</strong>: Implement CSV Export for Sales Dashboard
+                    <span class="similarity">90% match</span>
+                    <ul><li>Ensure async processing for large datasets</li><li>Implement progress tracking for export jobs</li></ul>
+                </div>
+                <div class="context-item">
+                    <strong>PBI-2022-217</strong>: Add Excel Export to Performance Metrics View
+                    <span class="similarity">85% match</span>
+                    <ul><li>Use Microsoft Office Interop for advanced formatting</li><li>Implement column filtering during export</li></ul>
+                </div></div>
+                <div class="context-group"><strong>Past Decisions:</strong>
+                <div class="context-item">
+                    <strong>ADR-2023-12</strong>: Data Export Architecture for Enterprise Dashboards
+                    <p><em>Implement standardized export service with async processing</em></p>
+                    <small>Architect: Elena Rodriguez</small>
+                </div>
+                <div class="context-item">
+                    <strong>ADR-2024-05</strong>: Export File Format Standards
+                    <p><em>Support Excel (.xlsx), CSV, and JSON export formats</em></p>
+                    <small>Architect: Michael Chen</small>
+                </div></div>
+                <div class="context-group"><strong>Technical Documentation:</strong>
+                <div class="context-item">
+                    <strong>CONF-2023-56</strong>: Dashboard Export Service Implementation Guidelines
+                    <p>Provides comprehensive approach to building export features</p>
+                </div>
+                <div class="context-item">
+                    <strong>TECH-2024-22</strong>: Excel Export API Specification
+                    <p>Provides technical details for Excel export implementation</p>
+                </div></div>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>⚠️ Risks (HIGH)</h4>
+                
+                <div class="risk-item risk-high">
+                    <div class="risk-header">
+                        <span class="risk-type">technical_debt</span>
+                        <span class="risk-severity">high</span>
+                    </div>
+                    <p>Performance scalability challenges with large dataset exports potentially causing memory and processing bottlenecks</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Implement async processing with chunked data export, add memory management strategies, and define strict performance thresholds for export processing</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-header">
+                        <span class="risk-type">blocker</span>
+                        <span class="risk-severity">medium</span>
+                    </div>
+                    <p>Incomplete performance and error handling specifications could lead to unpredictable export behavior</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Define explicit performance benchmarks, create comprehensive error handling scenarios, and establish clear export job monitoring mechanisms</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-header">
+                        <span class="risk-type">technical_debt</span>
+                        <span class="risk-severity">medium</span>
+                    </div>
+                    <p>Technical complexity of Microsoft Office Interop integration with potential compatibility challenges</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Create abstraction layer for Excel export, implement robust compatibility testing, and document specific Excel version support requirements</div>
+                </div>
+                <div class="risk-item risk-low">
+                    <div class="risk-header">
+                        <span class="risk-type">resource</span>
+                        <span class="risk-severity">low</span>
+                    </div>
+                    <p>Potential resource constraints in handling complex Excel export with formatting and large datasets</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Optimize export service architecture, implement background processing, and add progressive loading mechanisms</div>
+                </div>
+            </div>
+            
+            
+            <div class="pbi-section">
+                <h4>🎯 Readiness Assessment</h4>
+                <div class="readiness-card status-refinement">
+                    <div class="readiness-status">🟡 NEEDS REFINEMENT</div>
+                    <div class="readiness-score">Score: 78/100</div>
+                </div>
+                <div class="readiness-list readiness-blocking"><strong>🔴 Blocking Issues:</strong><ul><li>Performance requirements not fully defined</li><li>Error handling specifications missing</li><li>Large dataset handling strategy unclear</li></ul></div><div class="readiness-list readiness-warning"><strong>⚠️ Warnings:</strong><ul><li>Performance benchmark for large exports needed</li><li>Specific performance requirements incomplete</li></ul></div><div class="readiness-list readiness-recommendations"><strong>💡 Recommendations:</strong><ul><li>Define specific performance thresholds for export process</li><li>Add detailed error handling scenarios</li><li>Specify strategy for handling exports over 5,000 rows</li><li>Create performance test plan for large dataset exports</li></ul></div>
+            </div>
+            <div class="pbi-section"><h4>📝 Additional Notes</h4><ul><li>Handle large dataset exports</li><li>Implement non-blocking export mechanism</li></ul><p><strong>Mentioned by:</strong> Sarah, Lisa, Mike, John</p></div>
+    
+        </div>
+    </div>
+
+    <div class="pbi-card">
+        <div class="pbi-header" onclick="togglePBI(2)">
+            <div class="pbi-title-row">
+                <span class="pbi-id">PBI-003</span>
+                <h3 class="pbi-title">As a user, I want faster search results</h3>
+                <span class="expand-icon" id="icon-2">▼</span>
+            </div>
+            <div class="pbi-badges">
+                <span class="badge status-refinement">⚠️ Needs Refinement</span>
+                <span class="badge risk-medium">⚠️ MEDIUM RISK</span>
+                <span class="badge badge-score">📊 88/100</span>
+            </div>
+        </div>
+
+        <div class="pbi-content" id="content-2">
+            
+            <div class="pbi-section">
+                <h4>📋 Description</h4>
+                <p>Optimize search functionality to improve performance and reduce response time</p>
+            </div>
+
+            
+            <div class="pbi-section">
+                <h4>✅ Acceptance Criteria</h4>
+                <ul class="criteria-list"><li>Search returns results in under 1 second for datasets up to 10,000 items</li><li>Search accuracy is maintained</li><li>Existing search features still work (wildcards, filters, etc.)</li><li>Add database indexes to name, description, and tags columns</li><li>Optimize search query to use new indexes</li><li>Implement caching for common search terms</li></ul>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>📊 Quality Scores</h4>
+                <div class="scores-grid">
+                    
+                    <div class="score-item">
+                        <div class="score-label">Overall</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 88%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">88</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Completeness</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 95%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">95</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Clarity</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 85%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">85</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Actionability</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 90%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">90</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Testability</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 85%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">85</div>
+                    </div>
+                </div>
+                <div class="score-list"><strong>💪 Strengths:</strong><ul><li>Detailed acceptance criteria</li><li>Clear technical approach</li><li>Specific performance target</li><li>Comprehensive optimization strategy</li></ul></div><div class="score-list"><strong>⚠️ Concerns:</strong><ul><li>Performance metric might vary by dataset complexity</li><li>Potential impact on existing search functionality</li></ul></div><div class="score-list"><strong>❌ Missing:</strong><ul><li>Specific performance baseline</li><li>Load testing requirements</li></ul></div>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>🔍 Historical Context</h4>
+                <div class="context-group"><strong>Similar Work:</strong>
+                <div class="context-item">
+                    <strong>PBI-2023-342</strong>: Improve Search Query Performance for Large Datasets
+                    <span class="similarity">90% match</span>
+                    <ul><li>Implemented multi-level caching strategy</li><li>Reduced average query time by 65%</li></ul>
+                </div>
+                <div class="context-item">
+                    <strong>PBI-2022-215</strong>: Optimize Elasticsearch Index Performance
+                    <span class="similarity">75% match</span>
+                    <ul><li>Created specialized indexing for text-heavy searches</li><li>Reduced index rebuild time by 40%</li></ul>
+                </div></div>
+                <div class="context-group"><strong>Past Decisions:</strong>
+                <div class="context-item">
+                    <strong>ADR-2023-12</strong>: Search Performance Scaling Architecture
+                    <p><em>Implement distributed caching with Redis for search results</em></p>
+                    <small>Architect: Elena Rodriguez</small>
+                </div>
+                <div class="context-item">
+                    <strong>ADR-2024-04</strong>: Query Optimization Strategy
+                    <p><em>Adopt adaptive query planning with machine learning-based indexing</em></p>
+                    <small>Architect: Michael Chen</small>
+                </div></div>
+                <div class="context-group"><strong>Technical Documentation:</strong>
+                <div class="context-item">
+                    <strong>CONF-2023-56</strong>: Search Performance Optimization Guidelines
+                    <p>Primary reference for search performance best practices</p>
+                </div>
+                <div class="context-item">
+                    <strong>TECH-2024-22</strong>: Search System Performance Monitoring Playbook
+                    <p>Essential for understanding and measuring search efficiency</p>
+                </div></div>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>⚠️ Risks (MEDIUM)</h4>
+                
+                <div class="risk-item risk-high">
+                    <div class="risk-header">
+                        <span class="risk-type">technical_debt</span>
+                        <span class="risk-severity">high</span>
+                    </div>
+                    <p>Performance optimization complexity across varied dataset complexities could introduce inconsistent search results</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Develop comprehensive test suite with multiple dataset scenarios, implement adaptive performance tuning mechanism</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-header">
+                        <span class="risk-type">blocker</span>
+                        <span class="risk-severity">medium</span>
+                    </div>
+                    <p>Lack of specific performance baseline metrics makes objective improvement measurement challenging</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Define precise pre-optimization performance metrics, establish clear quantitative improvement targets</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-header">
+                        <span class="risk-type">resource</span>
+                        <span class="risk-severity">medium</span>
+                    </div>
+                    <p>Multi-level caching and machine learning indexing may introduce significant memory and computational overhead</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Conduct thorough resource impact analysis, implement progressive rollout with monitoring</div>
+                </div>
+                <div class="risk-item risk-low">
+                    <div class="risk-header">
+                        <span class="risk-type">scope_creep</span>
+                        <span class="risk-severity">low</span>
+                    </div>
+                    <p>Potential risk of expanding optimization beyond initial performance improvement goals</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Maintain strict scope definition, prioritize core performance metrics over peripheral enhancements</div>
+                </div>
+            </div>
+            
+            
+            <div class="pbi-section">
+                <h4>🎯 Readiness Assessment</h4>
+                <div class="readiness-card status-refinement">
+                    <div class="readiness-status">🟡 NEEDS REFINEMENT</div>
+                    <div class="readiness-score">Score: 78/100</div>
+                </div>
+                <div class="readiness-list readiness-blocking"><strong>🔴 Blocking Issues:</strong><ul><li>Missing specific performance baseline</li><li>Incomplete load testing requirements</li><li>Unanswered critical and high-priority questions</li></ul></div><div class="readiness-list readiness-warning"><strong>⚠️ Warnings:</strong><ul><li>Performance metric variability concern</li><li>Potential impact on existing search functionality</li><li>No explicit technical approach validation</li></ul></div><div class="readiness-list readiness-recommendations"><strong>💡 Recommendations:</strong><ul><li>Define precise performance baseline across different dataset sizes</li><li>Create comprehensive load testing plan with specific test scenarios</li><li>Clarify and document answers to remaining critical questions</li><li>Conduct thorough impact analysis on existing search features</li><li>Specify exact performance measurement methodology</li></ul></div>
+            </div>
+            <div class="pbi-section"><h4>📝 Additional Notes</h4><ul><li>Estimated at 3 story points</li><li>Primarily database and query optimization work</li></ul><p><strong>Mentioned by:</strong> Sarah, Mike, Lisa, John</p></div>
+    
+        </div>
+    </div>
+    </section>
+    </div>
+    
+    <script>
+        function togglePBI(index) {
+            const content = document.getElementById('content-' + index);
+            const icon = document.getElementById('icon-' + index);
+
+            content.classList.toggle('expanded');
+            icon.classList.toggle('expanded');
+        }
+    </script>
+</body>
+</html>

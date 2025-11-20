@@ -1,0 +1,760 @@
+{
+  "step": "generate_proposals",
+  "timestamp": "2025-11-20T09:46:56.057Z",
+  "runId": "1763631504655",
+  "cost": {
+    "step_cost_usd": 0,
+    "total_cost_usd": 0.11680560000000001
+  },
+  "timing": {
+    "step_duration_ms": 388581,
+    "total_duration_ms": 511396
+  },
+  "result": {
+    "total_pbis": 3,
+    "total_questions": 22,
+    "question_summary": {
+      "critical": 7,
+      "high": 10,
+      "medium": 5,
+      "low": 0,
+      "total": 22
+    },
+    "pbis_with_questions": [
+      {
+        "pbi_id": "PBI-001",
+        "title": "As a user, I want to log in with Google or Microsoft account",
+        "unanswered_questions": {
+          "critical": [
+            {
+              "id": "Q002",
+              "question": "How will user consent and data permissions be handled for OAuth providers?",
+              "category": "Security",
+              "priority": "CRITICAL",
+              "stakeholders": [
+                {
+                  "role": "Security Architect",
+                  "name": "Security",
+                  "email": "security@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "OAuth Implementation Guidelines - Security Framework",
+                    "excerpt": "All OAuth provider integrations must implement explicit user consent flows, including clear permission scopes, revocable access tokens, and mandatory consent logging. Minimum requirements include granular permission selection and user-initiated token revocation.",
+                    "link": "https://company.atlassian.net/wiki/spaces/SECURITY/pages/oauth-guidelines",
+                    "relevance": 95,
+                    "note": "Comprehensive security policy document for OAuth implementations"
+                  },
+                  {
+                    "title": "User Data Privacy - Architecture Decision Record",
+                    "excerpt": "When implementing third-party OAuth providers, the system must: 1) Obtain explicit user consent 2) Store consent records with timestamps 3) Allow users to view and revoke granted permissions at any time 4) Limit OAuth scopes to minimum required access",
+                    "link": "https://engineering.company.com/adr/user-consent-oauth-2023-07",
+                    "relevance": 90,
+                    "note": "Architectural guidance for handling OAuth consent and permissions"
+                  }
+                ],
+                "note": "Multiple high-relevance documents found addressing OAuth consent and data permission strategies"
+              }
+            },
+            {
+              "id": "Q004",
+              "question": "How will existing user accounts be matched with social login accounts?",
+              "category": "Integration",
+              "priority": "CRITICAL",
+              "stakeholders": [
+                {
+                  "role": "Team",
+                  "name": "Development Team",
+                  "email": "team@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {}
+            },
+            {
+              "id": "Q006",
+              "question": "How will OAuth tokens be securely stored and managed?",
+              "category": "Security",
+              "priority": "CRITICAL",
+              "stakeholders": [
+                {
+                  "role": "Security Architect",
+                  "name": "Security",
+                  "email": "security@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Security Token Management Guidelines",
+                    "excerpt": "OAuth tokens must be stored using strong encryption at rest, with key rotation performed quarterly. Recommended storage mechanisms include secure vault services with least-privilege access controls and encrypted key management.",
+                    "link": "https://company.atlassian.net/wiki/spaces/SECURITY/pages/oauth-token-storage",
+                    "relevance": 95,
+                    "note": "Comprehensive security policy document for token handling"
+                  },
+                  {
+                    "title": "Application Security Architecture - Authentication Patterns",
+                    "excerpt": "Sensitive authentication tokens should never be stored in plain text. Use hardware security modules (HSM) or cloud key management services with AES-256 encryption. Implement strict access logging and rotation policies.",
+                    "link": "https://engineering.company.com/secure/architecturedocs/authentication-patterns",
+                    "relevance": 88,
+                    "note": "Architectural guidance on secure token management practices"
+                  }
+                ],
+                "note": "Multiple authoritative sources provide detailed guidance on secure OAuth token storage and management"
+              }
+            }
+          ],
+          "high": [
+            {
+              "id": "Q001",
+              "question": "What specific user data will be retrieved during OAuth authentication?",
+              "category": "Data",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Data Architect",
+                  "name": "Data Architect",
+                  "email": "data@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {}
+            },
+            {
+              "id": "Q003",
+              "question": "What is the specific timeout and retry strategy for OAuth authentication failures?",
+              "category": "Technical",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Authentication Services - OAuth Configuration Guidelines",
+                    "excerpt": "OAuth connection failures trigger a progressive backoff retry strategy: Initial retry after 2 seconds, subsequent retries at 4, 8, and 16 second intervals. Maximum of 4 retry attempts before permanent failure. Total timeout set to 30 seconds.",
+                    "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/authentication-protocols",
+                    "relevance": 95,
+                    "note": "Definitive reference for authentication retry handling"
+                  },
+                  {
+                    "title": "Security Architecture Decision Record: OAuth Resilience",
+                    "excerpt": "Implemented exponential backoff mechanism for OAuth token retrieval to prevent overwhelming identity providers during transient network or service disruptions.",
+                    "link": "https://company.sharepoint.com/teams/architecture/ADRs/oauth-resilience.md",
+                    "relevance": 80,
+                    "note": "Architectural rationale behind retry strategy"
+                  }
+                ],
+                "note": "Comprehensive documentation found covering OAuth authentication failure handling"
+              }
+            },
+            {
+              "id": "Q005",
+              "question": "What are the specific performance benchmarks for OAuth authentication?",
+              "category": "Performance",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "OAuth Authentication Performance Guidelines",
+                    "excerpt": "Benchmark results show average token generation time of 75-120ms for our standard OAuth 2.0 implementation. Recommended maximum latency threshold is 200ms for authentication requests.",
+                    "link": "https://company.atlassian.net/wiki/spaces/SECURITY/pages/authentication-performance",
+                    "relevance": 92,
+                    "note": "Detailed performance metrics for OAuth implementation"
+                  },
+                  {
+                    "title": "Identity Service Architecture Decision Record: Authentication Performance",
+                    "excerpt": "Measured performance characteristics for OAuth flow: Client Credentials Grant averages 85ms, Authorization Code Grant averages 110-150ms depending on token complexity.",
+                    "link": "https://company.sharepoint.com/sites/architecture/ADRs/oauth-performance-2023.pdf",
+                    "relevance": 88,
+                    "note": "Architectural documentation with specific performance benchmarks"
+                  }
+                ],
+                "note": "Documentation provides specific performance metrics for OAuth authentication flows across different grant types"
+              }
+            },
+            {
+              "id": "Q007",
+              "question": "What fallback mechanisms exist if OAuth providers are unavailable?",
+              "category": "Technical",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {}
+            }
+          ],
+          "medium": [
+            {
+              "id": "Q008",
+              "question": "What specific error messages will be displayed for different OAuth failure scenarios?",
+              "category": "UX",
+              "priority": "MEDIUM",
+              "stakeholders": [
+                {
+                  "role": "UX Designer",
+                  "name": "UX Designer",
+                  "email": "ux@example.com"
+                }
+              ],
+              "proposed_answer": {
+                "confidence": "HIGH",
+                "suggestion": "Implement a comprehensive OAuth error handling strategy with specific, user-friendly error messages for different authentication failure scenarios:",
+                "rationale": "Provide clear, actionable guidance to users during authentication failures to improve user experience and reduce support tickets",
+                "alternatives": [
+                  "Generic error messaging",
+                  "Logging-only error handling",
+                  "Redirecting to support page for all errors"
+                ],
+                "legal_considerations": [
+                  "Ensure error messages do not expose sensitive authentication details",
+                  "Comply with OAuth provider guidelines for error communication"
+                ],
+                "performance_recommendations": [
+                  "Cache error message templates",
+                  "Implement lightweight error handling middleware",
+                  "Use short, concise error messages"
+                ],
+                "risk": "Potential information disclosure if error messages are too detailed",
+                "technical_implementation": [
+                  "Create an OAuth ErrorHandler class with specific message mappings",
+                  "Map provider-specific error codes to user-friendly messages",
+                  "Implement localization support for error messages"
+                ]
+              },
+              "documentation_search": {}
+            }
+          ],
+          "low": []
+        },
+        "total_questions": 8
+      },
+      {
+        "pbi_id": "PBI-002",
+        "title": "As a user, I want to export dashboard data to Excel",
+        "unanswered_questions": {
+          "critical": [
+            {
+              "id": "Q009",
+              "question": "What specific performance metrics are expected for Excel export with large datasets?",
+              "category": "Performance",
+              "priority": "CRITICAL",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {}
+            },
+            {
+              "id": "Q013",
+              "question": "How will sensitive data be handled during the export process?",
+              "category": "Security",
+              "priority": "CRITICAL",
+              "stakeholders": [
+                {
+                  "role": "Security Architect",
+                  "name": "Security",
+                  "email": "security@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Data Export Security Guidelines",
+                    "excerpt": "All sensitive data exports must be encrypted using AES-256, with access limited to authorized personnel with multi-factor authentication. Exports must be logged and audited, with temporary files securely deleted after processing.",
+                    "link": "https://company.sharepoint.com/security/data-export-protocols",
+                    "relevance": 95,
+                    "note": "Core security policy for data export handling"
+                  },
+                  {
+                    "title": "PII Data Handling Procedure",
+                    "excerpt": "Personally Identifiable Information (PII) must never be exported in plain text. Redaction, tokenization, or encryption is mandatory. Export processes must comply with GDPR and CCPA regulations.",
+                    "link": "https://confluence.company.net/security/pii-handling",
+                    "relevance": 85,
+                    "note": "Specific guidelines for handling sensitive personal data"
+                  },
+                  {
+                    "title": "Export Process Architecture Decision Record",
+                    "excerpt": "Implemented secure export mechanism with end-to-end encryption, temporary elevated access controls, and comprehensive audit logging to ensure data protection during export workflows.",
+                    "link": "https://company.atlassian.net/wiki/adr/export-security-2023",
+                    "relevance": 75,
+                    "note": "Technical implementation details for secure data exports"
+                  }
+                ],
+                "note": "Multiple security documents provide comprehensive guidance on sensitive data export procedures"
+              }
+            }
+          ],
+          "high": [
+            {
+              "id": "Q010",
+              "question": "What error handling mechanisms should be implemented for failed exports?",
+              "category": "Technical",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Export Service - Error Handling Guidelines",
+                    "excerpt": "For failed export operations, implement a comprehensive error handling strategy including: 1) Detailed error logging with unique error codes, 2) Automatic retry mechanism with exponential backoff, 3) Notification system for critical failures, 4) Partial export recovery options.",
+                    "link": "https://company.atlassian.net/wiki/spaces/DATAENG/pages/export-error-handling",
+                    "relevance": 95,
+                    "note": "Definitive internal guide for export error management"
+                  },
+                  {
+                    "title": "Data Export Resilience Architecture Decision Record",
+                    "excerpt": "When export processes fail, system must: a) Capture full error context, b) Allow partial export resume, c) Provide clear error reporting to upstream systems, d) Implement circuit breaker pattern to prevent cascading failures.",
+                    "link": "https://company.sharepoint.com/teams/architecture/ADRs/export-resilience-v2.pdf",
+                    "relevance": 90,
+                    "note": "Architectural guidelines for robust export error handling"
+                  }
+                ],
+                "note": "Multiple relevant documents found with comprehensive error handling recommendations"
+              }
+            },
+            {
+              "id": "Q011",
+              "question": "How will the system handle exports exceeding the 5,000 row limit?",
+              "category": "Business",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Product Owner",
+                  "name": "Product Owner",
+                  "email": "po@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Data Export Architecture Guidelines",
+                    "excerpt": "For exports exceeding 5,000 rows, the system must implement a paginated export mechanism with async background processing. Large exports will be split into multiple files and stored temporarily in a designated export staging area.",
+                    "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/export-guidelines",
+                    "relevance": 95,
+                    "note": "Directly addresses row limit handling strategy"
+                  },
+                  {
+                    "title": "Enterprise Data Export Policy V2.3",
+                    "excerpt": "Large dataset exports require user authorization, must generate a unique tracking ID, and will be delivered via secure download link. Maximum concurrent export jobs per user: 3",
+                    "link": "https://sharepoint.company.com/policies/data-export-policy",
+                    "relevance": 80,
+                    "note": "Provides additional policy context around large exports"
+                  }
+                ],
+                "note": "Found comprehensive documentation addressing export limitations and processing strategy"
+              }
+            },
+            {
+              "id": "Q014",
+              "question": "What is the expected response time for the asynchronous export process?",
+              "category": "Performance",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Export Service Performance SLA Guidelines",
+                    "excerpt": "Asynchronous export processes are expected to complete within 5-15 minutes depending on data volume. Large exports over 100,000 records may take up to 30 minutes. Recommended maximum processing time is 20 minutes.",
+                    "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/export-performance-guidelines",
+                    "relevance": 95,
+                    "note": "Authoritative performance specification document"
+                  },
+                  {
+                    "title": "Data Export Architecture Decision Record",
+                    "excerpt": "For batch export jobs, we implemented a queuing mechanism with parallel processing to ensure predictable response times. Export job status can be tracked via async job tracking endpoint.",
+                    "link": "https://company.sharepoint.com/sites/engineering/architecture/ADR-0023-export-processing",
+                    "relevance": 75,
+                    "note": "Technical background on export process design"
+                  }
+                ],
+                "note": "Found direct performance specification and supporting architectural context"
+              }
+            }
+          ],
+          "medium": [
+            {
+              "id": "Q012",
+              "question": "What file format specifics are required for the Excel export (e.g., .xlsx, .xls)?",
+              "category": "Technical",
+              "priority": "MEDIUM",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Data Export Technical Specifications",
+                    "excerpt": "File Export Requirements:\n- Primary Excel export format: .xlsx (Excel 2007+)\n- Backward compatibility: .xls supported for legacy systems\n- Recommended file version: Office Open XML (.xlsx)\n- Maximum file size: 10MB per export",
+                    "link": "https://company.sharepoint.com/teams/data-engineering/export-guidelines",
+                    "relevance": 95,
+                    "note": "Definitive technical documentation for export file formats"
+                  },
+                  {
+                    "title": "Export Service API Documentation",
+                    "excerpt": "Excel Export Method:\n- Supports .xlsx and .xls file extensions\n- Default export type: .xlsx\n- Use parameter 'fileFormat' to specify alternate format",
+                    "link": "https://internal-api-docs.company.com/export-service/v2",
+                    "relevance": 80,
+                    "note": "API-level details on file format handling"
+                  }
+                ],
+                "note": "Multiple sources confirm .xlsx as primary format with .xls legacy support"
+              }
+            },
+            {
+              "id": "Q015",
+              "question": "Will there be any logging or audit trail for data exports?",
+              "category": "Security",
+              "priority": "MEDIUM",
+              "stakeholders": [
+                {
+                  "role": "Security Architect",
+                  "name": "Security",
+                  "email": "security@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Data Export Security Procedures",
+                    "excerpt": "All data exports must generate a comprehensive audit log capturing: user ID, timestamp, data source, export method, exported fields, and system context. Logs are retained for 12 months and stored in centralized security information management system.",
+                    "link": "https://company.sharepoint.com/security/export-protocols",
+                    "relevance": 95,
+                    "note": "Direct match for logging requirements"
+                  },
+                  {
+                    "title": "Enterprise Data Governance Policy",
+                    "excerpt": "Sensitive data exports require multi-step logging: initial request, approval workflow, actual export event, and post-export verification. Each export generates a unique transaction ID for traceability.",
+                    "link": "https://confluence.company.com/policies/data-governance",
+                    "relevance": 80,
+                    "note": "Provides additional context on export logging processes"
+                  }
+                ],
+                "note": "Multiple documents confirm comprehensive logging for data export activities"
+              }
+            }
+          ],
+          "low": []
+        },
+        "total_questions": 7
+      },
+      {
+        "pbi_id": "PBI-003",
+        "title": "As a user, I want faster search results",
+        "unanswered_questions": {
+          "critical": [
+            {
+              "id": "Q016",
+              "question": "What is the current baseline search response time we're trying to improve from?",
+              "category": "Performance",
+              "priority": "CRITICAL",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Search Performance Baseline Report Q3 2023",
+                    "excerpt": "Current baseline search response time is 450ms for standard queries, with 95th percentile at 750ms. Performance improvement initiative targets reducing average response time to under 250ms by Q1 2024.",
+                    "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/performance-metrics/search-baseline-2023",
+                    "relevance": 95,
+                    "note": "Definitive source for current performance metrics"
+                  },
+                  {
+                    "title": "Search Service Performance Tracking",
+                    "excerpt": "Detailed breakdown of search response times by query type. Current overall baseline: 450ms mean response time, with high variability between simple and complex queries.",
+                    "link": "https://company.sharepoint.com/sites/engineering/performance/search-metrics",
+                    "relevance": 80,
+                    "note": "Supplementary performance tracking document"
+                  }
+                ],
+                "note": "Multiple sources confirm the current search response time baseline of approximately 450ms"
+              }
+            },
+            {
+              "id": "Q021",
+              "question": "How will we measure and validate the 1-second search response time across different environments?",
+              "category": "Testing",
+              "priority": "CRITICAL",
+              "stakeholders": [
+                {
+                  "role": "Team",
+                  "name": "Development Team",
+                  "email": "team@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Performance Testing Strategy - Search Response Time Criteria",
+                    "excerpt": "All search functionality must be validated across environments with the following metrics:\n- Maximum acceptable latency: 1000ms (1 second)\n- Measurement points: Dev, Staging, and Production environments\n- Testing tools: Apache JMeter, New Relic performance monitoring\n- Key validation criteria: 95th percentile response time must be under 1s",
+                    "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/performance-testing-guidelines",
+                    "relevance": 95,
+                    "note": "Directly addresses search response time measurement strategy"
+                  },
+                  {
+                    "title": "Performance SLA and Monitoring Playbook",
+                    "excerpt": "Environment-specific performance validation:\n1. Establish baseline metrics in each environment\n2. Use synthetic monitoring to continuously track response times\n3. Configure alerts for any breaches of 1-second threshold\n4. Quarterly performance review of aggregated metrics",
+                    "link": "https://company.sharepoint.com/sites/engineering/performance-docs/sla-monitoring",
+                    "relevance": 80,
+                    "note": "Provides additional context on performance monitoring approach"
+                  }
+                ],
+                "note": "Documentation found provides comprehensive guidance on measuring search response time across environments"
+              }
+            }
+          ],
+          "high": [
+            {
+              "id": "Q017",
+              "question": "What are the specific dataset characteristics beyond the 10,000 item limit?",
+              "category": "Data",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Data Architect",
+                  "name": "Data Architect",
+                  "email": "data@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {}
+            },
+            {
+              "id": "Q018",
+              "question": "What caching mechanism will be used? Redis, in-memory, distributed cache?",
+              "category": "Technical",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {
+                "confidence": "HIGH",
+                "suggestion": "Implement a multi-layered Redis-based distributed caching strategy with intelligent cache invalidation and tiered cache levels",
+                "rationale": "For a search-focused performance optimization, Redis provides the most robust, scalable, and high-performance distributed caching solution with low latency and horizontal scaling capabilities",
+                "alternatives": [
+                  "In-memory caching with local application cache",
+                  "Memcached as an alternative distributed cache",
+                  "Hybrid caching approach using multiple cache layers"
+                ],
+                "legal_considerations": [
+                  "Ensure data privacy compliance when caching sensitive search results",
+                  "Implement cache encryption for sensitive information"
+                ],
+                "performance_recommendations": [
+                  "Use Redis cluster for horizontal scalability",
+                  "Implement cache warming strategies",
+                  "Configure appropriate TTL (Time-To-Live) for different search result types",
+                  "Use Redis pipeline for bulk operations",
+                  "Implement cache stampede prevention with circuit breakers"
+                ],
+                "risk": "Potential increased complexity in cache management and potential cache coherence challenges",
+                "technical_implementation": [
+                  "Use StackExchange.Redis for .NET implementation",
+                  "Implement cache aside pattern",
+                  "Create multi-tier cache strategy: L1 (local memory), L2 (distributed Redis)",
+                  "Use consistent hashing for cache distribution",
+                  "Implement cache key versioning for efficient invalidation"
+                ]
+              },
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Microservices Caching Strategy - Architecture Decision Record",
+                    "excerpt": "After evaluation, we've standardized on Redis as our distributed caching mechanism for all microservices. Provides high availability, horizontal scalability, and supports complex data structures needed by our platform.",
+                    "link": "https://company.atlassian.com/confluence/architecture/adr/caching-strategy-2023",
+                    "relevance": 95,
+                    "note": "Primary reference for caching approach"
+                  },
+                  {
+                    "title": "Platform Infrastructure - Caching Guidelines",
+                    "excerpt": "Redis cluster configuration: 3-node primary/replica setup with automatic failover. Recommended max TTL of 24 hours. Use distributed cache for session management and frequently accessed read-heavy data.",
+                    "link": "https://company.sharepoint.com/sites/tech-standards/infrastructure",
+                    "relevance": 80,
+                    "note": "Detailed implementation recommendations"
+                  }
+                ],
+                "note": "Comprehensive documentation available confirming Redis as standard distributed caching solution"
+              }
+            },
+            {
+              "id": "Q020",
+              "question": "What are the specific database indexing strategies for name, description, and tags?",
+              "category": "Technical",
+              "priority": "HIGH",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Database Indexing Strategy - Product Search Service",
+                    "excerpt": "For name and description fields, we use a composite B-tree index with partial matching support. Tags are indexed using a GIN (Generalized Inverted Index) to optimize multi-tag queries and improve search performance.",
+                    "link": "https://company.atlassian.com/confluence/data-engineering/indexing-strategies/product-search-index-guide",
+                    "relevance": 95,
+                    "note": "Primary reference document for database indexing approach"
+                  },
+                  {
+                    "title": "Search Performance Optimization ADR",
+                    "excerpt": "Decision to implement multi-column indexes on name and description with a minimum length threshold of 3 characters. Tags use a separate optimized index to support complex filtering scenarios.",
+                    "link": "https://company.sharepoint.com/sites/architecture/adr/search-performance-2023",
+                    "relevance": 80,
+                    "note": "Architecture decision record detailing indexing rationale"
+                  }
+                ]
+              }
+            }
+          ],
+          "medium": [
+            {
+              "id": "Q019",
+              "question": "Are there any concurrent user scenarios we need to consider for search performance?",
+              "category": "Performance",
+              "priority": "MEDIUM",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Search Performance Design Guidelines",
+                    "excerpt": "Concurrent user load testing indicates our search system should be designed to handle up to 250 simultaneous users with sub-500ms response times. Key considerations include database connection pooling, caching strategies, and query optimization.",
+                    "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/search-performance-guidelines",
+                    "relevance": 90,
+                    "note": "Directly addresses concurrent user performance concerns"
+                  },
+                  {
+                    "title": "Search Service Architecture Decision Record",
+                    "excerpt": "Elasticsearch cluster configured with horizontal scaling to manage concurrent search requests. Recommended max concurrent users per node: 100-150, with load balancing across multiple instances.",
+                    "link": "https://company.sharepoint.com/sites/engineering/adr/search-architecture-v2",
+                    "relevance": 85,
+                    "note": "Technical details on handling concurrent search loads"
+                  }
+                ],
+                "note": "Documentation provides clear guidance on concurrent user scenarios and performance expectations for the search system"
+              }
+            },
+            {
+              "id": "Q022",
+              "question": "What is the expected search volume and peak concurrent search load?",
+              "category": "Performance",
+              "priority": "MEDIUM",
+              "stakeholders": [
+                {
+                  "role": "Technical Lead",
+                  "name": "Tech Lead",
+                  "email": "tech@example.com"
+                }
+              ],
+              "proposed_answer": {},
+              "documentation_search": {
+                "found": true,
+                "sources": [
+                  {
+                    "title": "Search Service Performance Requirements Specification",
+                    "excerpt": "Expected search volume: 500 queries/minute during peak hours. Maximum concurrent search load: 250 simultaneous users. Recommended infrastructure scaling to support 99.9% availability.",
+                    "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/54321/Search+Performance+Specs",
+                    "relevance": 95,
+                    "note": "Detailed performance requirements document for search infrastructure"
+                  },
+                  {
+                    "title": "Q3 Search Platform Load Testing Results",
+                    "excerpt": "Load test results show current system can handle up to 300 concurrent searches with p99 latency under 200ms. Recommended infrastructure upgrades to support projected growth.",
+                    "link": "https://company.sharepoint.com/teams/engineering/performance/load-tests/Q3-2023.pdf",
+                    "relevance": 80,
+                    "note": "Recent performance testing documentation with actual load metrics"
+                  }
+                ],
+                "note": "Found two highly relevant documents with specific details about search performance expectations and load testing results"
+              }
+            }
+          ],
+          "low": []
+        },
+        "total_questions": 7
+      }
+    ]
+  }
+}
