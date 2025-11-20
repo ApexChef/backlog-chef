@@ -64,7 +64,10 @@ export class PipelineOrchestrator {
       this.stepWriter = new StepOutputWriter(outputDir, true, useRunSubdir);
       const runId = this.stepWriter.getRunId();
       const runDir = this.stepWriter.getRunDir();
-      this.pbiWriter = new PBIOutputWriter(runDir, runId, true);
+
+      // Get output formats from options (will be passed later during execute)
+      // For now, create PBIOutputWriter with empty formats array
+      this.pbiWriter = new PBIOutputWriter(runDir, runId, true, []);
       this.htmlFormatter = new HTMLFormatter(runDir, runId);
     }
   }
@@ -131,9 +134,15 @@ export class PipelineOrchestrator {
       // Generate final output
       const output = this.generateOutput(currentContext);
 
-      // Write individual PBI files
+      // Update PBIOutputWriter formats from options before writing
+      if (this.pbiWriter && options.output?.formats) {
+        // Update outputFormats property (need to make this setter accessible)
+        (this.pbiWriter as any).outputFormats = options.output.formats;
+      }
+
+      // Write individual PBI files (now with multi-format support)
       if (this.pbiWriter) {
-        this.pbiWriter.writePBIs(output);
+        await this.pbiWriter.writePBIs(output);
       }
 
       // Write final summary JSON
