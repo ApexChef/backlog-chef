@@ -10,17 +10,19 @@ import path from 'path';
 import { PipelineContext } from '../types/pipeline-types';
 
 export class StepOutputWriter {
-  private outputDir: string;
+  private baseOutputDir: string;
+  private runDir: string;
   private runId: string;
   private enabled: boolean;
 
   constructor(outputDir: string, enabled: boolean = true) {
-    this.outputDir = path.join(outputDir, 'steps');
+    this.baseOutputDir = outputDir;
     this.runId = Date.now().toString();
+    this.runDir = path.join(outputDir, `run-${this.runId}`);
     this.enabled = enabled;
 
-    if (this.enabled && !fs.existsSync(this.outputDir)) {
-      fs.mkdirSync(this.outputDir, { recursive: true });
+    if (this.enabled && !fs.existsSync(this.runDir)) {
+      fs.mkdirSync(this.runDir, { recursive: true });
     }
   }
 
@@ -31,8 +33,8 @@ export class StepOutputWriter {
     if (!this.enabled) return;
 
     const stepNumber = this.getStepNumber(stepName);
-    const fileName = `${stepNumber}-${stepName}-${this.runId}.json`;
-    const filePath = path.join(this.outputDir, fileName);
+    const fileName = `step-${stepNumber}-${stepName}.json`;
+    const filePath = path.join(this.runDir, fileName);
 
     const output = this.buildStepOutput(stepName, context);
 
@@ -236,7 +238,7 @@ export class StepOutputWriter {
    * Get output directory for this run
    */
   getOutputDir(): string {
-    return this.outputDir;
+    return this.runDir;
   }
 
   /**
@@ -244,5 +246,12 @@ export class StepOutputWriter {
    */
   getRunId(): string {
     return this.runId;
+  }
+
+  /**
+   * Get run directory path
+   */
+  getRunDir(): string {
+    return this.runDir;
   }
 }

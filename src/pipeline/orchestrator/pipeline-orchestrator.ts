@@ -4,6 +4,8 @@
  * Coordinates execution of all pipeline steps with the AI router
  */
 
+import fs from 'fs';
+import path from 'path';
 import { ModelRouter } from '../../ai/router';
 import {
   PipelineInput,
@@ -41,8 +43,9 @@ export class PipelineOrchestrator {
       const outputDir = options?.outputDir || 'output';
       this.stepWriter = new StepOutputWriter(outputDir, true);
       const runId = this.stepWriter.getRunId();
-      this.pbiWriter = new PBIOutputWriter(outputDir, runId, true);
-      this.htmlFormatter = new HTMLFormatter(outputDir, runId);
+      const runDir = this.stepWriter.getRunDir();
+      this.pbiWriter = new PBIOutputWriter(runDir, runId, true);
+      this.htmlFormatter = new HTMLFormatter(runDir, runId);
     }
   }
 
@@ -113,10 +116,17 @@ export class PipelineOrchestrator {
         this.pbiWriter.writePBIs(output);
       }
 
+      // Write final summary JSON
+      if (this.stepWriter) {
+        const summaryPath = path.join(this.stepWriter.getRunDir(), 'summary.json');
+        fs.writeFileSync(summaryPath, JSON.stringify(output, null, 2), 'utf-8');
+        console.log(`\n📊 Summary: ${summaryPath}`);
+      }
+
       // Generate HTML preview
       if (this.htmlFormatter) {
         const htmlPath = this.htmlFormatter.generate(output);
-        console.log(`\n🌐 HTML Preview: ${htmlPath}`);
+        console.log(`🌐 HTML Preview: ${htmlPath}`);
         console.log(`   Open in browser: file://${htmlPath}\n`);
       }
 

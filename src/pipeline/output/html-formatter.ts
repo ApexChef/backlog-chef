@@ -10,12 +10,14 @@ import path from 'path';
 import { PipelineOutput } from '../types/pipeline-types';
 
 export class HTMLFormatter {
-  private outputDir: string;
+  private runDir: string;
   private runId: string;
 
-  constructor(outputDir: string, runId: string) {
-    this.outputDir = outputDir;
+  constructor(runDir: string, runId: string) {
+    this.runDir = runDir;
     this.runId = runId;
+
+    // runDir is already created by StepOutputWriter, no need to create again
   }
 
   /**
@@ -23,8 +25,8 @@ export class HTMLFormatter {
    */
   generate(output: PipelineOutput): string {
     const html = this.buildHTML(output);
-    const fileName = `preview-${this.runId}.html`;
-    const filePath = path.join(this.outputDir, fileName);
+    const fileName = `preview.html`;
+    const filePath = path.join(this.runDir, fileName);
 
     fs.writeFileSync(filePath, html, 'utf-8');
 

@@ -41,7 +41,10 @@
       "Bash(node -e:*)",
       "Bash(ANTHROPIC_API_KEY=\"$ANTHROPIC_API_KEY\" node dist/index.js:*)",
       "Bash(env)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(watch -n 5:*)"
     ],
     "deny": [],
     "ask": []

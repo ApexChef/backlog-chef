@@ -10,18 +10,16 @@ import path from 'path';
 import { PipelineOutput } from '../types/pipeline-types';
 
 export class PBIOutputWriter {
-  private outputDir: string;
+  private runDir: string;
   private runId: string;
   private enabled: boolean;
 
-  constructor(outputDir: string, runId: string, enabled: boolean = true) {
-    this.outputDir = path.join(outputDir, 'pbis');
+  constructor(runDir: string, runId: string, enabled: boolean = true) {
+    this.runDir = runDir;
     this.runId = runId;
     this.enabled = enabled;
 
-    if (this.enabled && !fs.existsSync(this.outputDir)) {
-      fs.mkdirSync(this.outputDir, { recursive: true });
-    }
+    // runDir is already created by StepOutputWriter, no need to create again
   }
 
   /**
@@ -34,8 +32,8 @@ export class PBIOutputWriter {
 
     for (let i = 0; i < output.pbis.length; i++) {
       const pbi = output.pbis[i];
-      const fileName = `${pbi.pbi.id}-${this.sanitizeFileName(pbi.pbi.title)}-${this.runId}.json`;
-      const filePath = path.join(this.outputDir, fileName);
+      const fileName = `pbi-${pbi.pbi.id}-${this.sanitizeFileName(pbi.pbi.title)}.json`;
+      const filePath = path.join(this.runDir, fileName);
 
       const pbiOutput = {
         metadata: {
@@ -124,6 +122,6 @@ export class PBIOutputWriter {
    * Get output directory
    */
   getOutputDir(): string {
-    return this.outputDir;
+    return this.runDir;
   }
 }
