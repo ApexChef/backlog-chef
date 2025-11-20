@@ -1,0 +1,241 @@
+BACKLOG REFINEMENT MEETING - Human in the Loop Notifications
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: I've been thinking about how we can make the system more interactive. Right now, the pipeline runs completely automated, but I want to be able to approve things, answer questions, or get notified when something needs my attention.
+
+Tech Lead: That's a great evolution of the system. We're moving from "fully automated" to "human-in-the-loop" which is much more practical for real-world use.
+
+Product Owner: Exactly. For starters, I want to receive notifications - maybe via Slack - when the system needs me to do something or approve something.
+
+Tech Lead: What kind of notifications are you thinking about?
+
+Product Owner: A few scenarios come to mind:
+1. Pipeline completion - "Your PBI is ready for review"
+2. Questions that need answers - "This PBI has 5 open questions that need your input"
+3. Low confidence scores - "This PBI scored 45/100, needs refinement"
+4. Approval requests - "Ready to commit this to Azure DevOps?"
+5. Error notifications - "Pipeline failed on step 4"
+
+Tech Lead: So we'd need a notification system that can send messages to different channels?
+
+Product Owner: Yes. Start with Slack because that's what most teams use. But I can see us adding:
+- Email notifications
+- Microsoft Teams
+- Discord
+- Webhooks for custom integrations
+
+Tech Lead: Should the notifications be interactive? Like buttons to approve/reject?
+
+Product Owner: That would be amazing for later! But for starters, just send me messages with links. I can click a link to review the PBI or answer questions.
+
+Tech Lead: What about configuration? How do we know where to send notifications?
+
+Product Owner: Good point. We'd need a configuration file - maybe `config/notifications.yaml` where teams can configure:
+- Notification channels (Slack webhook URL, email, etc.)
+- Which events trigger notifications
+- Who gets notified for what (Product Owner, Tech Lead, etc.)
+
+Tech Lead: Let me think about the architecture. We'd need:
+1. A notification service that can send to different channels
+2. Event hooks in the pipeline to trigger notifications
+3. Configuration management
+4. Maybe a notification queue so we don't block the pipeline
+
+Product Owner: Right. And eventually we want two-way communication - the system asks a question via Slack, I respond, and it continues processing.
+
+Tech Lead: That's phase 2. For phase 1, let's focus on one-way notifications. Simple messages that say "hey, something happened, go check it out."
+
+Product Owner: Exactly. And let's start with Slack because:
+- Most dev teams already use it
+- Webhook integration is super simple
+- We can test it immediately
+
+Tech Lead: What about the notification format? Should we send rich messages with formatting?
+
+Product Owner: Yes! Slack supports "Block Kit" which lets us send nicely formatted messages with:
+- Headers and sections
+- Color-coded sidebars (green for success, red for error)
+- Action buttons (even if they just link to URLs for now)
+- Fields with key-value pairs
+
+Tech Lead: So a notification might look like:
+```
+✅ PBI Ready for Review
+━━━━━━━━━━━━━━━━━━━━━━━━
+Title: OCLIF CLI Implementation
+Score: 92/100 (Excellent)
+Status: READY FOR SPRINT
+━━━━━━━━━━━━━━━━━━━━━━━━
+📄 View PBI: [link]
+❓ 3 Questions need answers
+━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Product Owner: Perfect! That's exactly what I want. Clear, actionable, professional.
+
+Tech Lead: Let me draft the acceptance criteria:
+
+**ACCEPTANCE CRITERIA:**
+
+1. System can send notifications to Slack via webhook
+2. Configuration file (`config/notifications.yaml`) defines notification settings
+3. Pipeline completion sends notification with PBI summary
+4. Low confidence scores (< 70) trigger "needs refinement" notification
+5. Errors send failure notification with error details
+6. Notifications use Slack Block Kit for rich formatting
+7. Notifications include links to generated output files
+8. Configuration allows enabling/disabling notification types
+9. Support for multiple Slack channels (e.g., different channels per team)
+10. CLI flag to disable notifications for testing (--no-notifications)
+
+Product Owner: Love it. What about risks?
+
+Tech Lead: A few things to consider:
+- **Risk 1**: Webhook URLs are sensitive - need to document not to commit them to git
+- **Risk 2**: Slack rate limits - if we send too many messages, we could get throttled
+- **Risk 3**: Network failures - notification sending shouldn't block pipeline completion
+- **Risk 4**: Testing - we need a way to test notifications without spamming real channels
+
+Product Owner: How do we mitigate those?
+
+Tech Lead:
+- Risk 1: Use environment variables for webhook URLs, document in README
+- Risk 2: Implement notification queueing and batching
+- Risk 3: Send notifications asynchronously, don't block main pipeline
+- Risk 4: Add a "dry-run" mode that logs notifications instead of sending them
+
+Product Owner: Perfect. What's the technical approach?
+
+Tech Lead: I'd break it down into:
+
+**Phase 1: Notification Infrastructure**
+1. Create `src/notifications/` directory
+2. Build `NotificationService` class
+3. Implement `SlackNotifier` adapter
+4. Add configuration management
+
+**Phase 2: Pipeline Integration**
+1. Add notification hooks to pipeline orchestrator
+2. Create notification templates for each event type
+3. Implement error handling and retry logic
+
+**Phase 3: Configuration & Testing**
+1. Create `config/notifications.yaml` template
+2. Add CLI flags for notification control
+3. Build dry-run mode for testing
+4. Update README with setup instructions
+
+Product Owner: Estimate?
+
+Tech Lead: I'd say 5-8 story points. It's straightforward but touches multiple parts of the system.
+
+Product Owner: Dependencies?
+
+Tech Lead: None really. This is additive - we're not changing existing functionality, just adding notification capabilities on top.
+
+Product Owner: Future enhancements?
+
+Tech Lead: Oh, lots of possibilities:
+- **Phase 2**: Two-way communication (respond to questions via Slack)
+- **Phase 3**: Interactive approvals with buttons
+- **Phase 4**: More channels (Teams, Discord, Email)
+- **Phase 5**: Notification preferences per user
+- **Phase 6**: Digest mode (batch notifications into daily summary)
+- **Phase 7**: Integration with project management tools (notify when PBI added to Azure DevOps)
+
+Product Owner: I love it. Let's add this to the backlog.
+
+Tech Lead: One more thing - should we track notification history?
+
+Product Owner: Good question. Maybe in a `notifications.log` file? Nothing fancy, just a record of what was sent when.
+
+Tech Lead: Makes sense for debugging. I'll add that to the AC.
+
+Product Owner: Alright, I think we have enough detail. Let's summarize:
+
+**SUMMARY:**
+- Feature: Human in the Loop - Notification System
+- User Story: As a Product Owner, I want to receive Slack notifications when the pipeline completes or needs my attention, so that I can stay informed and take action when needed
+- Priority: HIGH - This is essential for real-world team collaboration
+- Estimate: 5-8 story points
+- Dependencies: None
+- Risks: Webhook security, rate limits, testing complexity
+
+Tech Lead: One last question - what about batching? If someone processes 10 PBIs at once, do we send 10 notifications or 1 summary?
+
+Product Owner: Good catch. Let's make that configurable. Some teams want immediate feedback, others prefer batched summaries. Add a `batch_mode` option to the config.
+
+Tech Lead: Will do. Anything else?
+
+Product Owner: Nope, that's it. Let's build it!
+
+---
+
+## Additional Notes
+
+**Example Notification Types:**
+
+1. **Pipeline Success**
+   - Trigger: Pipeline completes successfully
+   - Message: PBI summary, scores, readiness status
+   - Action: Link to output files
+
+2. **Pipeline Failure**
+   - Trigger: Pipeline fails on any step
+   - Message: Error details, which step failed
+   - Action: Link to logs
+
+3. **Low Confidence**
+   - Trigger: Overall score < 70
+   - Message: Score breakdown, missing elements
+   - Action: Link to PBI, suggest re-refinement
+
+4. **Questions Generated**
+   - Trigger: Pipeline generates questions
+   - Message: Number of questions, priorities
+   - Action: Link to questions
+
+5. **Ready for Sprint**
+   - Trigger: PBI marked as READY FOR SPRINT
+   - Message: Confirmation, summary
+   - Action: Link to PBI
+
+**Example Config File:**
+
+```yaml
+notifications:
+  enabled: true
+  batch_mode: false
+
+  slack:
+    enabled: true
+    webhook_url: "${SLACK_WEBHOOK_URL}"  # From environment variable
+    channels:
+      default: "#backlog-chef"
+      errors: "#backlog-chef-errors"
+
+    events:
+      pipeline_success: true
+      pipeline_failure: true
+      low_confidence: true
+      questions_generated: true
+      ready_for_sprint: true
+
+  email:
+    enabled: false
+    # Future implementation
+
+  teams:
+    enabled: false
+    # Future implementation
+```
+
+**Questions for Product Owner:**
+
+1. Should notifications be sent even if the pipeline fails?
+2. What if there's no internet connection? Retry or skip?
+3. Should we send notifications for PBIs processed with `npm start` in dev mode?
+4. Do you want notification preferences to be per-project or global?

@@ -1,0 +1,435 @@
+BACKLOG REFINEMENT MEETING - Customer Messaging & Release Notes
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: I have an idea for another feature - we need a way to push messages to our customers. Like a chat window or push notifications with release notes.
+
+Tech Lead: Interesting! So this is the opposite direction from the feedback command (PBI-008). That one lets users send feedback TO us, and this one pushes information FROM us TO users?
+
+Product Owner: Exactly! I want to be able to announce new features, share release notes, notify about breaking changes, or even just send helpful tips.
+
+Tech Lead: Where would these messages appear?
+
+Product Owner: A few ideas:
+1. **In-CLI notifications** - When they run any command, show a dismissible message
+2. **Release notes command** - `backlog-chef releases` shows recent updates
+3. **Chat/help window** - Interactive help system (future)
+4. **Email notifications** - For major releases (opt-in)
+
+Tech Lead: Let's start with the simplest - in-CLI notifications. Like how npm or brew show update messages?
+
+Product Owner: Yes! Something like:
+
+```bash
+$ backlog-chef process meeting.txt
+
+📢 New in v0.3.0:
+   • Setup wizard now auto-detects missing config
+   • Added feedback command for bug reports
+   • Improved error messages
+
+   Run 'backlog-chef releases' to see full changelog
+   Dismiss: Use --no-messages flag
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Processing meeting.txt...
+```
+
+Tech Lead: How do we deliver these messages? Where are they stored?
+
+Product Owner: Good question. A few approaches:
+
+**OPTION 1: Remote Message Service**
+- Host a simple API endpoint
+- CLI checks for messages on startup
+- Messages stored in database
+- We control content in real-time
+
+**OPTION 2: Package-based Messages**
+- Include messages in package.json or a messages.json file
+- Updated with each npm release
+- No API calls needed
+- Simple but less flexible
+
+**OPTION 3: GitHub Releases**
+- Fetch from GitHub releases API
+- Parse release notes automatically
+- Free, no infrastructure needed
+- Good for open source projects
+
+Tech Lead: I like Option 3 for MVP - it's simple and leverages GitHub. We can add a remote service later for more dynamic messages.
+
+Product Owner: Agreed. So the flow would be:
+1. CLI checks GitHub releases API
+2. Compares current version with latest release
+3. Shows release notes if user is behind
+4. Caches response to avoid rate limits
+
+Tech Lead: What about message types?
+
+Product Owner: I'm thinking:
+
+**MESSAGE TYPES:**
+1. **Release Notes** - What's new in latest version
+2. **Breaking Changes** - Urgent updates needed
+3. **Tips & Tricks** - Helpful usage suggestions
+4. **Announcements** - Community news, events
+5. **Deprecation Warnings** - Feature removal notices
+
+Tech Lead: Should users be able to control which messages they see?
+
+Product Owner: Absolutely! Add configuration options:
+
+```yaml
+# ~/.backlog-chef/config.yaml
+messages:
+  enabled: true
+  types:
+    release_notes: true
+    breaking_changes: true
+    tips: true
+    announcements: false
+    deprecations: true
+  frequency: "daily"  # daily, weekly, never
+```
+
+Tech Lead: What about the `backlog-chef releases` command?
+
+Product Owner: It should show a nicely formatted list of recent releases:
+
+```bash
+$ backlog-chef releases
+
+🎉 Backlog Chef Release History
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 v0.3.0 - November 20, 2025 (Current)
+
+   ✨ New Features:
+   • Setup wizard with auto-detection
+   • Feedback command with diagnostics
+   • First-run experience improvements
+
+   🐛 Bug Fixes:
+   • Fixed .env loading from different directories
+   • Improved error messages for missing config
+
+   📚 Documentation:
+   • Added comprehensive setup guide
+   • Updated npm link instructions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 v0.2.0 - November 19, 2025
+
+   ✨ New Features:
+   • OCLIF CLI implementation
+   • Global installation support
+   • Command flags (--format, --output, --verbose)
+
+   🐛 Bug Fixes:
+   • Step 4 enrichment improvements
+   • Better context extraction
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 v0.1.0 - November 15, 2025
+
+   ✨ Initial Release:
+   • 8-step processing pipeline
+   • Multiple output formats (DevOps, Obsidian, Confluence)
+   • AI-powered PBI enrichment
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+View full changelog: https://github.com/ApexChef/backlog-chef/releases
+```
+
+Tech Lead: That's beautiful! What about update prompts? Should we notify when a new version is available?
+
+Product Owner: Yes, but not too pushy. Show a gentle reminder:
+
+```bash
+$ backlog-chef process meeting.txt
+
+💡 A new version is available: v0.4.0 (you have v0.3.0)
+   Run 'npm update -g backlog-chef' to upgrade
+   Release notes: backlog-chef releases
+
+   Dismiss for 7 days: backlog-chef config set update_check.dismiss=true
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Processing meeting.txt...
+```
+
+Tech Lead: What about caching? We don't want to hit GitHub API on every command.
+
+Product Owner: Good point. Let's cache intelligently:
+- Check for updates once per day (configurable)
+- Store last check timestamp in `~/.backlog-chef/cache/last_update_check`
+- Cache release notes for 24 hours
+- Respect GitHub rate limits (60 requests/hour unauthenticated)
+
+Tech Lead: What about in-app tips? You mentioned helpful suggestions?
+
+Product Owner: Yes! Context-aware tips based on usage patterns:
+
+```bash
+$ backlog-chef process meeting.txt
+
+💡 Tip: You can use the --verbose flag to see detailed pipeline logs
+   Example: backlog-chef process meeting.txt --verbose
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Or:
+
+```bash
+$ backlog-chef process meeting.txt
+
+💡 Tip: Processing a lot of transcripts? Try the interactive refinement mode!
+   Run: backlog-chef refine --interactive
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Tech Lead: How do we decide which tips to show?
+
+Product Owner: Track user behavior:
+- If they've run `process` 10+ times → suggest `refine --interactive`
+- If they never use `--verbose` → suggest it for debugging
+- If they haven't set up notifications → suggest PBI-005 feature
+- If config is local only → suggest global config
+
+Tech Lead: Let me draft acceptance criteria:
+
+**ACCEPTANCE CRITERIA:**
+
+**Release Notes Command:**
+1. `backlog-chef releases` shows formatted list of recent releases
+2. Release data fetched from GitHub Releases API
+3. Current version is highlighted
+4. Each release shows features, bug fixes, breaking changes
+5. Link to full changelog on GitHub
+
+**In-CLI Notifications:**
+6. New releases are announced on next CLI run
+7. Messages are dismissible with `--no-messages` flag
+8. Messages cached for 24 hours to avoid API spam
+9. Last update check timestamp stored locally
+10. Update check frequency is configurable
+
+**Message Types:**
+11. Support release notes, breaking changes, tips, announcements, deprecations
+12. Users can enable/disable message types in config
+13. Tips are context-aware based on usage patterns
+14. Breaking changes are always shown (can't be disabled)
+
+**Configuration:**
+15. Messages configurable via `~/.backlog-chef/config.yaml`
+16. Can set frequency (daily, weekly, never)
+17. Can dismiss specific messages for N days
+18. Can disable all non-critical messages
+
+**Caching & Performance:**
+19. GitHub API calls cached for 24 hours
+20. Respects GitHub rate limits
+21. Fails gracefully if API unavailable (offline mode)
+22. No performance impact on CLI startup (async check)
+
+**Update Notifications:**
+23. Notify when new version available
+24. Show upgrade command (`npm update -g backlog-chef`)
+25. Link to release notes
+26. Can be dismissed for 7 days
+
+Tech Lead: What about privacy? Are we tracking any user data?
+
+Product Owner: Good question. We should be transparent:
+- We DON'T track personal information
+- We DON'T send analytics to external services
+- We only fetch public release data from GitHub
+- All behavior tracking is LOCAL ONLY (stored in `~/.backlog-chef/`)
+
+Tech Lead: Should we have a `backlog-chef messages` command to manage messages?
+
+Product Owner: Great idea! Something like:
+
+```bash
+$ backlog-chef messages
+
+📨 Message Management
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Settings:
+  • Messages enabled: Yes
+  • Update checks: Daily
+  • Last check: 2 hours ago
+
+Message Types:
+  ✓ Release notes
+  ✓ Breaking changes
+  ✓ Tips & tricks
+  ✗ Announcements (disabled)
+  ✓ Deprecations
+
+Recent Messages (last 7 days):
+  1. New version available: v0.4.0 (dismissed)
+  2. Tip: Use --verbose for debugging
+  3. Breaking change: .env format updated
+
+Commands:
+  backlog-chef messages clear       Clear all dismissed messages
+  backlog-chef messages disable     Disable all messages
+  backlog-chef messages enable      Enable messages
+  backlog-chef messages check       Manually check for updates
+```
+
+Tech Lead: What about internationalization? Messages in different languages?
+
+Product Owner: Let's defer that to Phase 2. Start with English only, but design the message format to support i18n later.
+
+Tech Lead: Risks?
+
+Product Owner: A few concerns:
+
+**Risk 1: GitHub API rate limits**
+- We're limited to 60 requests/hour unauthenticated
+- Mitigation: Cache aggressively, only check once per day
+
+**Risk 2: Message spam**
+- Too many messages annoy users
+- Mitigation: Configurable frequency, dismissible, respect user preferences
+
+**Risk 3: Offline usage**
+- CLI should work without internet
+- Mitigation: Graceful fallback, cached data, never block on API calls
+
+**Risk 4: Message fatigue**
+- Users ignore all messages if too frequent
+- Mitigation: Only show important updates, context-aware tips
+
+Tech Lead: Estimate?
+
+Product Owner: Breaking it down:
+- GitHub API integration: 2 points
+- `releases` command: 2 points
+- In-CLI notifications: 2 points
+- Message management: 2 points
+- Caching & configuration: 2 points
+- Tips system: 3 points
+- Testing: 2 points
+
+Total: **13-18 story points** (substantial feature)
+
+Tech Lead: Dependencies?
+
+Product Owner: We need:
+- CLI framework (✅ in PR)
+- Configuration management (from PBI-007)
+- GitHub API client library
+- Caching mechanism
+
+Tech Lead: Priority?
+
+Product Owner: MEDIUM. Not blocking, but important for user engagement and keeping users informed. Should come after setup wizard (PBI-007) but before advanced features.
+
+Tech Lead: Future enhancements?
+
+**Phase 2:**
+- Remote message service (not just GitHub)
+- In-app chat/help window
+- Message analytics (which tips are helpful?)
+- Community-contributed tips
+- Internationalization (i18n)
+
+**Phase 3:**
+- Interactive tutorials
+- Onboarding walkthrough
+- Video tips and guides
+- Integration with documentation
+
+**Phase 4:**
+- Community forum integration
+- User-to-user messaging
+- Feature voting
+- Beta program announcements
+
+Product Owner: Summary time!
+
+**SUMMARY:**
+- Feature: Customer Messaging & Release Notes
+- User Story: As a Backlog Chef user, I want to stay informed about new features and updates, so that I can take advantage of improvements and avoid breaking changes
+- Priority: MEDIUM (after setup wizard, before advanced features)
+- Estimate: 13-18 story points
+- Dependencies: CLI framework (✅), configuration management (PBI-007)
+- Risks: API rate limits, message spam, offline usage
+
+Tech Lead: One more thing - should messages have a severity level?
+
+Product Owner: Good idea! Something like:
+
+**SEVERITY LEVELS:**
+- **CRITICAL** - Breaking changes, security issues (always shown)
+- **HIGH** - Major new features, important updates
+- **MEDIUM** - Minor features, tips
+- **LOW** - Announcements, community news
+
+Users can filter by minimum severity level.
+
+Tech Lead: Perfect. This will help users stay engaged and informed!
+
+Product Owner: Exactly. And it gives us a direct communication channel without being intrusive.
+
+---
+
+## Example Message Formats
+
+**Release Note Message:**
+```
+📢 New in v0.3.0:
+   • Setup wizard with auto-detection
+   • Feedback command for bug reports
+   Run 'backlog-chef releases' for details
+```
+
+**Breaking Change Message:**
+```
+⚠️  BREAKING CHANGE in v0.4.0:
+   The .env file format has changed. Please run:
+   backlog-chef setup migrate
+
+   More info: https://github.com/ApexChef/backlog-chef/releases/tag/v0.4.0
+```
+
+**Tip Message:**
+```
+💡 Tip: Speed up processing with local Ollama
+   Install Ollama and configure it as a fallback provider
+   Guide: backlog-chef help ollama
+```
+
+**Update Available Message:**
+```
+🎉 v0.5.0 is available (you have v0.4.0)
+   Upgrade: npm update -g backlog-chef
+   What's new: backlog-chef releases
+```
+
+**Deprecation Warning:**
+```
+⚠️  Deprecation Notice:
+   The 'npm start' command will be removed in v1.0
+   Use 'backlog-chef process' instead
+   Migration guide: backlog-chef help migrate
+```
+
+## Questions for Product Owner
+
+1. Should we show messages on every command or only on certain commands?
+2. What's the maximum number of messages to show at once?
+3. Should critical messages block command execution until acknowledged?
+4. Do you want message read receipts (track which users saw which messages)?
+5. Should messages be stored locally after being dismissed?
+6. What format should we use for markdown in messages (for links, formatting)?

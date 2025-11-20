@@ -1,0 +1,742 @@
+BACKLOG REFINEMENT MEETING - PBI Status Management & Filtering
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: We're building up a lot of PBIs in the `project-backlog-items/input/` folder, and I have no easy way to track which ones are done, which need work, or which are ready to implement.
+
+Tech Lead: Right, currently everything is just files in a folder with no status tracking.
+
+Product Owner: Exactly. I want to be able to mark PBIs with a status and then filter/view them by status.
+
+Tech Lead: What statuses are you thinking?
+
+Product Owner: Let's start with the basics:
+- **TODO** - Not started yet
+- **IN_PROGRESS** - Currently being worked on
+- **NEEDS_REFINEMENT** - Needs more details before implementation
+- **READY** - Refined and ready for implementation
+- **DONE** - Implemented and shipped
+
+Tech Lead: Should we move files between folders or add status as metadata?
+
+Product Owner: Good question. Let me think about the pros and cons...
+
+**OPTION 1: Folder-Based (Move files)**
+```
+project-backlog-items/
+  ├── todo/
+  │   ├── 005-notifications.txt
+  │   └── 006-ai-sparring.txt
+  ├── in-progress/
+  │   └── 007-setup-wizard.txt
+  ├── ready/
+  │   └── 002-step4-optimization.txt
+  └── done/
+      └── 001-oclif-cli.txt
+```
+
+**OPTION 2: Metadata-Based (Add frontmatter)**
+```yaml
+---
+id: PBI-001
+status: DONE
+priority: HIGH
+estimate: 3-5
+created: 2025-11-15
+updated: 2025-11-20
+implemented_in: v0.2.0
+---
+
+BACKLOG REFINEMENT MEETING - OCLIF CLI Implementation
+...
+```
+
+Tech Lead: I like Option 2 better. Here's why:
+- Files stay in one place (easier to find)
+- Can add more metadata (priority, estimate, tags)
+- Can filter by multiple criteria, not just status
+- Git history stays intact (no file moves)
+- Can query with command-line tools
+
+Product Owner: Agreed! Let's go with metadata approach. But I still want an easy way to view and filter PBIs.
+
+Tech Lead: So we need:
+1. Add frontmatter to PBI files
+2. Command to update PBI status
+3. Command to list/filter PBIs
+4. Command to view PBI details
+
+Product Owner: Perfect! Let's break it down.
+
+---
+
+## FEATURE 1: PBI Metadata (Frontmatter)
+
+Product Owner: Every PBI file should have YAML frontmatter at the top with metadata.
+
+Tech Lead: Standard format would be:
+
+```yaml
+---
+id: PBI-001
+title: OCLIF CLI Implementation
+status: DONE
+priority: HIGH
+estimate: 3-5
+tags: [cli, infrastructure]
+created: 2025-11-15
+updated: 2025-11-20
+assigned_to: null
+sprint: null
+version: v0.2.0
+---
+
+BACKLOG REFINEMENT MEETING - OCLIF CLI Implementation
+Date: November 20, 2025
+...
+```
+
+Product Owner: What are all the possible statuses?
+
+Tech Lead: Here's a complete list:
+
+**STATUS VALUES:**
+- `BACKLOG` - New item, not prioritized yet
+- `TODO` - Prioritized, ready to be picked up
+- `IN_PROGRESS` - Currently being implemented
+- `NEEDS_REFINEMENT` - Requires more details/clarification
+- `BLOCKED` - Can't proceed due to dependency/issue
+- `READY_FOR_REVIEW` - Implementation done, needs review
+- `READY` - Reviewed and ready for implementation/sprint
+- `DONE` - Implemented and shipped
+- `CANCELLED` - Will not be implemented
+- `ON_HOLD` - Paused for now
+
+Product Owner: That's comprehensive! What about priority?
+
+**PRIORITY VALUES:**
+- `CRITICAL` - Blocking production issue
+- `HIGH` - Important for next release
+- `MEDIUM` - Should have
+- `LOW` - Nice to have
+- `FUTURE` - Someday/maybe
+
+Tech Lead: And estimate should match the story point format from the PBI content.
+
+Product Owner: Right. Should this be automatically extracted or manually set?
+
+Tech Lead: Both! When creating a PBI:
+1. Auto-extract estimate from content if present
+2. Auto-set status to `BACKLOG`
+3. Auto-set created date
+4. Allow manual override via command
+
+---
+
+## FEATURE 2: PBI Status Commands
+
+Product Owner: I want commands to manage PBI lifecycle.
+
+**Update Status:**
+```bash
+# Update status of a PBI
+backlog-chef pbi status 001 --to TODO
+backlog-chef pbi status 007 --to IN_PROGRESS
+backlog-chef pbi status 001 --to DONE --version v0.2.0
+
+# Update multiple PBIs at once
+backlog-chef pbi status 005,006,007 --to TODO
+```
+
+**Update Priority:**
+```bash
+backlog-chef pbi priority 007 --to HIGH
+backlog-chef pbi priority 005 --to MEDIUM
+```
+
+**Assign to Sprint/Version:**
+```bash
+backlog-chef pbi assign 001 --sprint "Sprint 1"
+backlog-chef pbi assign 001 --version "v0.2.0"
+```
+
+**Add Tags:**
+```bash
+backlog-chef pbi tag 001 --add cli,infrastructure
+backlog-chef pbi tag 001 --remove infrastructure
+```
+
+Tech Lead: Should we validate state transitions?
+
+Product Owner: Good idea! Not all transitions make sense:
+
+**VALID TRANSITIONS:**
+- `BACKLOG` → `TODO`, `CANCELLED`, `ON_HOLD`
+- `TODO` → `IN_PROGRESS`, `NEEDS_REFINEMENT`, `BLOCKED`, `ON_HOLD`
+- `IN_PROGRESS` → `NEEDS_REFINEMENT`, `BLOCKED`, `READY_FOR_REVIEW`, `ON_HOLD`
+- `NEEDS_REFINEMENT` → `TODO`, `BACKLOG`
+- `BLOCKED` → `TODO`, `IN_PROGRESS`
+- `READY_FOR_REVIEW` → `IN_PROGRESS`, `READY`, `DONE`
+- `READY` → `IN_PROGRESS`, `DONE`
+- `DONE` → (no transitions - terminal state)
+- `ON_HOLD` → (can transition to any state)
+
+Tech Lead: Should we warn or block invalid transitions?
+
+Product Owner: Warn, but allow with `--force` flag. Sometimes you need to fix mistakes.
+
+---
+
+## FEATURE 3: PBI List & Filter Command
+
+Product Owner: This is the most important command - I need to see what's in my backlog!
+
+```bash
+# List all PBIs
+backlog-chef pbi list
+
+# Filter by status
+backlog-chef pbi list --status TODO
+backlog-chef pbi list --status IN_PROGRESS,BLOCKED
+
+# Filter by priority
+backlog-chef pbi list --priority HIGH
+backlog-chef pbi list --priority HIGH,CRITICAL
+
+# Filter by tags
+backlog-chef pbi list --tag cli
+backlog-chef pbi list --tag cli,infrastructure
+
+# Combine filters
+backlog-chef pbi list --status TODO --priority HIGH
+
+# Sort options
+backlog-chef pbi list --sort priority  # HIGH → LOW
+backlog-chef pbi list --sort created   # newest first
+backlog-chef pbi list --sort updated   # recently updated first
+backlog-chef pbi list --sort estimate  # smallest first
+```
+
+Tech Lead: What should the output look like?
+
+Product Owner: Table format with key information:
+
+```bash
+$ backlog-chef pbi list --status TODO,IN_PROGRESS
+
+📋 Backlog Items (5 found)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ID      Status        Priority  Est   Title                                Updated
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PBI-007 IN_PROGRESS   HIGH      8-13  CLI Setup Guide & Env Config         2d ago
+PBI-002 TODO          MEDIUM    5-8   Step 4 Optimization                  5d ago
+PBI-005 TODO          HIGH      5-8   Slack Notifications                  2d ago
+PBI-006 TODO          MEDIUM    8-13  AI Refinement Sparring Partner       2d ago
+PBI-008 TODO          MEDIUM    13-18 Feedback Command with Diagnostics    2d ago
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tip: Add --verbose for full details
+```
+
+Tech Lead: What about verbose mode?
+
+Product Owner: Show more details:
+
+```bash
+$ backlog-chef pbi list --status IN_PROGRESS --verbose
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 PBI-007: CLI Setup Guide & Environment Configuration
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status:      IN_PROGRESS
+Priority:    HIGH
+Estimate:    8-13 story points
+Tags:        cli, setup, configuration
+Created:     Nov 18, 2025
+Updated:     Nov 20, 2025 (2 days ago)
+Assigned:    -
+Sprint:      -
+Version:     -
+
+User Story:
+As a new user, I want an easy setup process and flexible configuration
+options, so that I can start using Backlog Chef from anywhere without
+environment issues.
+
+Dependencies:
+- OCLIF CLI (✅ merged in PR #7)
+
+File: project-backlog-items/input/007-cli-setup-guide-env-config.txt
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Tech Lead: Should we support JSON output for automation?
+
+Product Owner: Yes!
+
+```bash
+backlog-chef pbi list --status TODO --format json > backlog.json
+```
+
+---
+
+## FEATURE 4: PBI Statistics & Reports
+
+Product Owner: I also want high-level statistics.
+
+```bash
+$ backlog-chef pbi stats
+
+📊 Backlog Statistics
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Total PBIs:           11
+
+By Status:
+  DONE                1  (9%)   ████
+  IN_PROGRESS         1  (9%)   ████
+  TODO                5  (45%)  ████████████████████
+  BACKLOG             4  (36%)  ████████████████
+
+By Priority:
+  HIGH                3  (27%)  ████████████
+  MEDIUM              6  (55%)  ████████████████████████
+  LOW                 2  (18%)  ████████
+
+Total Estimate:       85-120 story points
+Completed:            3-5 story points (4% complete)
+In Progress:          8-13 story points
+Remaining:            74-102 story points
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tip: Use 'backlog-chef pbi list --status TODO' to see what's next
+```
+
+Tech Lead: What about burndown charts or velocity tracking?
+
+Product Owner: That's Phase 2! For now, just basic stats.
+
+---
+
+## FEATURE 5: PBI View Command
+
+Product Owner: Sometimes I just want to see one PBI's details.
+
+```bash
+$ backlog-chef pbi view 007
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 PBI-007: CLI Setup Guide & Environment Configuration
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status:      IN_PROGRESS
+Priority:    HIGH
+Estimate:    8-13 story points
+
+[Full PBI content displayed...]
+
+Commands:
+  backlog-chef pbi status 007 --to DONE        Mark as done
+  backlog-chef pbi priority 007 --to MEDIUM    Change priority
+  code project-backlog-items/input/007-cli-setup-guide-env-config.txt
+```
+
+Tech Lead: Should `view` support markdown rendering in the terminal?
+
+Product Owner: Nice! But optional - use `--markdown` flag to render, otherwise show raw.
+
+---
+
+## FEATURE 6: Create PBI with Metadata
+
+Product Owner: When we create new PBIs, we should automatically add frontmatter.
+
+```bash
+$ backlog-chef pbi create --title "Add Docker support" --priority MEDIUM
+
+Created: project-backlog-items/input/012-add-docker-support.txt
+
+📌 PBI-012: Add Docker support
+Status:      BACKLOG
+Priority:    MEDIUM
+
+Edit with: code project-backlog-items/input/012-add-docker-support.txt
+```
+
+Tech Lead: Should it open the file in an editor automatically?
+
+Product Owner: Make it optional with `--edit` flag:
+
+```bash
+backlog-chef pbi create --title "Add Docker support" --edit
+```
+
+---
+
+## Technical Implementation
+
+Tech Lead: Here's how I'd structure this:
+
+**1. PBI Parser Module**
+```typescript
+// src/pbi/parser.ts
+interface PBIMetadata {
+  id: string;
+  title: string;
+  status: PBIStatus;
+  priority: PBIPriority;
+  estimate: string | null;
+  tags: string[];
+  created: Date;
+  updated: Date;
+  assigned_to: string | null;
+  sprint: string | null;
+  version: string | null;
+}
+
+class PBIParser {
+  parse(filePath: string): { metadata: PBIMetadata; content: string };
+  updateMetadata(filePath: string, updates: Partial<PBIMetadata>): void;
+}
+```
+
+**2. PBI Manager**
+```typescript
+// src/pbi/manager.ts
+class PBIManager {
+  list(filters: PBIFilters): PBIMetadata[];
+  get(id: string): { metadata: PBIMetadata; content: string };
+  updateStatus(id: string, status: PBIStatus, force?: boolean): void;
+  updatePriority(id: string, priority: PBIPriority): void;
+  addTag(id: string, tag: string): void;
+  removeTag(id: string, tag: string): void;
+  stats(): PBIStatistics;
+}
+```
+
+**3. OCLIF Commands**
+```typescript
+// src/commands/pbi/list.ts
+export default class PBIList extends Command {}
+
+// src/commands/pbi/status.ts
+export default class PBIStatus extends Command {}
+
+// src/commands/pbi/view.ts
+export default class PBIView extends Command {}
+
+// src/commands/pbi/stats.ts
+export default class PBIStats extends Command {}
+```
+
+Product Owner: How do we handle backward compatibility with existing PBIs that don't have frontmatter?
+
+Tech Lead: Good question! We should:
+1. Auto-detect if frontmatter exists
+2. If missing, auto-generate based on file content and name
+3. Prompt user: "Add metadata to existing PBIs? (Y/n)"
+4. Offer migration command: `backlog-chef pbi migrate`
+
+---
+
+## Migration Strategy
+
+Product Owner: We have 11 PBIs already without frontmatter. How do we migrate?
+
+Tech Lead: Create a migration command:
+
+```bash
+$ backlog-chef pbi migrate
+
+Found 11 PBIs without metadata
+
+Analyzing files...
+  001-oclif-cli.txt → Status: DONE (detected from PR #7)
+  002-step4-optimization.txt → Status: TODO
+  003-agent-skill-aware-pbis.txt → Status: TODO
+  ...
+
+Apply these changes? (Y/n)
+> Y
+
+✅ Migrated 11 PBIs
+   - Added frontmatter to all files
+   - Extracted estimates from content
+   - Set initial statuses based on context
+
+Run 'backlog-chef pbi list' to see results
+```
+
+Tech Lead: The migration should be smart:
+- Extract estimate from "Estimate: X-Y story points" in content
+- Detect DONE status if implemented_in version exists
+- Set priority based on "Priority: HIGH" in content
+- Extract tags from title/content keywords
+
+Product Owner: Perfect! And it should be idempotent - safe to run multiple times.
+
+---
+
+## ACCEPTANCE CRITERIA
+
+**Metadata Management:**
+1. All PBI files support YAML frontmatter
+2. Frontmatter includes: id, title, status, priority, estimate, tags, dates
+3. Parser validates frontmatter schema
+4. Missing frontmatter auto-generates defaults
+5. Frontmatter is updated atomically (no corruption)
+
+**Status Commands:**
+6. `backlog-chef pbi status <id> --to <status>` updates status
+7. Invalid state transitions show warning (allow with --force)
+8. Status updates auto-update `updated` timestamp
+9. DONE status can include --version flag
+10. Multiple PBIs can be updated at once (comma-separated)
+
+**List & Filter:**
+11. `backlog-chef pbi list` shows all PBIs in table format
+12. Filter by --status, --priority, --tag
+13. Multiple filter values supported (comma-separated)
+14. Combine multiple filters (AND logic)
+15. Sort by priority, created, updated, estimate
+16. --verbose shows full details
+17. --format json outputs machine-readable data
+18. Empty result shows helpful message
+
+**View Command:**
+19. `backlog-chef pbi view <id>` displays full PBI details
+20. Shows metadata and content
+21. Suggests related commands
+22. --markdown flag renders markdown in terminal
+
+**Statistics:**
+23. `backlog-chef pbi stats` shows high-level metrics
+24. Displays status distribution with percentages
+25. Displays priority distribution
+26. Shows total/completed/remaining estimates
+27. Visual bar charts for distributions
+
+**Create Command:**
+28. `backlog-chef pbi create --title <title>` creates new PBI
+29. Auto-generates ID (next available number)
+30. Auto-adds frontmatter with defaults
+31. --priority, --estimate, --tags flags supported
+32. --edit flag opens in editor after creation
+
+**Migration:**
+33. `backlog-chef pbi migrate` adds frontmatter to existing PBIs
+34. Auto-detects status from context (PR mentions, version)
+35. Extracts estimate from content
+36. Extracts priority from content
+37. Idempotent (safe to run multiple times)
+38. Dry-run mode with --dry-run flag
+
+**Error Handling:**
+39. Clear error if PBI file not found
+40. Clear error if PBI ID invalid format
+41. Validates status/priority values
+42. Warns about uncommitted changes before updates
+43. Atomic updates (rollback on failure)
+
+---
+
+## User Scenarios
+
+**Scenario 1: Check Current Backlog**
+```bash
+$ backlog-chef pbi list --status TODO --priority HIGH
+
+📋 Backlog Items (2 found)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID      Status  Priority  Est   Title                            Updated
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PBI-007 TODO    HIGH      8-13  CLI Setup Guide & Env Config     2d ago
+PBI-005 TODO    HIGH      5-8   Slack Notifications              2d ago
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Scenario 2: Start Working on a PBI**
+```bash
+$ backlog-chef pbi status 007 --to IN_PROGRESS
+
+✅ PBI-007 status updated: TODO → IN_PROGRESS
+   Updated: project-backlog-items/input/007-cli-setup-guide-env-config.txt
+```
+
+**Scenario 3: Mark PBI as Done**
+```bash
+$ backlog-chef pbi status 007 --to DONE --version v0.3.0
+
+✅ PBI-007 status updated: IN_PROGRESS → DONE
+   Version: v0.3.0
+   Updated: project-backlog-items/input/007-cli-setup-guide-env-config.txt
+```
+
+**Scenario 4: View Backlog Statistics**
+```bash
+$ backlog-chef pbi stats
+
+📊 Backlog Statistics
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total PBIs:           11
+
+By Status:
+  DONE                2  (18%)  ████████
+  IN_PROGRESS         1  (9%)   ████
+  TODO                5  (45%)  ████████████████████
+  BACKLOG             3  (27%)  ████████████
+
+Total Estimate:       85-120 story points
+Completed:            11-18 story points (12% complete)
+```
+
+**Scenario 5: Filter by Tags**
+```bash
+$ backlog-chef pbi list --tag cli
+
+📋 Backlog Items (3 found)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID      Status  Priority  Tags                    Title
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PBI-001 DONE    HIGH      cli,infrastructure      OCLIF CLI Implementation
+PBI-007 TODO    HIGH      cli,setup               Setup Guide & Env Config
+PBI-008 TODO    MEDIUM    cli,feedback            Feedback Command
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Scenario 6: Migrate Existing PBIs**
+```bash
+$ backlog-chef pbi migrate
+
+Found 11 PBIs without metadata
+
+Analyzing files... ✓
+  001-oclif-cli.txt → DONE (v0.2.0)
+  002-step4-optimization.txt → TODO
+  ...
+
+Apply these changes? (Y/n)
+> Y
+
+✅ Migrated 11 PBIs successfully
+```
+
+---
+
+## Future Enhancements
+
+**Phase 2:**
+- Kanban board view in terminal (interactive TUI)
+- Assign PBIs to team members
+- Track time estimates vs actual
+- Velocity calculation
+- Sprint planning assistant
+- Dependency tracking between PBIs
+
+**Phase 3:**
+- Web dashboard for PBI management
+- Integration with GitHub Issues
+- Integration with Azure DevOps
+- Integration with Jira
+- Automated status updates from PR merges
+
+**Phase 4:**
+- AI-powered PBI recommendations ("You should work on...")
+- Predictive estimates based on history
+- Burndown charts and reports
+- Team collaboration features
+- PBI templates for common patterns
+
+---
+
+## Risks
+
+**Risk 1: Merge Conflicts**
+- Multiple people updating PBI metadata simultaneously
+- Mitigation: Git handles text merges well, warn about uncommitted changes
+
+**Risk 2: Manual Edits Break Frontmatter**
+- Users edit files manually and break YAML syntax
+- Mitigation: Validate on read, auto-fix if possible, clear error messages
+
+**Risk 3: Migration False Positives**
+- Auto-detection might set wrong status/priority
+- Mitigation: Dry-run mode, review before applying, easy to fix manually
+
+**Risk 4: Performance with Many PBIs**
+- Listing 1000+ PBIs could be slow
+- Mitigation: Pagination, caching, indexed search
+
+---
+
+## Estimate
+
+**Breaking it down:**
+- PBI parser with frontmatter support: 3 points
+- PBI manager (list, filter, update): 3 points
+- Status/priority/tag commands: 2 points
+- List command with filtering: 2 points
+- Stats command: 2 points
+- View command: 1 point
+- Create command: 1 point
+- Migration command: 2 points
+- Testing and edge cases: 2 points
+
+**Total: 16-21 story points** (substantial feature)
+
+---
+
+## Dependencies
+
+- OCLIF CLI framework (✅ merged)
+- YAML parser (js-yaml)
+- File system utilities (✅ Node.js built-in)
+- Terminal table library (cli-table3)
+- Markdown renderer (marked-terminal) for --markdown
+
+---
+
+## Priority
+
+Product Owner: I'd say **HIGH**.
+
+Why?
+- We already have 11 PBIs and it's getting hard to track
+- Essential for managing the backlog as it grows
+- Will save time in long run
+- Shows professional project management
+
+Should come after:
+- PBI-007: Setup wizard (HIGH - blocking)
+
+Can come before/alongside:
+- PBI-010: Multi-format output
+- PBI-005: Notifications
+- PBI-006: AI sparring partner
+
+Tech Lead: Agreed. This is foundational infrastructure that pays dividends.
+
+---
+
+**SUMMARY:**
+- Feature: PBI Status Management & Filtering
+- User Story: As a product owner, I want to track PBI status and filter my backlog, so that I can easily see what needs to be done, what's in progress, and what's completed
+- Priority: HIGH (foundational infrastructure)
+- Estimate: 16-21 story points
+- Dependencies: OCLIF CLI (✅), YAML parser, table library
+- Risks: Merge conflicts, manual edits, migration accuracy
+
+---
+
+## Questions for Product Owner
+
+1. Should we track who made status changes (audit log)?
+2. Do you want email/Slack notifications when PBI status changes?
+3. Should stats command support date ranges (e.g., "completed this month")?
+4. Do you want to track actual time spent vs estimate?
+5. Should we support custom statuses per project?
+6. Do you want automated status transitions (e.g., PR merge → DONE)?

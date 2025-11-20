@@ -1,0 +1,526 @@
+BACKLOG REFINEMENT MEETING - Feedback Command with Smart Diagnostics
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: I want to make it really easy for users to give us feedback. And when they report problems, I want to automatically gather diagnostic information.
+
+Tech Lead: Like a built-in feedback system? That's smart - lowers the barrier for users to report issues.
+
+Product Owner: Exactly! Instead of making them create a GitHub issue with all the technical details, we handle it for them.
+
+Tech Lead: What would the user experience look like?
+
+Product Owner: Simple command:
+
+```bash
+$ backlog-chef feedback
+```
+
+Then it asks them questions and optionally gathers logs and diagnostics.
+
+Tech Lead: What kind of feedback are we collecting?
+
+Product Owner: Three main types:
+1. **Bug Reports** - Something broke or didn't work
+2. **Feature Requests** - Ideas for new features
+3. **General Feedback** - Praise, suggestions, UX issues
+
+Tech Lead: And the diagnostics would be contextual based on the feedback type?
+
+Product Owner: Yes! If they report a bug, we ask:
+- "Can we include your logs to help debug?"
+- "Can we include your config (with API keys redacted)?"
+- "Can we include system info (OS, Node version)?"
+
+But if they're just suggesting a feature, we don't need all that.
+
+Tech Lead: I like it. Walk me through the experience for a bug report.
+
+Product Owner:
+
+```bash
+$ backlog-chef feedback
+
+🎯 Backlog Chef Feedback
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+What type of feedback would you like to share?
+
+[?] Select one:
+  > 🐛 Bug Report - Something isn't working
+    💡 Feature Request - Suggest a new feature
+    💬 General Feedback - Share thoughts or suggestions
+
+> Bug Report
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🐛 Bug Report
+
+What went wrong? Please describe the issue:
+> The pipeline failed on step 4 with "Provider not found" error
+
+When did this happen?
+[?] Select one:
+    Just now (< 5 minutes ago)
+  > Recently (< 1 hour ago)
+    Earlier today
+    A few days ago
+
+> Just now
+
+What were you trying to do?
+> Process a meeting transcript from another project directory
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 Diagnostic Information
+
+To help us fix this issue faster, we can include diagnostic info.
+All sensitive data (API keys, file paths) will be automatically redacted.
+
+What would you like to include?
+
+[?] Select multiple (space to select, enter to confirm):
+  ◉ Recent logs (last 100 lines)
+  ◉ System information (OS, Node version)
+  ◉ Configuration (with API keys redacted)
+  ◯ Full pipeline output from last run
+  ◯ List of installed dependencies
+
+> [Selected: logs, system info, config]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📧 Contact Information (Optional)
+
+Would you like us to follow up with you about this issue?
+
+Email address (press Enter to skip):
+> alwin@example.com
+
+GitHub username (press Enter to skip):
+> ApexChef
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 Review Your Feedback
+
+Type: Bug Report
+Issue: Pipeline failed on step 4 with "Provider not found" error
+When: Just now
+Context: Process a meeting transcript from another project directory
+
+Diagnostics Included:
+  ✓ Recent logs (342 lines, 15KB)
+  ✓ System info (Node v22.19.0, macOS 14.6)
+  ✓ Config (API keys redacted)
+
+Contact: alwin@example.com (GitHub: @ApexChef)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+How would you like to submit this feedback?
+
+[?] Select one:
+  > Create GitHub Issue (requires gh CLI)
+    Send to our feedback API
+    Save locally (you can submit manually)
+
+> Create GitHub Issue
+
+Creating GitHub issue... ✓
+
+✅ Feedback submitted!
+
+Issue created: https://github.com/ApexChef/backlog-chef/issues/42
+
+Thank you! We'll investigate this and get back to you.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Tech Lead: That's slick! What about feature requests?
+
+Product Owner: Simpler flow:
+
+```bash
+$ backlog-chef feedback
+
+[Select Feature Request]
+
+💡 Feature Request
+
+What feature would you like to see?
+> Interactive AI refinement bot that asks questions
+
+Why do you need this feature? What problem does it solve?
+> Would help me refine ideas without needing a full team meeting
+
+How important is this feature to you?
+[?] Select one:
+    Critical - Blocking my workflow
+    High - Would significantly improve my experience
+  > Medium - Nice to have
+    Low - Just an idea
+
+> Medium
+
+Would you like us to follow up? (y/n)
+> n
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Thank you for your suggestion!
+
+We've logged your feature request. You can track feature requests at:
+https://github.com/ApexChef/backlog-chef/discussions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Tech Lead: I like how the questions adapt to the feedback type. What about general feedback?
+
+Product Owner: Even simpler - just ask for their thoughts and an optional rating.
+
+Tech Lead: What kind of diagnostic information should we collect?
+
+Product Owner: For bug reports, we should gather:
+
+**System Information:**
+- OS and version
+- Node.js version
+- npm version
+- backlog-chef version
+- Architecture (arm64, x64)
+
+**Configuration:**
+- Which providers are configured (but NOT the API keys!)
+- Model configuration
+- Output format preferences
+- Any custom settings
+
+**Logs:**
+- Recent error logs
+- Last pipeline run output
+- Stack traces if available
+- Timestamp of the issue
+
+**Context:**
+- Command that was run
+- Current working directory (sanitized)
+- Input file type (if applicable)
+- Output directory structure
+
+Tech Lead: How do we ensure we don't leak sensitive information?
+
+Product Owner: Great question. We need automatic redaction:
+
+**SENSITIVE DATA TO REDACT:**
+- API keys (replace with `sk-ant-...redacted`)
+- File paths (replace home directory with `~`)
+- Email addresses in logs
+- Webhook URLs
+- Any tokens or credentials
+
+Tech Lead: So we'd have a `SensitiveDataRedactor` class?
+
+Product Owner: Exactly! Something like:
+
+```typescript
+class SensitiveDataRedactor {
+  redactApiKeys(text: string): string;
+  redactFilePaths(text: string): string;
+  redactEmails(text: string): string;
+  redactUrls(text: string): string;
+  redactAll(text: string): string;
+}
+```
+
+Tech Lead: And users can review everything before submitting?
+
+Product Owner: Yes! Show them exactly what will be sent. Transparency builds trust.
+
+Tech Lead: What about submission methods?
+
+Product Owner: Support multiple options:
+
+**OPTION 1: GitHub Issues (Preferred)**
+- Use `gh` CLI to create issue
+- Auto-format with template
+- Attach diagnostics as code blocks
+- Tag appropriately (bug, enhancement, feedback)
+
+**OPTION 2: Feedback API**
+- POST to our backend API
+- Store in database
+- Team reviews in dashboard
+- Good for users without GitHub access
+
+**OPTION 3: Local Save**
+- Save to `~/.backlog-chef/feedback/`
+- User can submit manually
+- Good for offline or privacy concerns
+
+Tech Lead: Should we support anonymous feedback?
+
+Product Owner: Yes! Contact info should be optional. Some people just want to report issues without follow-up.
+
+Tech Lead: What about feedback analytics? Should we track patterns?
+
+Product Owner: Good idea! If we use the API, we could:
+- Track most common issues
+- Identify patterns (e.g., "step 4 fails a lot")
+- Measure feedback sentiment
+- Prioritize based on frequency
+
+But that's phase 2. Let's start simple.
+
+Tech Lead: Let me draft acceptance criteria:
+
+**ACCEPTANCE CRITERIA:**
+
+**Core Feedback Command:**
+1. User can run `backlog-chef feedback` to start feedback flow
+2. System prompts for feedback type (bug, feature, general)
+3. Questions adapt based on selected type
+4. User can skip optional questions
+
+**Bug Reports:**
+5. Ask for issue description, when it happened, what they were doing
+6. Offer to collect diagnostics (logs, config, system info)
+7. Show preview of what will be submitted
+8. All sensitive data automatically redacted
+
+**Feature Requests:**
+9. Ask for feature description, problem it solves, priority
+10. Optional contact information
+11. Link to GitHub discussions for tracking
+
+**General Feedback:**
+12. Simple text input with optional rating
+13. Thank you message with community links
+
+**Diagnostics:**
+14. Collect system info (OS, Node, npm versions)
+15. Collect recent logs (configurable number of lines)
+16. Collect redacted configuration
+17. User can select which diagnostics to include
+
+**Redaction:**
+18. Automatically redact API keys (sk-***, ya29.***, etc.)
+19. Sanitize file paths (replace home dir with ~)
+20. Remove email addresses and URLs if requested
+21. Show redacted content before submission for review
+
+**Submission:**
+22. Support GitHub Issues via `gh` CLI
+23. Support feedback API (if configured)
+24. Support local save to file
+25. Confirm successful submission with link
+
+**Error Handling:**
+26. Handle network failures gracefully
+27. Auto-save feedback locally if submission fails
+28. Provide retry option
+29. Clear error messages
+
+Tech Lead: What about integration with the notification system (when we build it)?
+
+Product Owner: Oh good point! When users report bugs, we could:
+- Send notification to our team Slack
+- Create a backlog item automatically
+- Track in project management tool
+
+But that's future integration. Let's not block on it.
+
+Tech Lead: Risks?
+
+**Risk 1: Users include sensitive data in descriptions**
+- Can't auto-redact free text
+- Mitigation: Warn users, show preview, provide guidelines
+
+**Risk 2: False positives in redaction**
+- Might redact too much, making bug unreproducible
+- Mitigation: Show what was redacted, allow manual edit
+
+**Risk 3: GitHub rate limits**
+- Too many feedback submissions could hit limits
+- Mitigation: Local queue, batch submissions, use API as fallback
+
+**Risk 4: Spam/abuse**
+- Malicious users could spam feedback
+- Mitigation: Rate limiting, require email verification for API
+
+Product Owner: How do we test this?
+
+Tech Lead:
+- Unit tests for redaction logic (test all patterns)
+- Integration tests for each submission method
+- Mock GitHub CLI for testing issue creation
+- Test with real sensitive data to ensure redaction works
+- UI tests for interactive prompts
+
+Product Owner: Estimate?
+
+Tech Lead: Breaking it down:
+- Feedback command structure: 2 points
+- Bug report flow: 2 points
+- Feature request flow: 1 point
+- Diagnostic collection: 2 points
+- Sensitive data redaction: 3 points (critical, needs thorough testing)
+- Submission methods: 3 points
+- Testing: 2 points
+
+Total: **13-18 story points** (substantial feature)
+
+Product Owner: Dependencies?
+
+Tech Lead:
+- OCLIF CLI framework (✅ in PR)
+- GitHub CLI (`gh`) for issue creation (optional)
+- Interactive prompt library (we'd use same as setup wizard)
+- Need to decide on feedback API architecture
+
+Product Owner: Priority?
+
+Product Owner: MEDIUM. Not blocking, but really valuable for product improvement. Should come after setup guide and before advanced features.
+
+Tech Lead: Future enhancements?
+
+**Phase 2:**
+- Feedback dashboard (web UI to browse all feedback)
+- Sentiment analysis on feedback
+- Auto-categorization using AI
+- Integration with product roadmap
+- Community voting on feature requests
+
+**Phase 3:**
+- In-app feedback (during pipeline execution)
+- Screenshot capture for visual issues
+- Session replay for debugging
+- Feedback templates for common issues
+
+**Phase 4:**
+- Feedback gamification (thank contributors)
+- Public feedback leaderboard
+- Feature request sponsorship
+- Beta tester program signup
+
+Product Owner: One more thing - should we have shortcuts for common feedback?
+
+Tech Lead: Like what?
+
+Product Owner: Quick commands like:
+
+```bash
+backlog-chef feedback bug "Pipeline failed on step 4"
+backlog-chef feedback feature "Add dark mode"
+backlog-chef feedback praise "Love this tool!"
+```
+
+Skip the interactive flow, submit directly.
+
+Tech Lead: Nice! Power users would love that. We can support both:
+- `backlog-chef feedback` - Interactive (recommended)
+- `backlog-chef feedback <type> <message>` - Quick mode
+
+Product Owner: Perfect. Alright, summary time!
+
+**SUMMARY:**
+- Feature: Feedback Command with Smart Diagnostics
+- User Story: As a user, I want an easy way to report bugs and suggest features with automatic diagnostic information, so that the team can quickly understand and fix issues
+- Priority: MEDIUM (after setup guide, before advanced features)
+- Estimate: 13-18 story points
+- Dependencies: CLI framework (✅), Interactive prompts
+- Risks: Sensitive data leakage, redaction accuracy, spam
+
+Tech Lead: This is going to give us amazing insights into how people use the tool!
+
+Product Owner: And make it dead simple for users to contribute feedback. Win-win!
+
+---
+
+## Example GitHub Issue Template
+
+When `backlog-chef feedback` creates a GitHub issue, it would look like:
+
+```markdown
+## Bug Report
+
+**Submitted via:** backlog-chef feedback command v0.2.0
+**Submitted by:** alwin@example.com (GitHub: @ApexChef)
+**Date:** 2025-11-20 15:30:45 UTC
+
+### Description
+
+Pipeline failed on step 4 with "Provider not found" error
+
+### When This Happened
+
+Just now (< 5 minutes ago)
+
+### What User Was Trying To Do
+
+Process a meeting transcript from another project directory
+
+### System Information
+
+```
+OS: macOS 14.6.1 (Darwin 24.6.0)
+Node.js: v22.19.0
+npm: 10.8.2
+backlog-chef: 0.2.0
+Architecture: arm64
+```
+
+### Configuration (Redacted)
+
+```yaml
+providers:
+  - anthropic: configured (sk-ant-...xyzw)
+  - ollama: available (local)
+
+model_config: claude-3-5-haiku-20241022
+output_format: devops
+output_directory: ./output
+```
+
+### Recent Logs
+
+```
+[INFO] [Router] Step: detect_event_type → Provider: anthropic, Model: claude-3-5-haiku-20241022
+[WARN] [Router] Primary provider anthropic failed: Provider anthropic not found
+[INFO] [Router] Attempting fallback strategy: cascade
+[INFO] [Router] Trying fallback: openai/gpt-4o-mini
+[WARN] [Router] Fallback openai failed: Provider openai not found
+[ERROR] [Router] All providers failed for step: detect_event_type
+```
+
+### Command Executed
+
+```bash
+backlog-chef process ~/Documents/meeting-transcript.txt
+```
+
+### Working Directory
+
+```
+~/Projects/other-project
+```
+
+---
+
+**Auto-generated by backlog-chef feedback command**
+```
+
+## Questions for Product Owner
+
+1. Should we implement feedback rewards (badges, thank you messages)?
+2. Do you want to track feedback resolution time?
+3. Should we send a notification when their issue is fixed?
+4. What's the retention policy for feedback data?
+5. Should we allow users to edit submitted feedback?
+6. Do you want to support attachments (screenshots, files)?
