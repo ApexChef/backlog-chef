@@ -33,7 +33,14 @@
       "Bash(for i in {1..8})",
       "Bash(do echo -n \"Step $i: \")",
       "Bash([ -d \"poc-step$i\" ])",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(echo $ANTHROPIC_API_KEY)",
+      "Bash(npm start)",
+      "Bash(export ANTHROPIC_API_KEY=\"$ANTHROPIC_API_KEY\")",
+      "Bash(export OPENAI_API_KEY=\"$OPENAI_API_KEY:-\")",
+      "Bash(node -e:*)",
+      "Bash(ANTHROPIC_API_KEY=\"$ANTHROPIC_API_KEY\" node dist/index.js:*)",
+      "Bash(env)"
     ],
     "deny": [],
     "ask": []

@@ -130,13 +130,19 @@ export abstract class BaseStep implements PipelineStep {
         }
       }
 
-      // Try to extract first { } or [ ] object
+      // Try to extract first { } or [ ] object (greedy match to get complete object)
       const objectMatch = content.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
       if (objectMatch) {
+        let extractedJSON = objectMatch[1];
+
+        // Try sanitizing: Fix control characters in JSON strings
         try {
-          return JSON.parse(objectMatch[1]);
-        } catch {
-          // Continue to error
+          // This regex-based approach attempts to fix common JSON control character issues
+          // by ensuring proper escaping within string values
+          extractedJSON = this.sanitizeJSONString(extractedJSON);
+          return JSON.parse(extractedJSON);
+        } catch (parseError) {
+          // If still failing, continue to error
         }
       }
 
@@ -144,5 +150,30 @@ export abstract class BaseStep implements PipelineStep {
         `${operation}: Failed to parse JSON response. Content: ${content.substring(0, 200)}...`
       );
     }
+  }
+
+  /**
+   * Sanitize JSON string by properly escaping control characters
+   * This handles cases where AI generates JSON with unescaped newlines, tabs, etc.
+   */
+  private sanitizeJSONString(jsonString: string): string {
+    // Parse manually to fix control characters in string values
+    // This is a simplified approach that works for most AI-generated JSON
+    return jsonString.replace(
+      /"([^"\\]|\\.)*"/g,
+      (match) => {
+        // Only process if it's not already properly escaped
+        if (!match.includes('\\n') && !match.includes('\\t')) {
+          // Escape actual newlines, tabs, and other control chars within quoted strings
+          return match
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t')
+            .replace(/\f/g, '\\f')
+            .replace(/\b/g, '\\b');
+        }
+        return match;
+      }
+    );
   }
 }

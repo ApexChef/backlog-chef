@@ -354,6 +354,12 @@ ID: ${scoredPBI.pbi.id}
 Title: ${scoredPBI.pbi.title}
 Description: ${scoredPBI.pbi.description}`;
 
+    // Override maxTokens for proposal generation (needs more tokens for comprehensive proposals)
+    const originalMaxTokens = context.options.ai?.maxTokens;
+    if (context.options.ai) {
+      context.options.ai.maxTokens = 8192; // Increased from default 4096
+    }
+
     const responseContent = await this.makeAIRequest(
       router,
       this.name,
@@ -361,6 +367,11 @@ Description: ${scoredPBI.pbi.description}`;
       userPrompt,
       context
     );
+
+    // Restore original maxTokens
+    if (context.options.ai && originalMaxTokens !== undefined) {
+      context.options.ai.maxTokens = originalMaxTokens;
+    }
 
     const response = this.parseJSONResponse<RawProposal>(
       responseContent,
