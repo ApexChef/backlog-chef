@@ -1,0 +1,13 @@
+{
+  "step": "format_output",
+  "timestamp": "2025-11-20T15:10:27.650Z",
+  "runId": "1763651210035",
+  "cost": {
+    "step_cost_usd": 0,
+    "total_cost_usd": 0.05136480000000001
+  },
+  "timing": {
+    "step_duration_ms": 0,
+    "total_duration_ms": 217609
+  }
+}

@@ -1,9 +1,18 @@
 {
   "name": "backlog-chef",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "AI-powered system for transforming meeting transcripts into high-quality Product Backlog Items",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "backlog-chef": "./bin/run.js"
+  },
+  "oclif": {
+    "bin": "backlog-chef",
+    "dirname": "backlog-chef",
+    "commands": "./dist/commands",
+    "topicSeparator": " "
+  },
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/index.js",
@@ -25,6 +34,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
     "@google/generative-ai": "^0.21.0",
+    "@oclif/core": "^4.8.0",
     "axios": "^1.7.9",
     "dotenv": "^17.2.3",
     "js-yaml": "^4.1.0",

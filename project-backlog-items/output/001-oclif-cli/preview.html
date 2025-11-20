@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backlog Chef - Pipeline Output</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #1f2937;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+        }
+
+        .header-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .header-meta {
+            margin-top: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-refinement {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .summary {
+            padding: 40px;
+            background: #f9fafb;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        .summary-ready .summary-value {
+            color: #10b981;
+        }
+
+        .summary-refinement .summary-value {
+            color: #f59e0b;
+        }
+
+        .summary-not-ready .summary-value {
+            color: #ef4444;
+        }
+
+        .pbi-list {
+            padding: 40px;
+        }
+
+        .pbi-list h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            color: #1f2937;
+        }
+
+        .pbi-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .pbi-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .pbi-header {
+            padding: 20px;
+            cursor: pointer;
+            background: #f9fafb;
+            transition: background 0.2s;
+        }
+
+        .pbi-header:hover {
+            background: #f3f4f6;
+        }
+
+        .pbi-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .pbi-id {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pbi-title {
+            flex: 1;
+            font-size: 1.2rem;
+            color: #1f2937;
+        }
+
+        .expand-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .pbi-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-ready {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-refinement {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-not-ready {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .risk-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .risk-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .risk-low {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-score {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .pbi-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .pbi-content.expanded {
+            max-height: 10000px;
+        }
+
+        .pbi-section {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .pbi-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #374151;
+        }
+
+        .criteria-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .criteria-list li {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: #f9fafb;
+            border-left: 3px solid #10b981;
+            border-radius: 4px;
+        }
+
+        .scores-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .score-item {
+            display: grid;
+            grid-template-columns: 120px 1fr 50px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .score-label {
+            font-weight: 500;
+            color: #4b5563;
+        }
+
+        .score-bar-container {
+            background: #e5e7eb;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .score-bar {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .score-value {
+            text-align: right;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .score-list {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .score-list ul {
+            margin-top: 8px;
+            margin-left: 20px;
+        }
+
+        .context-group {
+            margin-bottom: 16px;
+        }
+
+        .context-item {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .similarity {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+
+        .risk-item {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+
+        .risk-item.risk-high {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .risk-item.risk-medium {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+
+        .risk-item.risk-low {
+            background: #f0fdf4;
+            border-color: #10b981;
+        }
+
+        .risk-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .risk-type {
+            font-weight: 600;
+        }
+
+        .risk-severity {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .risk-mitigation {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .question-item {
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .question-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .question-priority {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .priority-critical {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .priority-high {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .priority-medium {
+            background: #fef3c7;
+            color: #78350f;
+        }
+
+        .priority-low {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .question-category {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .question-text {
+            font-weight: 500;
+            margin: 8px 0;
+        }
+
+        .proposed-answer {
+            margin-top: 12px;
+            padding: 12px;
+            background: #eff6ff;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .readiness-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .readiness-card.status-ready {
+            background: #d1fae5;
+        }
+
+        .readiness-card.status-refinement {
+            background: #fef3c7;
+        }
+
+        .readiness-card.status-not-ready {
+            background: #fee2e2;
+        }
+
+        .readiness-status {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .readiness-score {
+            font-size: 1.2rem;
+        }
+
+        .readiness-list {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .readiness-blocking {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .readiness-warning {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .readiness-recommendations {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .readiness-list ul {
+            margin-top: 8px;
+            margin-left: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content h1 {
+                font-size: 2rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .score-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .pbi-title-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+    <header class="header">
+        <div class="header-content">
+            <h1>🍴 Backlog Chef</h1>
+            <p class="subtitle">AI-Powered Product Backlog Intelligence</p>
+        </div>
+        <div class="header-meta">
+            <span class="badge badge-refinement">REFINEMENT</span>
+            <span class="meta-item">📅 11/20/2025, 4:10:27 PM</span>
+            <span class="meta-item">💰 $0.0514</span>
+            <span class="meta-item">⏱️ 217.6s</span>
+        </div>
+    </header>
+        
+    <section class="summary">
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-value">1</div>
+                <div class="summary-label">Total PBIs</div>
+            </div>
+            <div class="summary-card summary-ready">
+                <div class="summary-value">0</div>
+                <div class="summary-label">✅ Ready for Sprint</div>
+            </div>
+            <div class="summary-card summary-refinement">
+                <div class="summary-value">1</div>
+                <div class="summary-label">⚠️ Needs Refinement</div>
+            </div>
+            <div class="summary-card summary-not-ready">
+                <div class="summary-value">0</div>
+                <div class="summary-label">🔴 Not Ready</div>
+            </div>
+        </div>
+    </section>
+        
+    <section class="pbi-list">
+        <h2>Product Backlog Items</h2>
+        
+    <div class="pbi-card">
+        <div class="pbi-header" onclick="togglePBI(0)">
+            <div class="pbi-title-row">
+                <span class="pbi-id">PBI-001</span>
+                <h3 class="pbi-title">As a user, I want a global CLI for backlog-chef so that I can process transcripts from anywhere on my system</h3>
+                <span class="expand-icon" id="icon-0">▼</span>
+            </div>
+            <div class="pbi-badges">
+                <span class="badge status-refinement">⚠️ Needs Refinement</span>
+                <span class="badge risk-high">⚠️ HIGH RISK</span>
+                <span class="badge badge-score">📊 92/100</span>
+            </div>
+        </div>
+
+        <div class="pbi-content" id="content-0">
+            
+            <div class="pbi-section">
+                <h4>📋 Description</h4>
+                <p>Implement an OCLIF-based CLI that allows global installation and running of backlog-chef processing commands. The CLI will provide a professional command-line interface for processing meeting transcripts.</p>
+            </div>
+
+            
+            <div class="pbi-section">
+                <h4>✅ Acceptance Criteria</h4>
+                <ul class="criteria-list"><li>User can install globally with &quot;npm install -g backlog-chef&quot;</li><li>User can run &quot;backlog-chef process [file]&quot; to process any transcript</li><li>Command supports --format, --output, --verbose, --help flags</li><li>Supports TXT, JSON, and XML input formats</li><li>Auto-generated help text explains all options</li><li>&quot;npm start&quot; still works for local development</li><li>Proper error messages when files don&#039;t exist or API keys missing</li><li>Documentation updated with CLI usage examples</li></ul>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>📊 Quality Scores</h4>
+                <div class="scores-grid">
+                    
+                    <div class="score-item">
+                        <div class="score-label">Overall</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 92%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">92</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Completeness</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 95%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">95</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Clarity</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 90%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">90</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Actionability</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 90%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">90</div>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-label">Testability</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 95%; background-color: #10b981;"></div>
+                        </div>
+                        <div class="score-value">95</div>
+                    </div>
+                </div>
+                <div class="score-list"><strong>💪 Strengths:</strong><ul><li>Comprehensive acceptance criteria</li><li>Clear technical implementation guidance</li><li>Specific CLI command and flag requirements</li><li>Maintains existing development workflow</li></ul></div><div class="score-list"><strong>⚠️ Concerns:</strong><ul><li>Potential complexity in supporting multiple input formats</li><li>Ensuring backwards compatibility with existing system</li></ul></div><div class="score-list"><strong>❌ Missing:</strong><ul><li>Specific performance benchmarks</li><li>Detailed error handling specifications</li></ul></div>
+            </div>
+            
+            <div class="pbi-section">
+                <h4>🔍 Historical Context</h4>
+                
+                
+                
+            </div>
+            
+            <div class="pbi-section">
+                <h4>⚠️ Risks (HIGH)</h4>
+                
+                <div class="risk-item risk-high">
+                    <div class="risk-header">
+                        <span class="risk-type">technical_debt</span>
+                        <span class="risk-severity">high</span>
+                    </div>
+                    <p>Complex multi-format transcript parsing introduces significant technical challenges with potential parsing and validation risks</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Develop robust input validation framework, create modular parser architecture with format-specific adapters, and implement comprehensive input format detection and normalization strategies</div>
+                </div>
+                <div class="risk-item risk-high">
+                    <div class="risk-header">
+                        <span class="risk-type">blocker</span>
+                        <span class="risk-severity">high</span>
+                    </div>
+                    <p>Lack of detailed error handling specifications could compromise user experience and system reliability</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Design comprehensive error handling strategy with clear error codes, descriptive messages, logging mechanisms, and user-friendly error recovery guidance</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-header">
+                        <span class="risk-type">resource</span>
+                        <span class="risk-severity">medium</span>
+                    </div>
+                    <p>Performance uncertainties due to absence of explicit performance benchmarks for transcript processing</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Define precise performance requirements, implement performance profiling, establish maximum acceptable latency and memory consumption thresholds</div>
+                </div>
+                <div class="risk-item risk-medium">
+                    <div class="risk-header">
+                        <span class="risk-type">dependency</span>
+                        <span class="risk-severity">medium</span>
+                    </div>
+                    <p>Ensuring backwards compatibility with existing backlog-chef system configurations and workflows</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Create comprehensive compatibility testing suite, develop configuration migration tools, maintain clear versioning and deprecation strategies</div>
+                </div>
+            </div>
+            
+            
+            <div class="pbi-section">
+                <h4>🎯 Readiness Assessment</h4>
+                <div class="readiness-card status-refinement">
+                    <div class="readiness-status">🟡 NEEDS REFINEMENT</div>
+                    <div class="readiness-score">Score: 82/100</div>
+                </div>
+                <div class="readiness-list readiness-blocking"><strong>🔴 Blocking Issues:</strong><ul><li>Specific performance benchmarks not defined</li><li>Detailed error handling specifications incomplete</li><li>Unanswered critical and high-priority questions remain</li></ul></div><div class="readiness-list readiness-warning"><strong>⚠️ Warnings:</strong><ul><li>Potential complexity in multiple input format support</li><li>Backwards compatibility concerns</li><li>Performance baseline not fully specified</li></ul></div><div class="readiness-list readiness-recommendations"><strong>💡 Recommendations:</strong><ul><li>Define specific performance benchmarks for CLI operations</li><li>Create comprehensive error handling specification document</li><li>Clarify and resolve remaining unanswered questions</li><li>Document specific approach for handling multiple input formats</li><li>Create backwards compatibility testing plan</li></ul></div>
+            </div>
+            <div class="pbi-section"><h4>📝 Additional Notes</h4><ul><li>Use OCLIF (Open CLI Framework)</li><li>Core pipeline logic remains unchanged</li><li>Minimal restructuring of existing code</li><li>Version bump from 0.1.0 to 0.2.0</li></ul><p><strong>Mentioned by:</strong> Alwin, Claude, Developer</p></div>
+    
+        </div>
+    </div>
+    </section>
+    </div>
+    
+    <script>
+        function togglePBI(index) {
+            const content = document.getElementById('content-' + index);
+            const icon = document.getElementById('icon-' + index);
+
+            content.classList.toggle('expanded');
+            icon.classList.toggle('expanded');
+        }
+    </script>
+</body>
+</html>

@@ -45,7 +45,9 @@
       "Bash(tree:*)",
       "Bash(find:*)",
       "Bash(watch -n 5:*)",
-      "Skill(oclif-cli-development)"
+      "Skill(oclif-cli-development)",
+      "Bash(gh pr edit:*)",
+      "Bash(backlog-chef:*)"
     ],
     "deny": [],
     "ask": []
