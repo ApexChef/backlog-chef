@@ -14,7 +14,11 @@ Tech Lead: So we'd have two different task generation modes:
 1. **Pre-work tasks** (based on Definition of Ready gaps)
 2. **Implementation tasks** (based on Definition of Done requirements)
 
-Product Owner: Right. Let me provide you with our actual Definition of Done, and you can design how to turn that into tasks.
+Product Owner: Right. I've provided our actual Salesforce team's Definition of Done and Definition of Ready. They're documented in:
+- `config/salesforce/definition-of-ready.yaml` (11 criteria in Dutch)
+- `config/salesforce/definition-of-done.yaml` (14 criteria in Dutch)
+
+These are real, production DoR/DoD from a Salesforce development team, including localization requirements, CRUD permission testing, and multi-role responsibilities.
 
 ---
 
@@ -315,10 +319,52 @@ Example:
 
 ---
 
+## Salesforce Team DoR/DoD - Real Example
+
+**Definition of Ready** (`config/salesforce/definition-of-ready.yaml`):
+1. Functionele beschrijving
+2. Acceptatiecriteria gedefinieerd
+3. Afhankelijkheden duidelijk
+4. Oplossingsrichting (technische refinement)
+5. Test script en testdata klaar
+6. Vertaling naar Nederlands bijgeleverd
+7. Concept proces
+8. Hoe gaan we deze story demonstreren?
+9. Key-user moet akkoord zijn
+10. Voorzien van Story points
+11. MoSCoW prioriteit ingevuld
+
+**Definition of Done** (`config/salesforce/definition-of-done.yaml`):
+
+**Door Developers:**
+1. Vertaling naar Nederlands verwerkt
+2. Development klaar
+3. Deployment naar test omgeving geslaagd
+4. Technische (peer) test voltooid (metadata goed overgekomen, klaar voor uitvoeren testscript)
+5. Klaargezet voor UAT test en productie release
+
+**Door Functionele Tester:**
+6. Functionele test voltooid o.b.v. acceptatie criteria
+7. Functionele test voltooid o.b.v. test script
+8. CRUD-rechten (inclusief anti-testen)
+9. Eventuele integraties gerelateerd aan functionaliteit
+10. Technische documentatie bijgewerkt (als code comments salesforce)
+11. Releasenotes (DoD op Releaseniveau)
+12. Proces beschrijving (door proces analist/in engage)
+13. Uitleg voor demo gereed
+14. Akkoord product owner
+
+**Key Characteristics:**
+- Multi-role responsibilities (Developer, Functional Tester, Process Analyst, PO)
+- Dutch localization required
+- Salesforce-specific (metadata, CRUD permissions, change sets)
+- Process documentation in Engage
+- Emphasis on anti-testing (negative scenarios)
+
 ## Questions for Product Owner
 
-1. **What's your actual Definition of Done?** (Please provide the list)
-2. **What's your actual Definition of Ready?** (Please provide the list)
+1. ✅ **What's your actual Definition of Done?** ANSWERED - Salesforce DoD provided
+2. ✅ **What's your actual Definition of Ready?** ANSWERED - Salesforce DoR provided
 3. **Task granularity**: Should we break down tasks further, or keep them high-level?
 4. **Effort estimation**: Should tasks include time estimates? If so, how to calculate?
 5. **Task dependencies**: Should we show task order/dependencies?

@@ -1,0 +1,200 @@
+# Definition of Done - Salesforce Team
+#
+# Dutch: Definitie van Klaar (DoD)
+# Criteria die vervuld moeten zijn voordat een PBI als "done" kan worden beschouwd
+#
+
+definition_of_done:
+  # =============================================================================
+  # DOOR DEVELOPERS
+  # =============================================================================
+
+  # Nederlandse Vertaling Verwerkt
+  - id: dod-sf-001
+    category: localization
+    responsibility: developer
+    requirement: "Dutch translation implemented"
+    requirement_nl: "Vertaling naar Nederlands verwerkt"
+    verification: "Alle UI teksten en berichten zijn vertaald en geïmplementeerd"
+    automated: false
+    task_template: "Implementeer Nederlandse vertalingen in code"
+    agent_hint: "clean-apex-architect or pact-backend-coder"
+
+  # Development Klaar
+  - id: dod-sf-002
+    category: development
+    responsibility: developer
+    requirement: "Development complete"
+    requirement_nl: "Development klaar"
+    verification: "Alle code geschreven, compileert zonder fouten"
+    automated: false
+    task_template: "Implementeer functionaliteit volgens acceptatiecriteria"
+    agent_hint: "clean-apex-architect, pact-backend-coder, salesforce-lwc-development skill"
+
+  # Deployment naar Test
+  - id: dod-sf-003
+    category: deployment
+    responsibility: developer
+    requirement: "Deployment to test environment successful"
+    requirement_nl: "Deployment naar test omgeving geslaagd"
+    verification: "Code succesvol gedeployed naar test omgeving"
+    automated: true
+    task_template: "Deploy naar test omgeving en verifieer deployment"
+    agent_hint: "bash: sfdx force:source:deploy OR sf project deploy"
+
+  # Technische Peer Test
+  - id: dod-sf-004
+    category: testing
+    responsibility: developer
+    requirement: "Technical peer test completed"
+    requirement_nl: "Technische (peer) test voltooid (metadata goed overgekomen, klaar voor uitvoeren testscript)"
+    verification: "Peer heeft technische review uitgevoerd, metadata correct"
+    automated: false
+    task_template: "Voer technische peer review uit - check metadata, permissions, configuratie"
+    agent_hint: "Requires human peer review"
+
+  # Klaargezet voor UAT en Productie
+  - id: dod-sf-005
+    category: deployment
+    responsibility: developer
+    requirement: "Prepared for UAT test and production release"
+    requirement_nl: "Klaargezet voor UAT test en productie release"
+    verification: "Change set of deployment package klaar voor UAT en productie"
+    automated: false
+    task_template: "Maak change set/package klaar voor UAT en productie deployment"
+    agent_hint: "salesforce-packaging skill"
+
+  # =============================================================================
+  # DOOR FUNCTIONELE TESTER
+  # =============================================================================
+
+  # Functionele Test - Acceptatiecriteria
+  - id: dod-sf-006
+    category: testing
+    responsibility: functional_tester
+    requirement: "Functional test completed based on acceptance criteria"
+    requirement_nl: "Functionele test voltooid o.b.v. acceptatie criteria"
+    verification: "Alle acceptatiecriteria getest en akkoord"
+    automated: false
+    task_template: "Test alle acceptatiecriteria uit test script"
+    agent_hint: "Requires human testing"
+
+  # Functionele Test - Test Script
+  - id: dod-sf-007
+    category: testing
+    responsibility: functional_tester
+    requirement: "Functional test completed based on test script"
+    requirement_nl: "Functionele test voltooid o.b.v. test script"
+    verification: "Test script volledig doorlopen, resultaten gedocumenteerd"
+    automated: false
+    task_template: "Voer test script uit en documenteer resultaten"
+    agent_hint: "Requires human testing"
+
+  # Functionele Test - CRUD Rechten
+  - id: dod-sf-008
+    category: testing
+    responsibility: functional_tester
+    requirement: "CRUD permissions tested (including negative tests)"
+    requirement_nl: "CRUD-rechten (inclusief anti-testen)"
+    verification: "CRUD rechten getest voor alle profielen, anti-testen uitgevoerd"
+    automated: false
+    task_template: "Test CRUD rechten en voer anti-testen uit (geen toegang waar niet mag)"
+    agent_hint: "salesforce-security-model skill - Requires human testing"
+
+  # Functionele Test - Integraties
+  - id: dod-sf-009
+    category: testing
+    responsibility: functional_tester
+    requirement: "Integrations related to functionality tested"
+    requirement_nl: "Eventuele integraties gerelateerd aan functionaliteit"
+    verification: "Alle integraties getest en werkend"
+    automated: false
+    task_template: "Test alle gerelateerde integraties end-to-end"
+    agent_hint: "salesforce-integration-patterns skill - Requires human testing"
+
+  # Documentatie - Technisch
+  - id: dod-sf-010
+    category: documentation
+    responsibility: developer
+    requirement: "Technical documentation updated"
+    requirement_nl: "Technische documentatie bijgewerkt (als code comments in Salesforce)"
+    verification: "Code comments aanwezig, JSDoc/ApexDoc complete"
+    automated: false
+    task_template: "Voeg code comments en technical documentation toe"
+    agent_hint: "documentor agent"
+
+  # Documentatie - Release Notes
+  - id: dod-sf-011
+    category: documentation
+    responsibility: developer
+    requirement: "Release notes updated"
+    requirement_nl: "Releasenotes (DoD op Releaseniveau)"
+    verification: "Release notes bijgewerkt met nieuwe functionaliteit"
+    automated: false
+    task_template: "Werk release notes bij met description van changes"
+    agent_hint: "documentor agent"
+
+  # Documentatie - Proces Beschrijving
+  - id: dod-sf-012
+    category: documentation
+    responsibility: process_analyst
+    requirement: "Process description updated"
+    requirement_nl: "Proces beschrijving (door proces analist/in engage)"
+    verification: "Proces documentatie bijgewerkt in Engage of proces tool"
+    automated: false
+    task_template: "Update proces beschrijving met proces analist"
+    agent_hint: "Requires process analyst"
+
+  # Demo Voorbereiding
+  - id: dod-sf-013
+    category: demo
+    responsibility: developer
+    requirement: "Demo explanation ready"
+    requirement_nl: "Uitleg voor demo gereed"
+    verification: "Demo scenario voorbereid, demo data klaar"
+    automated: false
+    task_template: "Bereid demo voor - maak demo data, oefen demo flow"
+    agent_hint: "Requires human preparation"
+
+  # Product Owner Akkoord
+  - id: dod-sf-014
+    category: approval
+    responsibility: product_owner
+    requirement: "Product Owner approval obtained"
+    requirement_nl: "Akkoord product owner"
+    verification: "PO heeft functionaliteit geaccepteerd"
+    automated: false
+    task_template: "Demo aan PO en verkrijg acceptatie"
+    agent_hint: "Requires human approval"
+
+# Metadata
+metadata:
+  team: "Salesforce Team"
+  language: "Dutch (NL)"
+  responsibilities:
+    - developer: "Salesforce developers - Apex, LWC, configuration"
+    - functional_tester: "Functional testers - UAT, acceptance testing"
+    - process_analyst: "Process analysts - Engage documentation"
+    - product_owner: "Product Owner - Final approval"
+  last_updated: "2025-11-20"
+  version: "1.0"
+
+# Notes
+notes: |
+  Dit is de Salesforce-specifieke Definition of Done.
+
+  Verantwoordelijkheden:
+  - Developers: Items dod-sf-001 t/m dod-sf-005, dod-sf-010, dod-sf-011, dod-sf-013
+  - Functionele Testers: Items dod-sf-006 t/m dod-sf-009
+  - Proces Analist: Item dod-sf-012
+  - Product Owner: Item dod-sf-014
+
+  Testing focus:
+  - Acceptatiecriteria MOETEN getest worden
+  - CRUD-rechten inclusief anti-testen (users die geen toegang mogen hebben)
+  - Integraties end-to-end testen
+
+  Documentation requirements:
+  - Technische docs: Code comments in Salesforce (ApexDoc, JSDoc)
+  - Release notes: Op release niveau
+  - Proces docs: In Engage of proces tool
