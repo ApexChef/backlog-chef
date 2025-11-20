@@ -1,0 +1,166 @@
+# Definition of Done (DoD)
+#
+# Generic template for quality checklist that determines when a PBI is "done"
+# Teams can customize this file to match their workflow
+#
+# This is a template - see config/salesforce/definition-of-done.yaml for a real example
+
+definition_of_done:
+  # =============================================================================
+  # CODE QUALITY
+  # =============================================================================
+
+  - id: dod-001
+    category: code_quality
+    responsibility: developer
+    requirement: "Code follows project coding standards"
+    verification: "Linting passes without errors"
+    automated: true
+    task_template: "Run linter and fix all violations"
+    agent_hint: "bash: npm run lint"
+    estimated_effort: "15 minutes"
+
+  - id: dod-002
+    category: code_quality
+    responsibility: developer
+    requirement: "Code is reviewed by at least one team member"
+    verification: "PR approved by reviewer"
+    automated: false
+    task_template: "Request code review from {reviewer}"
+    agent_hint: "Requires human review"
+    estimated_effort: "30 minutes"
+
+  # =============================================================================
+  # TESTING
+  # =============================================================================
+
+  - id: dod-003
+    category: testing
+    responsibility: developer
+    requirement: "Unit tests written for new code"
+    verification: "Test coverage >= 80%"
+    automated: true
+    task_template: "Write unit tests for {component}"
+    agent_hint: "pact-test-engineer agent"
+    estimated_effort: "2 hours"
+
+  - id: dod-004
+    category: testing
+    responsibility: developer
+    requirement: "All tests pass"
+    verification: "npm test exits 0"
+    automated: true
+    task_template: "Run test suite and ensure all tests pass"
+    agent_hint: "bash: npm test"
+    estimated_effort: "10 minutes"
+
+  - id: dod-005
+    category: testing
+    responsibility: qa_tester
+    requirement: "Acceptance criteria validated"
+    verification: "All acceptance criteria tested and passing"
+    automated: false
+    task_template: "Test all acceptance criteria from test script"
+    agent_hint: "Requires human testing"
+    estimated_effort: "1 hour"
+
+  # =============================================================================
+  # DOCUMENTATION
+  # =============================================================================
+
+  - id: dod-006
+    category: documentation
+    responsibility: developer
+    requirement: "README updated with new features"
+    verification: "README.md modified in PR"
+    automated: false
+    task_template: "Update README.md with {feature} documentation"
+    agent_hint: "documentor agent"
+    estimated_effort: "30 minutes"
+
+  - id: dod-007
+    category: documentation
+    responsibility: developer
+    requirement: "API documentation generated"
+    verification: "JSDoc/TSDoc comments present"
+    automated: true
+    task_template: "Add JSDoc comments to public APIs"
+    agent_hint: "documentor agent"
+    estimated_effort: "45 minutes"
+
+  - id: dod-008
+    category: documentation
+    responsibility: developer
+    requirement: "CHANGELOG updated"
+    verification: "CHANGELOG.md contains entry for this change"
+    automated: false
+    task_template: "Add entry to CHANGELOG.md describing the change"
+    agent_hint: "documentor agent"
+    estimated_effort: "10 minutes"
+
+  # =============================================================================
+  # DEPLOYMENT
+  # =============================================================================
+
+  - id: dod-009
+    category: deployment
+    responsibility: developer
+    requirement: "Code deployed to staging environment"
+    verification: "Staging deployment successful"
+    automated: true
+    task_template: "Deploy to staging and verify"
+    agent_hint: "Requires CI/CD pipeline"
+    estimated_effort: "20 minutes"
+
+  - id: dod-010
+    category: deployment
+    responsibility: developer
+    requirement: "Build passes"
+    verification: "npm run build exits 0"
+    automated: true
+    task_template: "Run build and fix any compilation errors"
+    agent_hint: "bash: npm run build"
+    estimated_effort: "15 minutes"
+
+  # =============================================================================
+  # APPROVAL
+  # =============================================================================
+
+  - id: dod-011
+    category: approval
+    responsibility: product_owner
+    requirement: "Product Owner accepts the work"
+    verification: "PO approval in ticket"
+    automated: false
+    task_template: "Demo to PO and obtain acceptance"
+    agent_hint: "Requires human approval"
+    estimated_effort: "30 minutes"
+
+# Metadata
+metadata:
+  team: "Generic Template"
+  language: "English"
+  responsibilities:
+    developer: "Software developers"
+    qa_tester: "QA/Test engineers"
+    product_owner: "Product Owner"
+  last_updated: "2025-11-20"
+  version: "1.0"
+
+# Notes
+notes: |
+  This is a generic Definition of Done template.
+
+  Customize this file to match your team's workflow:
+  - Add/remove DoD items based on your process
+  - Adjust categories (code_quality, testing, documentation, deployment, approval)
+  - Update agent_hint fields to match your automation tools
+  - Set automated: true for items that can be checked automatically
+
+  For a real-world example, see config/salesforce/definition-of-done.yaml
+
+  Task Generation:
+  - Each DoD item generates a corresponding task
+  - Tasks inherit category, verification, and agent_hint
+  - Automated tasks can be executed by agents/CI/CD
+  - Manual tasks require human intervention
