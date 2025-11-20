@@ -40,7 +40,8 @@
       "Bash(export OPENAI_API_KEY=\"$OPENAI_API_KEY:-\")",
       "Bash(node -e:*)",
       "Bash(ANTHROPIC_API_KEY=\"$ANTHROPIC_API_KEY\" node dist/index.js:*)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(open:*)"
     ],
     "deny": [],
     "ask": []

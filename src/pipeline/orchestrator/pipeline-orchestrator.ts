@@ -19,7 +19,8 @@ import { EnrichContextStep } from '../steps/step4-enrich-context';
 import { CheckRisksStep } from '../steps/step5-check-risks';
 import { GenerateProposalsStep } from '../steps/step6-generate-proposals';
 import { ReadinessCheckerStep } from '../steps/step7-readiness-checker';
-import { StepOutputWriter, PBIOutputWriter } from '../output';
+import { FormatOutputStep } from '../steps/step8-format-output';
+import { StepOutputWriter, PBIOutputWriter, HTMLFormatter } from '../output';
 
 /**
  * Main pipeline orchestrator
@@ -29,6 +30,7 @@ export class PipelineOrchestrator {
   private steps: PipelineStep[];
   private stepWriter?: StepOutputWriter;
   private pbiWriter?: PBIOutputWriter;
+  private htmlFormatter?: HTMLFormatter;
 
   constructor(router: ModelRouter, options?: { outputDir?: string; writeStepOutputs?: boolean }) {
     this.router = router;
@@ -38,11 +40,9 @@ export class PipelineOrchestrator {
     if (options?.writeStepOutputs !== false) {
       const outputDir = options?.outputDir || 'output';
       this.stepWriter = new StepOutputWriter(outputDir, true);
-      this.pbiWriter = new PBIOutputWriter(
-        outputDir,
-        this.stepWriter.getRunId(),
-        true
-      );
+      const runId = this.stepWriter.getRunId();
+      this.pbiWriter = new PBIOutputWriter(outputDir, runId, true);
+      this.htmlFormatter = new HTMLFormatter(outputDir, runId);
     }
   }
 
@@ -58,7 +58,7 @@ export class PipelineOrchestrator {
       new CheckRisksStep(),
       new GenerateProposalsStep(),
       new ReadinessCheckerStep(),
-      // Step 8 (Final Output) is handled by generateOutput()
+      new FormatOutputStep(),
     ];
   }
 
@@ -111,6 +111,13 @@ export class PipelineOrchestrator {
       // Write individual PBI files
       if (this.pbiWriter) {
         this.pbiWriter.writePBIs(output);
+      }
+
+      // Generate HTML preview
+      if (this.htmlFormatter) {
+        const htmlPath = this.htmlFormatter.generate(output);
+        console.log(`\n🌐 HTML Preview: ${htmlPath}`);
+        console.log(`   Open in browser: file://${htmlPath}\n`);
       }
 
       // Print summary
