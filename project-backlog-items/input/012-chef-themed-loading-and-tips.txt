@@ -1,0 +1,773 @@
+BACKLOG REFINEMENT MEETING - Chef-Themed Loading Indicators & Tips System
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: I've been using Claude Code and I love how it shows "Osmosing...", "Channeling..." and helpful tips while working. I want that for Backlog Chef!
+
+Tech Lead: You want loading indicators and tips?
+
+Product Owner: Yes, but with a chef/kitchen theme! I'm a former chef, so instead of generic loading messages, I want cooking terminology.
+
+Tech Lead: Oh that's brilliant! Like "Chopping ingredients..." or "Sautéing data..."?
+
+Product Owner: Exactly! And tips like "Tip: A well-seasoned PBI is easier to implement" or "Tip: Let your refinement simmer before serving to the team."
+
+Tech Lead: I love it! So we need:
+1. **Chef-themed loading indicators** for long operations
+2. **Tips system** that shows cooking/chef wisdom with helpful CLI tips
+
+Let's break it down!
+
+---
+
+## FEATURE 1: Chef-Themed Loading Indicators
+
+Product Owner: When the pipeline is running, instead of boring spinners or "Processing...", I want fun kitchen terminology.
+
+Tech Lead: What operations need loading indicators?
+
+Product Owner: Any operation that takes time:
+- Processing transcripts through the pipeline
+- Enriching with context (Step 4)
+- Generating proposals (Step 6)
+- Format conversions
+- Batch operations
+
+Tech Lead: What kind of cooking terms are we talking about?
+
+Product Owner: All the kitchen vocabulary! Here's a list:
+
+**COOKING TECHNIQUES:**
+- 🔪 Chopping
+- 🔪 Dicing
+- 🔪 Mincing
+- 🔪 Julienning
+- 🍳 Sautéing
+- 🍳 Searing
+- 🍳 Braising
+- 🍳 Roasting
+- 🥘 Simmering
+- 🥘 Boiling
+- 🥘 Poaching
+- 🥄 Stirring
+- 🥄 Whisking
+- 🥄 Folding
+- 🧂 Seasoning
+- 🧂 Marinating
+- 🧂 Brining
+- 🍞 Baking
+- 🍞 Proofing
+- 🍞 Kneading
+- 🧊 Chilling
+- 🧊 Freezing
+- 🔥 Flambéing
+- 🔥 Grilling
+- 🔥 Smoking
+- 🍽️ Plating
+- 🍽️ Garnishing
+- 🧑‍🍳 Tasting
+- 🧑‍🍳 Adjusting
+- 📋 Prepping
+- 📋 Organizing
+- 🧼 Cleaning mise en place
+
+**PREP WORK:**
+- Mise en place (everything in its place)
+- Sharpening knives
+- Setting up stations
+- Organizing ingredients
+- Reading the recipe
+- Measuring portions
+- Tempering ingredients
+
+**FINISHING:**
+- Reducing sauce
+- Finishing with butter
+- Final seasoning check
+- Quality control
+- Plating presentation
+- Service ready
+
+Tech Lead: This is fantastic! How should we map these to pipeline steps?
+
+Product Owner: Each step should have thematically appropriate terms:
+
+**STEP 1: Event Detection**
+```
+🧑‍🍳 Reading the recipe...
+📋 Reviewing the menu...
+🔍 Checking today's special...
+```
+
+**STEP 2: Extract Candidates**
+```
+🔪 Chopping ingredients...
+🔪 Dicing requirements...
+🔪 Prepping the mise en place...
+```
+
+**STEP 3: Score Confidence**
+```
+🧑‍🍳 Tasting for quality...
+⚖️ Weighing portions...
+🧂 Checking seasoning levels...
+```
+
+**STEP 4: Enrich Context**
+```
+🧂 Marinating with context...
+🥘 Simmering the details...
+🍯 Adding depth of flavor...
+```
+
+**STEP 5: Check Risks**
+```
+🌡️ Checking temperature...
+👃 Smell test...
+🔍 Inspecting for issues...
+```
+
+**STEP 6: Generate Proposals**
+```
+🍳 Crafting the dish...
+🧑‍🍳 Developing the recipe...
+📝 Writing the menu...
+```
+
+**STEP 7: Readiness Checker**
+```
+🧑‍🍳 Final taste test...
+✨ Quality control...
+🍽️ Preparing for service...
+```
+
+**STEP 8: Format Output**
+```
+🍽️ Plating the presentation...
+🎨 Garnishing...
+📸 Making it Instagram-worthy...
+```
+
+Tech Lead: Brilliant! Should these rotate randomly or be consistent per step?
+
+Product Owner: Rotate randomly within the step's theme! Keeps it fresh and fun.
+
+---
+
+## FEATURE 2: Tips System
+
+Product Owner: While operations are running, show helpful tips - a mix of cooking wisdom and CLI usage tips.
+
+Tech Lead: Like a loading screen with hints?
+
+Product Owner: Exactly! Something like:
+
+```bash
+$ backlog-chef process meeting.txt
+
+🔪 Chopping ingredients...
+💡 Tip: A sharp knife (clear requirements) makes prep work easier
+
+🧂 Seasoning your PBI...
+💡 Tip: Use --verbose to see what's cooking under the hood
+
+🍽️ Plating the presentation...
+💡 Tip: The best dishes are made with quality ingredients - take time to refine!
+```
+
+Tech Lead: What kind of tips should we show?
+
+Product Owner: Two categories:
+
+**CATEGORY 1: Chef Wisdom → CLI Parallels**
+- "A sharp knife makes prep easier" → "Clear requirements save implementation time"
+- "Taste as you go" → "Run tests frequently"
+- "Mise en place" → "Organize your inputs before processing"
+- "Low and slow wins the race" → "Thorough refinement prevents rework"
+- "Season in layers" → "Add details incrementally"
+- "Let it rest" → "Review PBIs before implementation"
+- "Hot pan, cold oil" → "Warm up your environment before starting"
+- "The right tool for the job" → "Choose the right format for your workflow"
+
+**CATEGORY 2: CLI Usage Tips**
+- "Use --verbose to see detailed pipeline logs"
+- "Try --formats all to generate multiple outputs"
+- "Run backlog-chef pbi list to see your backlog"
+- "Use backlog-chef format to convert existing PBIs"
+- "Check backlog-chef releases for what's new"
+- "Set up global config with backlog-chef setup"
+- "Add --help to any command for options"
+
+Product Owner: And let's add fun chef quotes too!
+
+**CATEGORY 3: Famous Chef Quotes (Adapted)**
+- "Mise en place is the religion of all good cooks" - Anthony Bourdain
+- "First we eat, then we do everything else" - M.F.K. Fisher
+- "Cooking is like love - enter with abandon or not at all" - Harriet van Horne
+- "The only time to eat diet food is while waiting for the steak to cook" - Julia Child
+- "People who love to eat are always the best people" - Julia Child
+
+Tech Lead: Should tips be contextual or random?
+
+Product Owner: Contextual when possible! For example:
+
+**During Step 4 (Enrichment):**
+- "Tip: Enrichment is like marinating - give it time to develop flavor"
+- "Tip: The docs/ folder adds context, like aromatics to a stock"
+
+**During Format Conversion:**
+- "Tip: Use backlog-chef format to convert without re-cooking"
+- "Tip: JSON is the mise en place - all formats start here"
+
+**During First Run:**
+- "Tip: New to Backlog Chef? Run 'backlog-chef setup' for a guided start"
+- "Tip: Like mise en place, setup prepares everything you need"
+
+**During Error:**
+- "Tip: Even the best chefs burn things - check the logs with --verbose"
+- "Tip: Missing API keys? Run 'backlog-chef setup' to configure"
+
+Tech Lead: How often should tips change?
+
+Product Owner: Rotate every 5-10 seconds during long operations. Don't spam!
+
+---
+
+## FEATURE 3: Loading Indicator Styles
+
+Tech Lead: What should the actual loading indicator look like?
+
+Product Owner: A few styles:
+
+**STYLE 1: Spinner with Message**
+```
+🔪 Chopping ingredients... ⠋
+💡 Tip: Mise en place saves time - organize inputs before processing
+```
+
+**STYLE 2: Progress Bar with Kitchen Theme**
+```
+🍳 Sautéing your PBI... [▓▓▓▓▓▓▓░░░░░░░░] 45%
+💡 Tip: Use --verbose to see what's cooking
+```
+
+**STYLE 3: Step Indicator**
+```
+[2/8] 🔪 Dicing requirements...
+💡 Tip: Clear acceptance criteria = easier implementation
+```
+
+**STYLE 4: Elapsed Time**
+```
+🧂 Marinating with context... (23s)
+💡 Tip: Step 4 is like slow-cooking - patience yields better results
+```
+
+Product Owner: Support all styles, make it configurable!
+
+```yaml
+# ~/.backlog-chef/config.yaml
+display:
+  loading_style: "spinner"  # spinner, progress, steps, time
+  show_tips: true
+  tip_rotation_seconds: 8
+  chef_theme: true  # Set to false for boring mode
+```
+
+---
+
+## FEATURE 4: Tip Categories & Management
+
+Tech Lead: How do we organize all these tips?
+
+Product Owner: Create a tip database:
+
+```typescript
+// src/display/tips.ts
+interface Tip {
+  id: string;
+  category: 'chef_wisdom' | 'cli_usage' | 'chef_quote';
+  context?: 'step4' | 'format' | 'first_run' | 'error' | 'general';
+  chef_metaphor: string;
+  cli_tip: string;
+  emoji?: string;
+}
+
+const TIPS: Tip[] = [
+  {
+    id: 'sharp-knife',
+    category: 'chef_wisdom',
+    context: 'general',
+    chef_metaphor: 'A sharp knife makes prep work easier',
+    cli_tip: 'Clear requirements save implementation time',
+    emoji: '🔪'
+  },
+  {
+    id: 'mise-en-place',
+    category: 'chef_wisdom',
+    context: 'general',
+    chef_metaphor: 'Mise en place - everything in its place',
+    cli_tip: 'Organize your inputs before processing',
+    emoji: '📋'
+  },
+  // ... more tips
+];
+```
+
+Product Owner: And we should be able to add more tips easily!
+
+Tech Lead: We could even let users contribute tips:
+
+```bash
+# Community-contributed tips
+backlog-chef tips list
+backlog-chef tips add --metaphor "Season in layers" --tip "Add acceptance criteria incrementally"
+backlog-chef tips submit  # Submit to our tip database
+```
+
+---
+
+## Implementation Details
+
+Tech Lead: Here's how I'd build this:
+
+**1. Loading Indicator Library**
+```typescript
+// src/display/chef-loader.ts
+class ChefLoader {
+  constructor(
+    private step: string,
+    private style: LoadingStyle,
+    private showTips: boolean
+  ) {}
+
+  start(): void {
+    this.showRandomVerb();
+    if (this.showTips) {
+      this.startTipRotation();
+    }
+  }
+
+  private showRandomVerb(): void {
+    const verbs = COOKING_VERBS[this.step];
+    const verb = verbs[Math.floor(Math.random() * verbs.length)];
+    this.display(verb);
+  }
+
+  private startTipRotation(): void {
+    setInterval(() => {
+      const tip = this.getContextualTip();
+      this.displayTip(tip);
+    }, this.config.tip_rotation_seconds * 1000);
+  }
+}
+```
+
+**2. Cooking Verb Database**
+```typescript
+const COOKING_VERBS = {
+  detect_event_type: [
+    '🧑‍🍳 Reading the recipe',
+    '📋 Reviewing the menu',
+    '🔍 Checking today\'s special',
+    '📖 Consulting the cookbook'
+  ],
+  extract_candidates: [
+    '🔪 Chopping ingredients',
+    '🔪 Dicing requirements',
+    '🔪 Mincing the details',
+    '📋 Prepping mise en place'
+  ],
+  enrich_context: [
+    '🧂 Marinating with context',
+    '🥘 Simmering the details',
+    '🍯 Adding depth of flavor',
+    '🧈 Enriching the sauce'
+  ],
+  // ... more steps
+};
+```
+
+**3. Tip Selector**
+```typescript
+class TipSelector {
+  getContextualTip(context?: string): Tip {
+    const contextualTips = TIPS.filter(t =>
+      !context || t.context === context || t.context === 'general'
+    );
+    return contextualTips[Math.floor(Math.random() * contextualTips.length)];
+  }
+}
+```
+
+**4. Display Formatter**
+```typescript
+class TipFormatter {
+  format(tip: Tip, style: 'metaphor' | 'cli' | 'both'): string {
+    if (style === 'both') {
+      return `${tip.emoji} "${tip.chef_metaphor}" → ${tip.cli_tip}`;
+    }
+    if (style === 'metaphor') {
+      return `${tip.emoji} Chef wisdom: ${tip.chef_metaphor}`;
+    }
+    return `💡 Tip: ${tip.cli_tip}`;
+  }
+}
+```
+
+---
+
+## Example Output
+
+**Pipeline Processing:**
+```bash
+$ backlog-chef process meeting.txt
+
+🎯 Backlog Chef Pipeline
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[1/8] 🧑‍🍳 Reading the recipe... ⠋
+💡 Tip: Start with a clear goal - what dish are you making?
+
+[2/8] 🔪 Dicing requirements... ⠙
+💡 Tip: "Sharp tools make clean cuts" → Clear requirements prevent confusion
+
+[3/8] 🧂 Checking seasoning levels... ⠹
+💡 Tip: Use backlog-chef pbi list --status TODO to see what's ready
+
+[4/8] 🥘 Simmering the details... (18s) ⠸
+💡 Tip: "Low and slow wins the race" → Thorough refinement prevents rework
+
+[5/8] 🌡️ Checking temperature... ⠼
+💡 Chef wisdom: "Taste as you go" = Run tests frequently
+
+[6/8] 🧑‍🍳 Crafting the dish... (2m 15s) ⠴
+💡 Tip: "Mise en place is the religion of all good cooks" - Anthony Bourdain
+
+[7/8] ✨ Final quality control... ⠦
+💡 Tip: Add --verbose to see what's cooking under the hood
+
+[8/8] 🍽️ Plating the presentation... ⠧
+💡 Tip: Multiple formats? Use --formats all to serve it every way!
+
+✅ Pipeline Complete!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Format Conversion:**
+```bash
+$ backlog-chef format output/pbi-001.json --to obsidian
+
+🔄 Converting from mise en place (JSON)... ⠋
+💡 Tip: JSON is the mise en place - all formats start from here
+
+🍽️ Plating for Obsidian... ⠙
+💡 Tip: No API calls = instant conversion, like reheating leftovers!
+
+✅ Served! pbi-001.obsidian.md
+💡 Chef wisdom: "The best dishes deserve beautiful presentation"
+```
+
+**Batch Operations:**
+```bash
+$ backlog-chef format output/**/*.json --to confluence
+
+📋 Batch prep: 12 PBIs found
+
+[1/12] 🔪 Chopping pbi-001.json... ⠋
+[2/12] 🔪 Chopping pbi-002.json... ⠙
+[3/12] 🔪 Chopping pbi-003.json... ⠹
+💡 Tip: Batch operations are like meal prep - efficient and organized!
+
+[12/12] ✅ All dishes plated!
+```
+
+---
+
+## ACCEPTANCE CRITERIA
+
+**Chef-Themed Loading:**
+1. All long operations (>2s) show chef-themed loading indicators
+2. Each pipeline step has appropriate cooking terminology
+3. Verbs rotate randomly within step's theme
+4. Loading style configurable (spinner, progress, steps, time)
+5. Emoji support for visual appeal
+6. Graceful fallback if terminal doesn't support Unicode
+
+**Tips System:**
+7. Tips displayed during operations longer than 5 seconds
+8. Tips rotate every 5-10 seconds (configurable)
+9. Tips are contextual when possible (step-specific)
+10. Three tip categories: chef wisdom, CLI usage, chef quotes
+11. Can disable tips with config flag
+12. Tips database easily extensible
+
+**Configuration:**
+13. `~/.backlog-chef/config.yaml` controls display settings
+14. `chef_theme: false` disables for professional mode
+15. `show_tips: false` disables tips
+16. `tip_rotation_seconds` configurable
+17. `loading_style` selectable (spinner/progress/steps/time)
+
+**User Experience:**
+18. Loading indicators work in all terminal types
+19. No flickering or performance issues
+20. Tips are helpful, not annoying
+21. Chef metaphors are clear and relatable
+22. CLI tips are actionable and accurate
+23. Quotes are properly attributed
+
+**Technical:**
+24. Loading library doesn't block execution
+25. Tips load from JSON/YAML file
+26. Supports custom user-contributed tips
+27. Works offline (no external tip fetching)
+28. Minimal performance overhead (< 50ms)
+
+---
+
+## Chef-Themed Verb Bank
+
+Tech Lead: We need a comprehensive list. Here's what I'm thinking:
+
+**PREP WORK (Steps 1-2):**
+- Reading the recipe
+- Reviewing the menu
+- Checking mise en place
+- Sharpening knives
+- Organizing station
+- Washing ingredients
+- Measuring portions
+- Prepping ingredients
+- Chopping vegetables
+- Dicing onions
+- Mincing garlic
+- Julienning carrots
+- Brunoising celery
+
+**COOKING (Steps 3-6):**
+- Sautéing aromatics
+- Searing proteins
+- Braising tough cuts
+- Roasting vegetables
+- Simmering stock
+- Reducing sauce
+- Poaching delicately
+- Grilling to perfection
+- Smoking slowly
+- Baking precisely
+- Seasoning carefully
+- Marinating thoroughly
+- Whisking vigorously
+- Folding gently
+- Tempering eggs
+- Deglazing pan
+- Building layers
+
+**FINISHING (Steps 7-8):**
+- Tasting for balance
+- Final seasoning check
+- Quality control
+- Plating beautifully
+- Garnishing artfully
+- Adding finishing touches
+- Wiping the rim
+- Checking presentation
+- Service ready
+- Sending to the pass
+
+Product Owner: This is perfect! I love it.
+
+---
+
+## Tip Examples
+
+**Chef Wisdom → CLI Tips:**
+
+1. "A sharp knife makes clean cuts" → "Clear requirements prevent misunderstandings"
+2. "Taste as you cook" → "Test your code frequently"
+3. "Mise en place saves time" → "Organize inputs before processing"
+4. "Season in layers" → "Add details incrementally during refinement"
+5. "Low and slow wins" → "Thorough refinement prevents rework"
+6. "Hot pan, cold oil" → "Prepare your environment before starting"
+7. "Let it rest" → "Review PBIs before starting implementation"
+8. "The right tool matters" → "Choose the right output format"
+9. "Fresh ingredients are key" → "Use recent context for better results"
+10. "Balance flavors" → "Balance detail with clarity"
+
+**CLI Usage Tips:**
+
+1. "Use --verbose to see detailed pipeline logs"
+2. "Try --formats all to generate every output type"
+3. "Run backlog-chef setup for first-time configuration"
+4. "Check backlog-chef releases for what's new"
+5. "Use backlog-chef format to convert existing PBIs"
+6. "Filter your backlog with backlog-chef pbi list --status TODO"
+7. "Add --help to any command for options"
+8. "Global config works everywhere: ~/.backlog-chef/.env"
+9. "Process multiple transcripts in batch for efficiency"
+10. "Mark PBIs done with backlog-chef pbi status X --to DONE"
+
+**Chef Quotes:**
+
+1. "Mise en place is the religion of all good cooks" - Anthony Bourdain
+2. "First we eat, then we do everything else" - M.F.K. Fisher
+3. "Cooking is like love - enter with abandon" - Harriet van Horne
+4. "The only real stumbling block is fear of failure" - Julia Child
+5. "Anyone can cook, but only the fearless can be great" - Chef Gusteau (Ratatouille)
+
+---
+
+## Configuration Example
+
+```yaml
+# ~/.backlog-chef/config.yaml
+display:
+  # Chef theme settings
+  chef_theme: true              # Set false for professional/boring mode
+  loading_style: "spinner"      # spinner, progress, steps, time
+  show_emojis: true            # Disable on terminals without Unicode
+
+  # Tips settings
+  show_tips: true              # Display tips during operations
+  tip_style: "both"            # both, metaphor, cli
+  tip_rotation_seconds: 8      # How often tips change
+  tip_categories:              # Which categories to show
+    - chef_wisdom
+    - cli_usage
+    - chef_quotes
+
+  # Custom tips file (optional)
+  custom_tips: "~/.backlog-chef/my-tips.yaml"
+```
+
+---
+
+## Future Enhancements
+
+**Phase 2:**
+- Seasonal cooking themes (summer grilling, winter stews)
+- Restaurant service terminology (mise, expo, on the fly)
+- Baking terminology for slower operations (proofing, rising)
+- User-submitted tips database (community contributions)
+- Tip voting system (upvote helpful tips)
+
+**Phase 3:**
+- Animated ASCII art of cooking (flame animation, steam)
+- Sound effects (optional, sizzle sounds, timer dings)
+- Different cuisine themes (French, Italian, Asian)
+- Chef personality modes (calm vs intense like Gordon Ramsay)
+- Tip of the day on startup
+
+**Phase 4:**
+- Integration with release notes (new tips announced)
+- Tips leaderboard (most helpful tips)
+- Context-aware tips based on user history
+- AI-generated cooking metaphors for errors
+- Chef achievement system ("You've plated 100 PBIs!")
+
+---
+
+## Risks
+
+**Risk 1: Annoyance Factor**
+- Too many cooking references might annoy some users
+- Mitigation: Easy to disable (`chef_theme: false`)
+
+**Risk 2: Terminal Compatibility**
+- Emojis don't work on all terminals
+- Mitigation: Auto-detect and fallback to text
+
+**Risk 3: Performance**
+- Loading indicators could slow down operations
+- Mitigation: Async display, minimal overhead
+
+**Risk 4: Cultural Sensitivity**
+- Cooking references may not translate well
+- Mitigation: Keep metaphors universal, support i18n later
+
+---
+
+## Estimate
+
+**Breaking it down:**
+- Chef verb database: 1 point
+- Loading indicator library: 2 points
+- Tip system and database: 2 points
+- Configuration management: 1 point
+- Terminal compatibility: 1 point
+- Integration with existing commands: 2 points
+- Testing and polish: 1 point
+
+**Total: 8-13 story points**
+
+---
+
+## Dependencies
+
+- OCLIF CLI framework (✅ merged)
+- Terminal UI library (ora, chalk)
+- Loading spinner library (cli-spinners)
+- Configuration management (from PBI-007)
+
+---
+
+## Priority
+
+Product Owner: I'd say **MEDIUM**.
+
+Why?
+- It's a nice-to-have, not critical functionality
+- Improves user experience significantly
+- Shows personality and brand
+- Makes using the tool more enjoyable
+
+Should come after:
+- PBI-007: Setup wizard (HIGH)
+- PBI-011: PBI status management (HIGH)
+
+Can come alongside:
+- PBI-009: Release notes & messaging
+- PBI-010: Multi-format output
+
+Tech Lead: Agreed. This is delightful polish that makes the tool memorable!
+
+---
+
+**SUMMARY:**
+- Feature: Chef-Themed Loading Indicators & Tips System
+- User Story: As a user, I want to see fun cooking-themed loading indicators and helpful tips, so that using Backlog Chef feels unique and I learn CLI features naturally
+- Priority: MEDIUM (UX enhancement, brand personality)
+- Estimate: 8-13 story points
+- Dependencies: OCLIF CLI (✅), Terminal UI libraries
+- Risks: Annoyance factor, terminal compatibility
+
+---
+
+## Questions for Product Owner
+
+1. Should we have different chef personalities (calm sous chef vs intense head chef)?
+2. Do you want seasonal themes (grilling in summer, stews in winter)?
+3. Should tips be saved to show users what they've seen before?
+4. Would you like achievement badges ("Master Chef: 100 PBIs processed!")?
+5. Should we support custom user themes beyond chef (e.g., brewing, baking)?
+6. Do you want the ability to submit tips to a community database?
+
+---
+
+## Bonus: Easter Eggs
+
+Product Owner: Oh, one more thing - let's add some easter eggs!
+
+**EASTER EGG IDEAS:**
+- On 100th PBI: "🎉 You've earned your toque! Master Chef achieved!"
+- On Friday 5pm: "🍷 Time to cork the workday - see you Monday!"
+- On errors: Gordon Ramsay quotes ("It's RAW! Your PBI needs more refinement!")
+- Christmas: "🎄 Holiday special: Roasting chestnuts and PBIs!"
+- Your birthday: "🎂 Happy Birthday, Chef! Today's special is on the house!"
+
+Tech Lead: I love it! Should be configurable though (`fun_mode: true`).
+
+Product Owner: Absolutely. Professional mode for corporate environments, fun mode for everyone else!

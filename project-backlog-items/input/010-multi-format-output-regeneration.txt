@@ -1,0 +1,498 @@
+BACKLOG REFINEMENT MEETING - Multi-Format Output & Format Regeneration Command
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: I've been thinking about the output formats. Right now we have to choose ONE format (devops, obsidian, or confluence), but I want to generate MULTIPLE formats at once.
+
+Tech Lead: That makes sense. So instead of `--format devops`, you want to be able to generate all three at the same time?
+
+Product Owner: Exactly! And here's the other thing - once we have the JSON output from the pipeline, we shouldn't need to re-run the entire pipeline just to get a different format.
+
+Tech Lead: Oh, so you want a separate command that takes the JSON and regenerates it in different formats?
+
+Product Owner: Yes! Something like:
+
+```bash
+# Original pipeline run - generates JSON
+backlog-chef process meeting.txt
+
+# Later, convert to different formats without re-processing
+backlog-chef format output/pbi-001.json --to obsidian
+backlog-chef format output/pbi-001.json --to confluence
+backlog-chef format output/pbi-001.json --to all
+```
+
+Tech Lead: That's smart. The JSON is the "source of truth" and we can generate any format from it without burning API credits.
+
+Product Owner: Exactly! And I also want the `process` command to support multiple formats:
+
+```bash
+# Generate all formats at once
+backlog-chef process meeting.txt --formats devops,obsidian,confluence
+
+# Or use shorthand
+backlog-chef process meeting.txt --formats all
+```
+
+Tech Lead: So we need two things:
+1. Multi-format support in `process` command
+2. New `format` command for regenerating from existing JSON
+
+Product Owner: Perfect! Let's break it down.
+
+---
+
+## FEATURE 1: Multi-Format Output in Process Command
+
+Tech Lead: Currently the `--format` flag only accepts one value. We'd need to change it to `--formats` (plural) and accept comma-separated values.
+
+Product Owner: Right. And by default, what should we generate?
+
+Tech Lead: I'd suggest:
+- **Default**: Generate JSON + HTML preview (current behavior)
+- **With --formats**: Generate specified formats + JSON + HTML
+- **JSON is always generated** as the canonical format
+
+Product Owner: Makes sense. The JSON is our internal format, but users get their preferred output formats too.
+
+Tech Lead: What about file naming?
+
+Product Owner: Each format should have its own file:
+
+```
+output/
+  └─ pbi-001/
+      ├─ pbi-001.json           # Always generated (canonical)
+      ├─ pbi-001.devops.json    # Azure DevOps format
+      ├─ pbi-001.obsidian.md    # Obsidian markdown
+      ├─ pbi-001.confluence.md  # Confluence wiki markup
+      ├─ preview.html           # Always generated
+      └─ summary.json           # Always generated
+```
+
+Tech Lead: Clean! Each format has a clear extension and naming convention.
+
+---
+
+## FEATURE 2: Format Command (Regenerate from JSON)
+
+Product Owner: The new `format` command should be super fast because it's just transforming data, not calling AI APIs.
+
+Tech Lead: Right. The workflow would be:
+
+```bash
+# User runs pipeline (costs money, takes time)
+backlog-chef process meeting.txt --formats devops
+
+# Later, they want Obsidian format too
+backlog-chef format output/pbi-001/pbi-001.json --to obsidian
+
+# Output: pbi-001.obsidian.md created
+```
+
+Product Owner: And it should support batch operations:
+
+```bash
+# Convert ALL PBIs in a directory
+backlog-chef format output/run-123/*.json --to confluence
+
+# Convert one PBI to multiple formats
+backlog-chef format output/pbi-001.json --to obsidian,confluence
+
+# Convert to all available formats
+backlog-chef format output/pbi-001.json --to all
+```
+
+Tech Lead: What about the output location?
+
+Product Owner: By default, write to the same directory as the input JSON. But allow override:
+
+```bash
+backlog-chef format input.json --to obsidian --output ./my-notes/
+```
+
+Tech Lead: Should the command be smart about detecting what formats already exist?
+
+Product Owner: Yes! It should skip existing files unless you use `--force`:
+
+```bash
+# Skips if pbi-001.obsidian.md already exists
+backlog-chef format pbi-001.json --to obsidian
+
+# Overwrites existing files
+backlog-chef format pbi-001.json --to obsidian --force
+```
+
+Tech Lead: What if the JSON structure has changed between versions?
+
+Product Owner: Good point. The format command should validate the JSON schema and show a clear error if it's incompatible.
+
+---
+
+## Technical Approach
+
+Tech Lead: Here's how I'd implement this:
+
+**1. Refactor Formatters**
+- Extract formatters into standalone modules
+- Each formatter takes JSON and returns formatted string
+- Formatters are pure functions (no side effects)
+
+**2. Multi-Format Support in Process Command**
+```typescript
+// Current
+static flags = {
+  format: Flags.string({
+    options: ['devops', 'obsidian', 'confluence'],
+    default: 'devops',
+  })
+}
+
+// New
+static flags = {
+  formats: Flags.string({
+    description: 'Comma-separated output formats (devops,obsidian,confluence,all)',
+    default: 'devops',
+    parse: (input) => input.split(','),
+  })
+}
+```
+
+**3. New Format Command**
+```typescript
+export default class Format extends Command {
+  static description = 'Convert PBI JSON to different output formats';
+
+  static args = {
+    file: Args.string({
+      description: 'Path to PBI JSON file or glob pattern',
+      required: true,
+    })
+  };
+
+  static flags = {
+    to: Flags.string({
+      description: 'Target format(s): devops,obsidian,confluence,all',
+      required: true,
+    }),
+    output: Flags.string({
+      description: 'Output directory (defaults to input directory)',
+    }),
+    force: Flags.boolean({
+      description: 'Overwrite existing files',
+      default: false,
+    }),
+  };
+}
+```
+
+Product Owner: Perfect! What about the formatters themselves?
+
+Tech Lead: We already have formatter implementations in `poc-step8/src/formatters/`. We need to:
+1. Move them to main `src/formatters/`
+2. Make them accept the JSON PBI structure
+3. Ensure they're stateless and testable
+
+Product Owner: And they should handle the full PBI JSON, including quality scores, questions, risks, etc.?
+
+Tech Lead: Exactly. Each formatter decides what to include:
+- **DevOps format**: Structured for Azure DevOps Work Items
+- **Obsidian format**: Rich markdown with backlinks, tags, quality scores
+- **Confluence format**: Wiki markup with tables, expandable sections
+
+Product Owner: Let me draft acceptance criteria.
+
+---
+
+## ACCEPTANCE CRITERIA
+
+**Multi-Format Output in Process:**
+1. `process` command accepts `--formats` flag with comma-separated values
+2. `--formats all` generates all available formats
+3. Default behavior unchanged (generates devops format only)
+4. JSON and HTML preview always generated regardless of --formats
+5. Each format writes to separate file with appropriate extension
+6. Multiple formats can be specified: `--formats devops,obsidian`
+7. Clear error message for invalid format names
+
+**Format Command:**
+8. New `backlog-chef format` command accepts JSON file path
+9. `--to` flag specifies target format(s)
+10. Supports glob patterns: `format ./output/**/*.json --to obsidian`
+11. Writes output to same directory as input by default
+12. `--output` flag allows custom output directory
+13. `--force` flag overwrites existing files
+14. Skips existing files by default with informative message
+15. Validates JSON structure before formatting
+16. Shows clear error if JSON schema incompatible
+
+**Formatter Architecture:**
+17. Formatters are standalone, pure functions
+18. Each formatter accepts PBI JSON structure
+19. Formatters moved from poc-step8 to main src/formatters/
+20. Unit tests for each formatter
+21. Formatters handle missing/optional fields gracefully
+
+**File Naming:**
+22. Format-specific files named: `pbi-{id}.{format}.{ext}`
+23. Obsidian files use `.md` extension
+24. Confluence files use `.confluence.md` extension
+25. DevOps files use `.devops.json` extension
+26. Summary files remain `summary.json`
+27. Preview files remain `preview.html`
+
+**Performance:**
+28. Format command executes in < 1 second per PBI
+29. No API calls made during format command
+30. Batch formatting processes files in parallel
+31. Progress indicator for large batches
+
+**Error Handling:**
+32. Clear error if input JSON file not found
+33. Clear error if JSON is malformed
+34. Clear error if format not supported
+35. Warns if source JSON missing expected fields
+36. Graceful handling of file system permissions errors
+
+---
+
+## User Scenarios
+
+**Scenario 1: Generate Multiple Formats During Processing**
+```bash
+$ backlog-chef process meeting.txt --formats devops,obsidian
+
+Processing meeting.txt...
+✅ Pipeline complete!
+
+Generated outputs:
+  📄 pbi-001.json (6.5 KB)
+  📄 pbi-001.devops.json (5.2 KB)
+  📄 pbi-001.obsidian.md (8.1 KB)
+  📄 preview.html (22 KB)
+  📄 summary.json (7.0 KB)
+
+Total: 5 files in output/pbi-001/
+```
+
+**Scenario 2: Convert Existing JSON to New Format**
+```bash
+$ backlog-chef format output/pbi-001/pbi-001.json --to confluence
+
+Reading: pbi-001.json ✓
+Generating Confluence format... ✓
+
+✅ Created: output/pbi-001/pbi-001.confluence.md (7.8 KB)
+```
+
+**Scenario 3: Batch Convert Multiple PBIs**
+```bash
+$ backlog-chef format output/**/*.json --to obsidian
+
+Found 12 PBI files
+
+Converting [1/12] pbi-001.json ✓
+Converting [2/12] pbi-002.json ✓
+Converting [3/12] pbi-003.json ✓
+...
+Converting [12/12] pbi-012.json ✓
+
+✅ Converted 12 PBIs to Obsidian format
+   Skipped 3 (already exist)
+
+Tip: Use --force to overwrite existing files
+```
+
+**Scenario 4: Convert to All Formats**
+```bash
+$ backlog-chef format output/pbi-001.json --to all
+
+Generating all formats for pbi-001.json...
+
+✓ DevOps format   (5.2 KB)
+✓ Obsidian format (8.1 KB)
+✓ Confluence format (7.8 KB)
+
+✅ Generated 3 formats in output/pbi-001/
+```
+
+**Scenario 5: Custom Output Directory**
+```bash
+$ backlog-chef format output/pbi-001.json --to obsidian --output ~/MyNotes/PBIs/
+
+✅ Created: ~/MyNotes/PBIs/pbi-001.obsidian.md
+```
+
+**Scenario 6: Overwrite Existing Files**
+```bash
+$ backlog-chef format output/pbi-001.json --to obsidian
+
+⚠️  File already exists: pbi-001.obsidian.md
+    Use --force to overwrite
+
+$ backlog-chef format output/pbi-001.json --to obsidian --force
+
+✅ Overwritten: output/pbi-001/pbi-001.obsidian.md
+```
+
+---
+
+## Benefits
+
+Product Owner: Why is this valuable?
+
+Tech Lead: Multiple reasons:
+
+**1. Cost Savings**
+- Format conversion is free (no API calls)
+- User can experiment with formats without re-processing
+
+**2. Speed**
+- Converting formats is instant (< 1 second)
+- Original processing takes 2-4 minutes
+
+**3. Flexibility**
+- Generate all formats upfront if needed
+- Generate formats on-demand later
+- Switch formats without losing work
+
+**4. Workflow Integration**
+- Generate DevOps format for team
+- Generate Obsidian format for personal notes
+- Generate Confluence format for documentation
+- All from same source data
+
+**5. Future-Proof**
+- New formats can be added easily
+- Old JSON can be converted to new formats
+- Format improvements retroactively applied
+
+Product Owner: Love it! What about risks?
+
+---
+
+## Risks
+
+**Risk 1: Format Inconsistencies**
+- Different formats may show information differently
+- Mitigation: Comprehensive formatter tests, documentation of what each format includes
+
+**Risk 2: JSON Schema Changes**
+- Older JSON files may not work with new formatters
+- Mitigation: Version checking, migration tools, backward compatibility
+
+**Risk 3: Large Batch Operations**
+- Converting 1000+ PBIs could be slow
+- Mitigation: Parallel processing, progress indicators, cancellation support
+
+**Risk 4: File Naming Conflicts**
+- Multiple runs could create duplicate files
+- Mitigation: Clear naming conventions, skip existing files by default
+
+---
+
+## Technical Estimate
+
+Tech Lead: Breaking it down:
+
+**Phase 1: Refactor Formatters (3 points)**
+- Move formatters from poc-step8 to src/formatters/
+- Make them pure functions accepting JSON
+- Add unit tests
+
+**Phase 2: Multi-Format Process Command (2 points)**
+- Update --format to --formats
+- Parse comma-separated values
+- Generate multiple outputs
+
+**Phase 3: Format Command (3 points)**
+- Create new OCLIF command
+- Implement glob pattern support
+- Add --to, --output, --force flags
+
+**Phase 4: Batch Processing (2 points)**
+- Parallel processing of multiple files
+- Progress indicators
+- Error handling for batches
+
+**Phase 5: Documentation & Examples (1 point)**
+- Update README with new commands
+- Add examples for common workflows
+- Document formatter capabilities
+
+**Total: 11-15 story points**
+
+---
+
+## Dependencies
+
+- OCLIF CLI framework (✅ merged in PR #7)
+- Existing formatter implementations (✅ in poc-step8)
+- File system utilities (✅ Node.js built-in)
+
+---
+
+## Priority
+
+Product Owner: I'd say **MEDIUM-HIGH**.
+
+Why?
+- Multi-format output is nice-to-have for `process` command
+- But `format` command is really valuable for cost savings
+- Users will appreciate not having to re-run expensive pipelines
+
+Should come after:
+- PBI-007: Setup wizard (HIGH - blocking)
+- PBI-001: OCLIF CLI (✅ done)
+
+Can come before:
+- PBI-005: Notifications
+- PBI-006: AI sparring partner
+- PBI-008: Feedback command
+
+Tech Lead: Agreed. This is a quality-of-life improvement that saves money and time.
+
+---
+
+## Future Enhancements
+
+**Phase 2:**
+- Watch mode: `backlog-chef format --watch` auto-converts on JSON changes
+- Dry-run mode: Preview what would be generated without writing files
+- Diff mode: Show differences between two format versions
+- Custom formatters: Plugin system for user-defined formats
+
+**Phase 3:**
+- Format comparison: Side-by-side view of multiple formats
+- Format validation: Ensure generated output meets format specs
+- Bulk operations UI: Web interface for batch conversions
+- Cloud storage: Direct upload to Confluence, Notion, etc.
+
+**Phase 4:**
+- Format templates: Customize format output with templates
+- Format filters: Include/exclude specific sections
+- Format merging: Combine multiple PBIs into one document
+- Format scheduling: Automatic batch conversions on schedule
+
+---
+
+## Questions for Product Owner
+
+1. Should `--formats all` be the default in the future?
+2. Do you want format-specific configuration (e.g., Obsidian backlink format)?
+3. Should we support custom format templates?
+4. What's the priority order for format improvements (DevOps vs Obsidian vs Confluence)?
+5. Should the format command support piping (e.g., cat pbi.json | backlog-chef format)?
+6. Do you want version tracking for format conversions (e.g., "last formatted on...")?
+
+---
+
+**SUMMARY:**
+- Feature: Multi-Format Output & Format Regeneration Command
+- User Story: As a user, I want to generate multiple output formats at once and convert existing PBIs to new formats without re-running the pipeline, so that I can save time and API costs while working with different tools
+- Priority: MEDIUM-HIGH (after setup wizard, before notifications)
+- Estimate: 11-15 story points
+- Dependencies: OCLIF CLI (✅), Existing formatters (poc-step8)
+- Risks: Format inconsistencies, schema changes, batch performance
