@@ -19,6 +19,7 @@ import { EnrichContextStep } from '../steps/step4-enrich-context';
 import { CheckRisksStep } from '../steps/step5-check-risks';
 import { GenerateProposalsStep } from '../steps/step6-generate-proposals';
 import { ReadinessCheckerStep } from '../steps/step7-readiness-checker';
+import { StepOutputWriter, PBIOutputWriter } from '../output';
 
 /**
  * Main pipeline orchestrator
@@ -26,10 +27,23 @@ import { ReadinessCheckerStep } from '../steps/step7-readiness-checker';
 export class PipelineOrchestrator {
   private router: ModelRouter;
   private steps: PipelineStep[];
+  private stepWriter?: StepOutputWriter;
+  private pbiWriter?: PBIOutputWriter;
 
-  constructor(router: ModelRouter) {
+  constructor(router: ModelRouter, options?: { outputDir?: string; writeStepOutputs?: boolean }) {
     this.router = router;
     this.steps = this.initializeSteps();
+
+    // Initialize output writers if enabled
+    if (options?.writeStepOutputs !== false) {
+      const outputDir = options?.outputDir || 'output';
+      this.stepWriter = new StepOutputWriter(outputDir, true);
+      this.pbiWriter = new PBIOutputWriter(
+        outputDir,
+        this.stepWriter.getRunId(),
+        true
+      );
+    }
   }
 
   /**
@@ -84,10 +98,20 @@ export class PipelineOrchestrator {
 
         // Execute step
         currentContext = await step.execute(currentContext, this.router);
+
+        // Write step output
+        if (this.stepWriter) {
+          this.stepWriter.writeStepOutput(step.name, currentContext);
+        }
       }
 
       // Generate final output
       const output = this.generateOutput(currentContext);
+
+      // Write individual PBI files
+      if (this.pbiWriter) {
+        this.pbiWriter.writePBIs(output);
+      }
 
       // Print summary
       this.printSummary(output);

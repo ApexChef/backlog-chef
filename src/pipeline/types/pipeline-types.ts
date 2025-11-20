@@ -14,6 +14,8 @@ export interface PipelineInput {
     meeting_duration?: string;
     participants?: string[];
     source?: string;
+    // Allow any additional metadata from input parsers (Fireflies, etc.)
+    [key: string]: any;
   };
 }
 
