@@ -1,0 +1,84 @@
+Meeting Transcript - Backlog Refinement Session
+Date: 2025-01-21
+Participants: Product Owner, Tech Lead, Developer
+
+---
+
+Product Owner: "We have a working implementation in the transcript-hub project that fetches meeting data from Fireflies.ai. I want to integrate this into Backlog Chef so users can process meetings directly from Fireflies instead of manually providing text files."
+
+Tech Lead: "Makes sense. Right now users have to manually copy transcripts or provide text files. With Fireflies integration, they could just provide a meeting ID or URL and we'd fetch everything automatically."
+
+Developer: "I looked at the transcript-hub implementation. It's a comprehensive GraphQL client that fetches full meeting data - not just the transcript text, but also analytics, summaries, speaker info, action items, and more."
+
+Product Owner: "Exactly. The Fireflies API provides rich metadata that could enhance our PBI generation. For example, we could use the action items they extract, the meeting type classification, or speaker analytics."
+
+Tech Lead: "The existing implementation has some nice features: GraphQL query for comprehensive data, retry logic with exponential backoff, caching to reduce API calls, proper error handling, and URL parsing to extract meeting IDs."
+
+Developer: "The GraphQL query they use is comprehensive - it fetches analytics, sentiments, speaker stats, AI filters on sentences, meeting attendees, and AI-generated summaries. That's way more than just the raw transcript."
+
+Product Owner: "For our use case in Backlog Chef, we should start simple - just fetch the transcript and basic metadata. We can add support for the richer data later once we figure out how to use it in our pipeline."
+
+Tech Lead: "Agreed. Let's create a FirefliesService that implements a simple interface for fetching transcripts. We'll need an API key from Fireflies, store it in environment variables, and maybe cache responses to avoid hitting rate limits."
+
+Developer: "The existing code has three key methods: getTranscript(meetingId) returns full transcript with all data, getTranscriptText(meetingId) returns formatted text with speaker names, and extractMeetingId(url) parses Fireflies URLs."
+
+Product Owner: "Perfect. For the CLI, users should be able to provide either a Fireflies meeting ID or a full Fireflies URL. We parse it, fetch the data, and then run it through our normal pipeline."
+
+Tech Lead: "One thing to consider: Fireflies data structure is different from our current transcript format. Their sentences have speaker_id, speaker_name, timestamps, and AI filters. We'll need to map this to our PipelineInput format."
+
+Developer: "The transcript-hub code has comprehensive TypeScript types for all Fireflies data structures. We should reuse those type definitions to ensure we're handling the API responses correctly."
+
+Product Owner: "Let's also think about error handling. What if the API key is invalid? What if the meeting doesn't exist? What if Fireflies is down?"
+
+Tech Lead: "The existing implementation has a FirefliesAPIError class and retry logic with configurable attempts. We should include that. Also, proper logging so we can debug issues."
+
+Developer: "Should we support listing recent meetings, or just fetching a specific one by ID?"
+
+Product Owner: "Start with fetching by ID. Listing meetings would be a nice-to-have feature for discovering recent meetings, but it's not essential for MVP. Add it as a future enhancement."
+
+Tech Lead: "For the CLI command, I'm thinking: `backlog-chef process --fireflies <meeting-id-or-url>`. This would fetch from Fireflies and process it through the pipeline."
+
+Product Owner: "Perfect. And we should save the raw Fireflies JSON to the output directory, just like we save step outputs. That way users can inspect the original data if needed."
+
+Developer: "One more thing - Fireflies has rate limits. Should we implement request throttling or just rely on caching?"
+
+Product Owner: "Start with caching. We'll implement the same caching strategy from transcript-hub - cache by meeting ID with reasonable TTL. If we hit rate limit issues, we'll add throttling later."
+
+Tech Lead: "I'll also note that Fireflies requires authentication. Users will need to get an API key from their Fireflies account and add it to their .env file as FIREFLIES_API_KEY."
+
+Product Owner: "Good point. Let's add clear error messages if the API key is missing, with instructions on how to get one."
+
+Developer: "Ready to add this to the backlog as PBI-013?"
+
+All: "Agreed!"
+
+---
+
+Key Points:
+- Integrate Fireflies.ai GraphQL API for fetching meeting transcripts
+- Reuse proven implementation from transcript-hub project
+- Support meeting ID or full Fireflies URL as input
+- Fetch comprehensive meeting data (transcript, metadata, analytics, summaries)
+- Start simple: focus on transcript + basic metadata for MVP
+- Implement retry logic, caching, and proper error handling
+- CLI: `backlog-chef process --fireflies <meeting-id-or-url>`
+- Save raw Fireflies JSON to output directory
+- Require FIREFLIES_API_KEY in environment variables
+- Map Fireflies data structure to PipelineInput format
+- Future: Support listing recent meetings, leverage richer analytics data
+
+Technical Implementation:
+- Create src/integrations/fireflies/fireflies-service.ts
+- Port GraphQL query and types from transcript-hub
+- Implement caching with meeting ID as key
+- Add error handling with FirefliesAPIError class
+- Update CLI to support --fireflies flag
+- Update InputParser to handle Fireflies format
+- Add comprehensive logging for debugging
+- Write unit tests for API client and data mapping
+
+Dependencies:
+- axios for HTTP/GraphQL requests
+- User must have Fireflies account with API access
+- API key stored in FIREFLIES_API_KEY env variable
+- Reference implementation: /Users/alwinvandijken/Projects/github.com/ApexChef/transcript-hub
