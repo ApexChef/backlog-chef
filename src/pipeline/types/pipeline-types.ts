@@ -4,6 +4,8 @@
  * Core types for the Backlog Chef processing pipeline
  */
 
+import { TaskGenerationResult } from './task-types';
+
 /**
  * Input for the pipeline - meeting transcript
  */
@@ -313,6 +315,7 @@ export interface ReadinessCheckerResult {
     risks: RiskAssessment;
     questions: QuestionWithAnswer[];
     readiness: ReadinessAssessment;
+    tasks?: TaskGenerationResult;  // Generated tasks from DoR/DoD
   }>;
 }
 
@@ -328,6 +331,7 @@ export interface PipelineOutput {
     risks: RiskAssessment;
     questions: QuestionWithAnswer[];
     readiness: ReadinessAssessment;
+    tasks?: TaskGenerationResult;  // Generated tasks from DoR/DoD
   }>;
   metadata: {
     processed_at: string;
@@ -359,7 +363,7 @@ export interface PipelineOptions {
 
   // Output configuration
   output?: {
-    formats?: Array<'markdown' | 'devops' | 'confluence'>;
+    formats?: Array<'devops' | 'obsidian' | 'confluence'>;
     directory?: string;
   };
 

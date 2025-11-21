@@ -4,6 +4,9 @@
   "description": "AI-powered system for transforming meeting transcripts into high-quality Product Backlog Items",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "backlog-chef": "./bin/backlog-chef"
+  },
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/index.js",
@@ -25,12 +28,16 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
     "@google/generative-ai": "^0.21.0",
+    "@types/glob": "^8.1.0",
     "axios": "^1.7.9",
     "dotenv": "^17.2.3",
-    "js-yaml": "^4.1.0",
+    "glob": "^13.0.0",
+    "handlebars": "^4.7.8",
+    "js-yaml": "^4.1.1",
     "openai": "^4.77.0"
   },
   "devDependencies": {
+    "@types/handlebars": "^4.0.40",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.10.2",
     "ts-node": "^10.9.2",

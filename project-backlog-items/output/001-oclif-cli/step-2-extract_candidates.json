@@ -1,44 +1,63 @@
 {
   "step": "extract_candidates",
-  "timestamp": "2025-11-20T12:35:03.663Z",
-  "runId": "1763642092924",
+  "timestamp": "2025-11-20T19:58:55.433Z",
+  "runId": "1763668721762",
   "cost": {
     "step_cost_usd": 0,
-    "total_cost_usd": 0.0043136
+    "total_cost_usd": 0.0050736
   },
   "timing": {
-    "step_duration_ms": 6747,
-    "total_duration_ms": 10738
+    "step_duration_ms": 9023,
+    "total_duration_ms": 13669
   },
   "result": {
     "candidates": [
       {
         "id": "PBI-001",
-        "title": "As a user, I want a global CLI for backlog-chef so that I can process transcripts from anywhere",
-        "description": "Implement an OCLIF-based CLI that allows global installation and command-line processing of meeting transcripts. The CLI will provide a professional interface for using the backlog-chef tool.",
+        "title": "As a user, I want a global CLI for backlog-chef so that I can process meeting transcripts from anywhere",
+        "description": "Implement an OCLIF-based CLI that allows global installation and easy command-line usage of the backlog-chef tool. The CLI will replace the current 'npm start' approach with a more professional command-line interface.",
         "acceptance_criteria": [
-          "User can install globally with \"npm install -g backlog-chef\"",
-          "User can run \"backlog-chef process [file]\" to process any transcript",
+          "User can install globally with 'npm install -g backlog-chef'",
+          "User can run 'backlog-chef process [file]' to process any transcript",
           "Command supports --format, --output, --verbose, --help flags",
           "Supports TXT, JSON, and XML input formats",
           "Auto-generated help text explains all options",
-          "\"npm start\" still works for local development",
+          "'npm start' still works for local development",
           "Proper error messages when files don't exist or API keys missing",
           "Documentation updated with CLI usage examples"
         ],
         "notes": [
           "Use OCLIF (Open CLI Framework)",
           "Core pipeline logic remains unchanged",
-          "Minimal changes to existing code structure",
-          "Version bump to 0.2.0"
+          "Version bump from 0.1.0 to 0.2.0",
+          "Estimated effort: 3-5 story points"
         ],
         "mentioned_by": [
           "Alwin",
           "Claude",
           "Developer"
         ]
+      },
+      {
+        "id": "PBI-002",
+        "title": "As a developer, I want to add configuration support to the CLI",
+        "description": "Implement initial configuration flags for the CLI to provide more flexibility in processing transcripts",
+        "acceptance_criteria": [
+          "Support --format flag to choose output format",
+          "Support --output flag for custom output directory",
+          "Support --verbose flag for debug logging",
+          "Implement auto-generated help text"
+        ],
+        "notes": [
+          "Future expansion could include more configuration options",
+          "Potential future commands: validate, analyze, config"
+        ],
+        "mentioned_by": [
+          "Alwin",
+          "Developer"
+        ]
       }
     ],
-    "total_found": 1
+    "total_found": 2
   }
 }

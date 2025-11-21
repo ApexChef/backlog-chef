@@ -1,0 +1,14 @@
+name: Confluence Wiki
+description: Confluence Wiki Markup format for Product Backlog Items
+fileExtension: .wiki
+templatePath: main.hbs
+
+metadata:
+  author: Backlog Chef
+  version: 1.0.0
+  documentation: https://github.com/ApexChef/backlog-chef
+
+options:
+  prettyPrint: false
+  lineEndings: lf
+  includeMetadata: true

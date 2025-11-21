@@ -141,6 +141,19 @@ export class InputParser {
    * Check if JSON matches Fireflies.ai structure
    */
   private isFirefliesJSON(json: any): json is FirefliesJSON {
+    // Check for new direct API format (from --fireflies flag)
+    if (
+      json &&
+      typeof json === 'object' &&
+      'id' in json &&
+      'sentences' in json &&
+      Array.isArray(json.sentences) &&
+      'transcript_url' in json
+    ) {
+      return true;
+    }
+
+    // Check for old wrapped format (legacy support)
     return (
       json &&
       typeof json === 'object' &&

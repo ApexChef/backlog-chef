@@ -1,0 +1,111 @@
+# Definition of Ready (DoR)
+#
+# Generic template for quality checklist that determines when a PBI is ready to start
+# Teams can customize this file to match their workflow
+#
+# This is a template - see config/salesforce/definition-of-ready.yaml for a real example
+
+definition_of_ready:
+  # Functional Description
+  - id: dor-001
+    requirement: "User story is clear and understandable"
+    verification: "Story follows 'As a... I want... so that...' format"
+    refinement_task: "Rewrite user story in standard format with PO"
+    priority: critical
+    category: functional
+
+  # Acceptance Criteria
+  - id: dor-002
+    requirement: "Acceptance criteria are defined"
+    verification: "At least 3 testable acceptance criteria listed"
+    refinement_task: "Define testable acceptance criteria with PO"
+    priority: critical
+    category: functional
+
+  # Dependencies
+  - id: dor-003
+    requirement: "Dependencies identified"
+    verification: "All technical and functional dependencies documented"
+    refinement_task: "Identify and document all blocking dependencies"
+    priority: high
+    category: technical
+
+  # Technical Approach
+  - id: dor-004
+    requirement: "Technical approach discussed"
+    verification: "Solution direction documented in notes"
+    refinement_task: "Technical refinement with tech lead - define approach"
+    priority: high
+    category: technical
+
+  # Estimable
+  - id: dor-005
+    requirement: "Story points assigned"
+    verification: "Effort estimated via planning poker"
+    refinement_task: "Conduct planning poker to estimate effort"
+    priority: high
+    category: estimation
+
+  # Testable
+  - id: dor-006
+    requirement: "Test approach defined"
+    verification: "Test script or testing approach documented"
+    refinement_task: "Define test approach with QA"
+    priority: medium
+    category: testing
+
+  # Small Enough
+  - id: dor-007
+    requirement: "Story is appropriately sized"
+    verification: "Story points <= 13 (can be completed in one sprint)"
+    refinement_task: "Split large story into smaller PBIs"
+    priority: high
+    category: estimation
+
+  # Value is Clear
+  - id: dor-008
+    requirement: "Business value is articulated"
+    verification: "User story includes 'so that...' clause explaining value"
+    refinement_task: "Clarify business value with PO"
+    priority: high
+    category: functional
+
+  # Demo Plan
+  - id: dor-009
+    requirement: "Demo approach defined"
+    verification: "Demo scenario described"
+    refinement_task: "Define demo scenario with PO"
+    priority: medium
+    category: process
+
+  # Priority Set
+  - id: dor-010
+    requirement: "Priority is set"
+    verification: "MoSCoW priority (Must/Should/Could/Won't) assigned"
+    refinement_task: "Determine MoSCoW priority with product owner"
+    priority: high
+    category: prioritization
+
+# Metadata
+metadata:
+  team: "Generic Template"
+  language: "English"
+  last_updated: "2025-11-20"
+  version: "1.0"
+
+# Notes
+notes: |
+  This is a generic Definition of Ready template.
+
+  Customize this file to match your team's workflow:
+  - Add/remove DoR items based on your process
+  - Adjust priorities (critical, high, medium, low)
+  - Update categories to match your refinement focus
+
+  For a real-world example, see config/salesforce/definition-of-ready.yaml
+
+  DoR Gap Detection:
+  - System checks each criterion against the PBI
+  - Missing criteria generate "pre_work" refinement tasks
+  - Critical priority items block sprint entry
+  - High/medium priority items are warnings

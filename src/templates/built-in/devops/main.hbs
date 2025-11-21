@@ -1,0 +1,114 @@
+WORK ITEM: {{pbi.pbi.id}}
+TITLE: {{pbi.pbi.title}}
+TYPE: Product Backlog Item
+STATE: {{devopsState pbi.readiness}}
+PRIORITY: {{devopsPriority pbi.readiness}}
+
+========== DESCRIPTION ==========
+{{#if pbi.pbi.description}}
+{{pbi.pbi.description}}
+{{else}}
+No description provided
+{{/if}}
+
+========== ACCEPTANCE CRITERIA ==========
+{{#if pbi.pbi.acceptance_criteria}}
+{{#if (gt (length pbi.pbi.acceptance_criteria) 0)}}
+{{#each pbi.pbi.acceptance_criteria}}
+{{@index}}. {{this}}
+{{/each}}
+{{else}}
+No acceptance criteria defined
+{{/if}}
+{{else}}
+No acceptance criteria defined
+{{/if}}
+
+========== QUALITY SCORES ==========
+Overall: {{pbi.scores.overall_score}}/100
+Completeness: {{pbi.scores.completeness}}/100
+Clarity: {{pbi.scores.clarity}}/100
+Actionability: {{pbi.scores.actionability}}/100
+Testability: {{pbi.scores.testability}}/100
+
+========== READINESS STATUS ==========
+Status: {{pbi.readiness.readiness_status}}
+Score: {{pbi.readiness.readiness_score}}/100
+Sprint Ready: {{#if pbi.readiness.sprint_ready}}YES{{else}}NO{{/if}}
+{{#if pbi.readiness.estimated_refinement_time}}
+Estimated Refinement Time: {{pbi.readiness.estimated_refinement_time}}
+{{/if}}
+
+{{#if pbi.readiness.blocking_issues}}
+{{#if (gt (length pbi.readiness.blocking_issues) 0)}}
+========== BLOCKING ISSUES ==========
+{{#each pbi.readiness.blocking_issues}}
+[BLOCKER] {{this}}
+{{/each}}
+
+{{/if}}
+{{/if}}
+{{#if pbi.tasks}}
+========== TASKS ({{pbi.tasks.summary.total_tasks}} total) ==========
+{{#if pbi.tasks.tasks.pre_work}}
+{{#if (gt (length pbi.tasks.tasks.pre_work) 0)}}
+
+--- PRE-WORK TASKS ({{length pbi.tasks.tasks.pre_work}}) ---
+{{#each pbi.tasks.tasks.pre_work}}
+[ ] [{{this.priority}}] {{this.title}}
+{{#if this.estimated_effort}}
+    Effort: {{this.estimated_effort}}
+{{/if}}
+{{/each}}
+{{/if}}
+{{/if}}
+{{#if pbi.tasks.tasks.implementation}}
+{{#if (gt (length pbi.tasks.tasks.implementation) 0)}}
+
+--- IMPLEMENTATION TASKS ({{length pbi.tasks.tasks.implementation}}) ---
+{{#each pbi.tasks.tasks.implementation}}
+[ ] {{this.title}}
+{{#if this.estimated_effort}}
+    Effort: {{this.estimated_effort}}
+{{/if}}
+{{/each}}
+{{/if}}
+{{/if}}
+{{#if pbi.tasks.tasks.verification}}
+{{#if (gt (length pbi.tasks.tasks.verification) 0)}}
+
+--- VERIFICATION TASKS ({{length pbi.tasks.tasks.verification}}) ---
+{{#each pbi.tasks.tasks.verification}}
+[ ] {{this.title}}
+{{/each}}
+{{/if}}
+{{/if}}
+{{#if pbi.tasks.summary.estimated_total_effort}}
+
+Total Estimated Effort: {{pbi.tasks.summary.estimated_total_effort}}
+{{/if}}
+
+{{/if}}
+{{#if pbi.risks}}
+{{#if pbi.risks.risks}}
+{{#if (gt (length pbi.risks.risks) 0)}}
+========== RISKS ({{uppercase pbi.risks.overall_risk_level}}) ==========
+{{#each pbi.risks.risks}}
+[{{uppercase this.severity}}] {{this.type}}: {{this.description}}
+{{#if this.mitigation}}
+  Mitigation: {{this.mitigation}}
+{{/if}}
+{{/each}}
+
+{{/if}}
+{{/if}}
+{{/if}}
+{{#if (devopsTags pbi)}}
+========== TAGS ==========
+{{devopsTags pbi}}
+
+{{/if}}
+========== METADATA ==========
+Run ID: {{metadata.run_id}}
+Generated: {{metadata.created}}
+Event Type: {{#if pbi.pbi.mentioned_by}}{{join pbi.pbi.mentioned_by ', '}}{{else}}Unknown{{/if}}

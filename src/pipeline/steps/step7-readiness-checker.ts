@@ -1,12 +1,15 @@
 /**
  * Step 7: Readiness Checker
  *
- * Evaluates PBIs against Definition of Ready criteria
+ * Evaluates PBIs against Definition of Ready criteria and generates tasks
  */
 
 import { BaseStep } from './base-step';
 import { ModelRouter } from '../../ai/router';
 import { PipelineContext, ReadinessCheckerResult, ReadinessAssessment } from '../types/pipeline-types';
+import { TaskGenerator } from '../utils/task-generator';
+import { loadDoRDoDConfigs } from '../utils/dod-config-loader';
+import { TaskGenerationResult } from '../types/task-types';
 
 interface RawReadinessCheck {
   readiness_status: '🟢 READY' | '🟡 NEEDS REFINEMENT' | '🔴 NOT READY';
@@ -21,22 +24,43 @@ interface RawReadinessCheck {
 /**
  * Step 7: Readiness Checker
  *
- * Purpose: Evaluate PBIs against Definition of Ready criteria
+ * Purpose: Evaluate PBIs against Definition of Ready criteria and generate tasks
  * Input: Risk-assessed PBIs with questions from previous steps
- * Output: Readiness status with actionable recommendations
+ * Output: Readiness status with actionable recommendations and task list
  */
 export class ReadinessCheckerStep extends BaseStep {
   readonly name = 'readiness_checker';
   readonly description = 'Evaluate against Definition of Ready';
 
+  private taskGenerator?: TaskGenerator;
+
   canExecute(context: PipelineContext): boolean {
     return !!context.risksAssessed && context.risksAssessed.pbis_with_risks.length > 0;
+  }
+
+  /**
+   * Initialize task generator by loading DoR/DoD configs
+   */
+  private initializeTaskGenerator(): void {
+    if (this.taskGenerator) return;
+
+    try {
+      const configs = loadDoRDoDConfigs();
+      this.taskGenerator = new TaskGenerator(configs.dor, configs.dod);
+      console.log('  Task generator initialized with DoR/DoD configs');
+    } catch (error) {
+      console.warn('  Warning: Could not load DoR/DoD configs, task generation disabled');
+      console.warn(`  Error: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   protected async executeStep(
     context: PipelineContext,
     router: ModelRouter
   ): Promise<PipelineContext> {
+    // Initialize task generator
+    this.initializeTaskGenerator();
+
     const assessedPBIs: ReadinessCheckerResult['assessed_pbis'] = [];
 
     for (const riskPBI of context.risksAssessed!.pbis_with_risks) {
@@ -47,15 +71,41 @@ export class ReadinessCheckerStep extends BaseStep {
         q => q.pbi_id === riskPBI.pbi.id
       );
 
+      // Get all questions as array for task generation
+      const allQuestions = pbiQuestions
+        ? [
+            ...pbiQuestions.unanswered_questions.critical,
+            ...pbiQuestions.unanswered_questions.high,
+            ...pbiQuestions.unanswered_questions.medium,
+            ...pbiQuestions.unanswered_questions.low,
+          ]
+        : [];
+
       const readiness = await this.checkReadiness(riskPBI, pbiQuestions, context, router);
+
+      // Generate tasks if task generator is available
+      let taskGeneration: TaskGenerationResult | undefined;
+      if (this.taskGenerator) {
+        try {
+          taskGeneration = this.taskGenerator.generateTasks(
+            riskPBI.pbi,
+            riskPBI.scores,
+            allQuestions
+          );
+          console.log(`    Generated ${taskGeneration.summary.total_tasks} tasks`);
+        } catch (error) {
+          console.warn(`    Warning: Task generation failed for ${riskPBI.pbi.id}`);
+        }
+      }
 
       assessedPBIs.push({
         pbi: riskPBI.pbi,
         scores: riskPBI.scores,
         context: riskPBI.context,
         risks: riskPBI.risks,
-        questions: [], // We'll populate from Step 6 if needed
+        questions: allQuestions,
         readiness,
+        tasks: taskGeneration, // Add task generation result
       });
 
       console.log(`    Status: ${readiness.readiness_status} (Score: ${readiness.readiness_score}/100)`);

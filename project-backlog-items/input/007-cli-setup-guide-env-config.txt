@@ -1,0 +1,456 @@
+BACKLOG REFINEMENT MEETING - CLI Setup Guide & Environment Configuration
+Date: November 20, 2025
+Attendees: Product Owner (Alwin), Tech Lead (Claude)
+
+---
+
+Product Owner: We just discovered an issue - when users install the CLI globally and run it from other projects, it can't find the API keys because it's looking for .env in the current directory.
+
+Tech Lead: Right, that's a classic problem with globally installed CLIs. We need better environment configuration management.
+
+Product Owner: Exactly. We need two things:
+1. A comprehensive setup guide for first-time users
+2. Better environment configuration handling in the CLI
+
+And here's the key insight - the CLI should be smart enough to detect when it's not configured and automatically offer to run the setup wizard!
+
+Tech Lead: Oh, like a first-run experience? If someone runs `backlog-chef process` without configuration, we prompt them to run setup?
+
+Product Owner: Even better - just launch the setup wizard automatically! Or at minimum, detect the missing config and show a friendly prompt with the option to run setup right then.
+
+Tech Lead: That's brilliant. So the flow would be:
+1. User installs: `npm install -g backlog-chef`
+2. User tries to run: `backlog-chef process meeting.txt`
+3. CLI detects no config exists
+4. CLI says: "No configuration found. Would you like to run setup now? (Y/n)"
+5. If yes, launch setup wizard immediately
+6. After setup completes, continue with original command
+
+Product Owner: Exactly! Remove all friction. The user shouldn't have to know about setup - the tool guides them.
+
+Tech Lead: Let's start with the setup guide. What should it cover?
+
+Product Owner: Everything a new user needs to get from "npm install -g backlog-chef" to successfully processing their first transcript.
+
+**SETUP GUIDE SHOULD INCLUDE:**
+
+1. **Prerequisites**
+   - Node.js version requirements
+   - npm version requirements
+   - Supported operating systems
+
+2. **Installation**
+   - Global installation command
+   - Verification that it installed correctly
+   - Troubleshooting common installation issues
+
+3. **API Key Setup**
+   - Which providers are supported (Anthropic, OpenAI, Google)
+   - Where to get API keys
+   - How to configure them (environment variables vs config file)
+   - Security best practices
+
+4. **First Run**
+   - Testing with a sample transcript
+   - Understanding the output
+   - Verifying everything works
+
+5. **Configuration Options**
+   - Model configuration
+   - Output formats
+   - Notification settings (when we add that)
+   - Definition of Ready/Done templates
+
+Tech Lead: Where should this guide live?
+
+Product Owner: Multiple places:
+- README.md for the basics
+- docs/setup-guide.md for detailed walkthrough
+- Interactive `backlog-chef setup` command that guides users through it
+
+Tech Lead: Oh, a setup wizard! That's nice. Like `npm init` but for backlog-chef.
+
+Product Owner: Exactly! Something like:
+
+```bash
+$ backlog-chef setup
+
+🎉 Welcome to Backlog Chef Setup Wizard!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This wizard will help you configure Backlog Chef for first use.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 STEP 1: API Keys
+
+Backlog Chef needs access to at least one AI provider.
+Supported providers:
+  • Anthropic Claude (Recommended)
+  • OpenAI GPT-4
+  • Google Gemini
+  • Ollama (Local)
+
+Do you have an Anthropic API key? (y/n)
+> y
+
+Please enter your Anthropic API key:
+> sk-ant-...
+
+✅ Anthropic API key validated!
+
+Do you want to add another provider? (y/n)
+> n
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 STEP 2: Configuration Location
+
+Where should we store your configuration?
+
+[?] Select one:
+  > Global (~/.backlog-chef/.env) - Works everywhere
+    Current directory (./.env) - Only this project
+    Environment variables - Manual setup
+
+> Global
+
+✅ Configuration will be saved to: ~/.backlog-chef/.env
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 STEP 3: Default Settings
+
+What output format do you prefer?
+[?] Select one:
+    devops (Azure DevOps)
+  > obsidian (Markdown)
+    confluence
+
+> obsidian
+
+Where should output be saved by default?
+> ./output
+
+✅ Default settings configured!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 STEP 4: Test Run
+
+Let's test your setup with a sample transcript.
+
+Processing sample transcript... ⏳
+
+✅ Success! Your setup is working correctly.
+
+📄 Output saved to: ./output/sample-pbi.json
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 Setup Complete!
+
+You're ready to use Backlog Chef. Try:
+  backlog-chef process your-transcript.txt
+  backlog-chef --help
+
+Configuration saved to: ~/.backlog-chef/.env
+Documentation: https://github.com/ApexChef/backlog-chef
+```
+
+Tech Lead: That's beautiful! Very user-friendly. Now let's talk about the environment configuration problem.
+
+Product Owner: Right. The issue is that dotenv only looks in the current directory. What are our options?
+
+Tech Lead: We have several approaches:
+
+**OPTION 1: Global Config Directory (Recommended)**
+- Store config in `~/.backlog-chef/.env`
+- CLI checks there first, then local directory
+- Works everywhere once configured
+
+**OPTION 2: System Environment Variables**
+- Users set `ANTHROPIC_API_KEY` etc. in their shell profile
+- Always available
+- More secure (not in a file)
+
+**OPTION 3: Config Flag**
+- Add `--config` flag to specify .env location
+- Flexible but requires remembering the flag
+- `backlog-chef process file.txt --config ~/my-config/.env`
+
+**OPTION 4: All of the Above**
+- Priority: CLI flag → Local .env → Global config → System env vars
+- Most flexible, covers all use cases
+
+Product Owner: Option 4! Why limit ourselves? Support all methods and let users choose.
+
+Tech Lead: Agreed. So the resolution order would be:
+
+```
+1. --config flag (highest priority)
+2. .env in current directory
+3. ~/.backlog-chef/.env
+4. System environment variables
+5. Error if no config found
+```
+
+Product Owner: Perfect. And we should show where it found the config in verbose mode.
+
+Tech Lead: Yes:
+
+```bash
+$ backlog-chef process file.txt --verbose
+
+Verbose mode enabled
+
+Loading configuration...
+  ✓ Found config at: ~/.backlog-chef/.env
+  ✓ Loaded 3 environment variables
+
+Providers available:
+  • Anthropic Claude (sk-ant-...xyzw)
+  • Ollama (local)
+```
+
+Product Owner: What about security? API keys in files are risky.
+
+Tech Lead: Good point. We should:
+
+1. **File Permissions**: Automatically set `~/.backlog-chef/.env` to 0600 (owner read/write only)
+2. **Gitignore Warning**: If `.env` is in project directory, check if it's gitignored
+3. **Documentation**: Emphasize using system env vars for CI/CD
+4. **Validation**: Check that keys look valid before saving
+
+Product Owner: And we should never log the full API key, even in verbose mode.
+
+Tech Lead: Agreed. Always mask: `sk-ant-...xyzw` (first 7 chars + last 4)
+
+Product Owner: Let me draft the acceptance criteria:
+
+**ACCEPTANCE CRITERIA:**
+
+**Setup Guide:**
+1. README includes quick setup section
+2. Detailed setup guide in `docs/setup-guide.md`
+3. Guide covers all prerequisites and installation steps
+4. Guide explains all API key configuration methods
+5. Guide includes troubleshooting common issues
+
+**Setup Command:**
+6. `backlog-chef setup` launches interactive wizard
+7. Wizard validates API keys before saving
+8. Wizard creates `~/.backlog-chef/.env` with proper permissions (0600)
+9. Wizard includes test run with sample transcript
+10. Wizard shows success message with next steps
+
+**First-Run Experience:**
+11. CLI detects if no configuration exists (no global config, no local .env, no system env vars)
+12. When user runs any command without config, CLI prompts: "No configuration found. Would you like to run setup now? (Y/n)"
+13. If user confirms (Y), launch setup wizard immediately
+14. After setup completes, continue with original command automatically
+15. User can decline and run setup manually later with `backlog-chef setup`
+
+**Environment Configuration:**
+16. CLI checks for config in priority order: flag → local → global → system
+17. CLI shows config location in verbose mode
+18. API keys are masked in all output (sk-ant-...xyzw)
+19. Global config directory is auto-created if missing
+20. Warning shown if `.env` exists but not gitignored
+
+**Error Handling:**
+21. Clear error message if no API keys found
+22. Suggest running `backlog-chef setup` if config missing
+23. Validate API key format before saving
+24. Handle missing permissions gracefully
+
+**Documentation:**
+25. All configuration methods documented in README
+26. Security best practices section added
+27. Examples for different use cases (dev, CI/CD, team)
+
+Tech Lead: This is comprehensive. What about migration for existing users?
+
+Product Owner: Good question. If they already have backlog-chef installed and working locally, we shouldn't break that.
+
+Tech Lead: Right. So if they run `backlog-chef setup` and we detect an existing `.env` in the backlog-chef repo, we should ask:
+
+```
+⚠️  Existing configuration detected in:
+    /path/to/backlog-chef/.env
+
+Would you like to:
+  1. Migrate to global config (~/.backlog-chef/.env)
+  2. Keep current configuration
+  3. Start fresh
+
+> 1
+
+✅ Configuration migrated to ~/.backlog-chef/.env
+   Your API keys are now available globally.
+```
+
+Product Owner: Perfect! What about team sharing? Can we support team configurations?
+
+Tech Lead: Interesting. Like a project-specific config that overrides personal config?
+
+Product Owner: Yes. Imagine:
+- `.backlog-chef/config.yaml` in project root
+- Contains team settings (model preferences, DoR template, output format)
+- But NOT API keys (those stay personal)
+
+Tech Lead: Good separation. Team settings in repo, personal keys secure.
+
+Product Owner: Exactly. Let's add that to future enhancements but not block on it.
+
+Tech Lead: Risks?
+
+Product Owner: What could go wrong?
+
+Tech Lead:
+- **Risk 1**: Config migration breaks existing setups
+  - Mitigation: Don't auto-migrate, require explicit user action
+
+- **Risk 2**: File permission issues on Windows
+  - Mitigation: Handle gracefully, warn but don't fail
+
+- **Risk 3**: Users confused by multiple config methods
+  - Mitigation: Clear documentation, setup wizard guides them
+
+- **Risk 4**: API key validation fails for valid keys
+  - Mitigation: Make validation optional, just check format not actual API
+
+Product Owner: Estimate?
+
+Tech Lead: Breaking it down:
+- Setup guide documentation: 2 points
+- Interactive setup wizard: 3 points
+- Multi-location config resolution: 3 points
+- Security (permissions, masking): 2 points
+- Testing and edge cases: 2 points
+
+Total: **8-13 story points** (this is substantial)
+
+Product Owner: Dependencies?
+
+Tech Lead:
+- CLI framework already in place (✅)
+- Need a file permissions library
+- Need config validation logic
+- Should coordinate with notifications config (when we build that)
+
+Product Owner: Priority?
+
+Product Owner: HIGH. This is a blocker for real-world usage. The `.env` issue makes the CLI unusable from other projects.
+
+Tech Lead: Agreed. This should come right after we merge the OCLIF PR.
+
+Product Owner: Future enhancements?
+
+Tech Lead:
+- **Phase 2**: Team configuration files (`.backlog-chef/config.yaml`)
+- **Phase 3**: Config profiles (dev, staging, prod)
+- **Phase 4**: Web-based config editor
+- **Phase 5**: Encrypted config files
+- **Phase 6**: Config import/export for team sharing
+- **Phase 7**: Integration with secret management (AWS Secrets Manager, etc.)
+
+Product Owner: Summary time!
+
+**SUMMARY:**
+- Feature: CLI Setup Guide & Environment Configuration
+- User Story: As a new user, I want an easy setup process and flexible configuration options, so that I can start using Backlog Chef from anywhere without environment issues
+- Priority: HIGH - Blocking real-world usage
+- Estimate: 8-13 story points
+- Dependencies: OCLIF CLI (in PR)
+- Risks: Migration complexity, cross-platform compatibility
+
+Tech Lead: One more thing - should `backlog-chef setup` be idempotent? Can I run it multiple times?
+
+Product Owner: Yes! Should detect existing config and ask if you want to:
+- Update existing config
+- Add new API provider
+- Reset to defaults
+- Exit
+
+Tech Lead: Perfect. Makes it a general-purpose config management command, not just first-time setup.
+
+Product Owner: Exactly. Alright, let's add this to the backlog!
+
+---
+
+## User Scenarios
+
+**Scenario 1: First-time User (Automatic First-Run Detection)**
+```bash
+$ npm install -g backlog-chef
+$ backlog-chef process meeting.txt
+
+⚠️  No configuration found
+
+Backlog Chef needs API keys to function. Would you like to run the setup wizard now? (Y/n)
+> Y
+
+🎉 Welcome to Backlog Chef Setup Wizard!
+[Interactive wizard runs...]
+✅ Setup complete!
+
+Continuing with your original command...
+Processing meeting.txt... ✓
+✅ Success! PBI saved to ./output/pbi-meeting.json
+```
+
+**Scenario 1a: First-time User (Manual Setup)**
+```bash
+$ npm install -g backlog-chef
+$ backlog-chef setup
+[Interactive wizard runs...]
+✅ Setup complete!
+
+$ backlog-chef process meeting.txt
+✅ Success!
+```
+
+**Scenario 2: Existing User (Migration)**
+```bash
+$ backlog-chef setup
+⚠️  Existing configuration detected
+[Migration wizard runs...]
+✅ Migrated to global config
+```
+
+**Scenario 3: Team Member**
+```bash
+$ cd team-project
+$ cat .backlog-chef/config.yaml
+# Team settings (checked into git)
+model: claude-3-5-haiku
+output_format: obsidian
+dor_template: salesforce
+
+$ backlog-chef process meeting.txt
+# Uses team settings + personal API keys from ~/.backlog-chef/.env
+```
+
+**Scenario 4: CI/CD Pipeline**
+```bash
+$ export ANTHROPIC_API_KEY="sk-ant-..."
+$ backlog-chef process $TRANSCRIPT_FILE --output ./artifacts
+# Uses system env vars, no local config needed
+```
+
+**Scenario 5: Power User**
+```bash
+$ backlog-chef process meeting.txt \
+  --config ~/projects/client-a/.env \
+  --output ./client-a-output
+# Override everything with flags
+```
+
+## Questions for Product Owner
+
+1. Should the setup wizard support Ollama setup (checking if it's running)?
+2. Do you want to support multiple "profiles" (like AWS CLI profiles)?
+3. Should we validate API keys by making a test API call, or just check format?
+4. What if a user has multiple Anthropic keys for different projects?
+5. Should we support API key rotation (expire warnings)?

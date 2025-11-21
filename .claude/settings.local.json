@@ -45,7 +45,12 @@
       "Bash(tree:*)",
       "Bash(find:*)",
       "Bash(watch -n 5:*)",
-      "Skill(oclif-cli-development)"
+      "Skill(oclif-cli-development)",
+      "Bash(ls:*)",
+      "Bash(node bin/backlog-chef format:*)",
+      "Bash(npm link)",
+      "Bash(node dist/test-template-engine.js:*)",
+      "Bash(npx ts-node:*)"
     ],
     "deny": [],
     "ask": []
