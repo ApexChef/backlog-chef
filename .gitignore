@@ -6,3 +6,10 @@ dist/
 .DS_Store
 .idea/
 *.zip
+
+# Test output directories
+tmp/
+formatted-output/
+
+# IDE local settings
+.claude/settings.local.json
