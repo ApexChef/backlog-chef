@@ -24,6 +24,7 @@ export interface ProcessCommandOptions {
   formats?: string;      // Output formats (comma-separated: devops,obsidian,confluence)
   verbose?: boolean;     // Verbose output
   config?: string;       // Custom config file path
+  fireflies?: string;    // Fireflies meeting ID or URL
 }
 
 export class ProcessCommand {
@@ -32,6 +33,12 @@ export class ProcessCommand {
    */
   async execute(filePath: string, options: ProcessCommandOptions): Promise<void> {
     try {
+      // 0. Handle Fireflies integration if --fireflies flag is provided
+      let actualFilePath = filePath;
+      if (options.fireflies) {
+        actualFilePath = await this.fetchFromFireflies(options.fireflies, options);
+      }
+
       // 1. Initialize AI providers
       if (options.verbose) {
         console.log('Initializing AI providers...');
@@ -67,8 +74,8 @@ export class ProcessCommand {
       }
 
       // 3. Validate input file
-      if (!fs.existsSync(filePath)) {
-        throw new Error(`Input file not found: ${filePath}`);
+      if (!fs.existsSync(actualFilePath)) {
+        throw new Error(`Input file not found: ${actualFilePath}`);
       }
 
       if (options.verbose) {
@@ -78,7 +85,7 @@ export class ProcessCommand {
       // 4. Create router and orchestrator
       const router = new ModelRouter(providers, config);
       const orchestrator = new PipelineOrchestrator(router, {
-        inputPath: filePath,
+        inputPath: actualFilePath,
         outputDir: options.output,
         writeStepOutputs: true,
       });
@@ -89,7 +96,7 @@ export class ProcessCommand {
       }
 
       const parser = new InputParser();
-      const parsedInput = parser.parse(filePath);
+      const parsedInput = parser.parse(actualFilePath);
 
       // Get transcript for processing
       const transcript = InputParser.getTranscriptForProcessing(parsedInput);
@@ -117,6 +124,70 @@ export class ProcessCommand {
       console.error(`\n❌ Pipeline execution failed: ${error instanceof Error ? error.message : String(error)}\n`);
       process.exit(1);
     }
+  }
+
+  /**
+   * Fetch transcript from Fireflies and save to temp file
+   * @returns Path to saved transcript file
+   */
+  private async fetchFromFireflies(
+    meetingIdOrUrl: string,
+    options: ProcessCommandOptions
+  ): Promise<string> {
+    const { FirefliesService } = await import('../../integrations/fireflies');
+
+    if (!process.env.FIREFLIES_API_KEY) {
+      throw new Error(
+        'FIREFLIES_API_KEY environment variable is required for Fireflies integration.\n' +
+          'Get your API key from: https://app.fireflies.ai/integrations/custom/fireflies'
+      );
+    }
+
+    console.log('📥 Fetching transcript from Fireflies.ai...');
+
+    // Initialize service
+    const fireflies = new FirefliesService({
+      apiKey: process.env.FIREFLIES_API_KEY,
+    });
+
+    // Extract meeting ID from URL if needed
+    let meetingId = meetingIdOrUrl;
+    if (meetingIdOrUrl.includes('fireflies.ai')) {
+      if (options.verbose) {
+        console.log(`Extracting meeting ID from URL: ${meetingIdOrUrl}`);
+      }
+      meetingId = fireflies.extractMeetingId(meetingIdOrUrl);
+      console.log(`📋 Meeting ID: ${meetingId}`);
+    }
+
+    // Fetch transcript
+    if (options.verbose) {
+      console.log(`Fetching transcript for meeting: ${meetingId}`);
+    }
+
+    const transcript = await fireflies.getRawTranscript(meetingId);
+
+    console.log(`✅ Retrieved transcript: "${transcript.title}"`);
+    console.log(`   Duration: ${Math.round(transcript.duration / 60)} minutes`);
+    console.log(`   Sentences: ${transcript.sentences?.length || 0}`);
+    console.log(`   Participants: ${transcript.participants?.length || 0}`);
+
+    // Create output directory
+    const outputDir = options.output || path.join(process.cwd(), 'output', `run-${Date.now()}`);
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Save raw transcript to output directory
+    const rawFirefliesPath = path.join(outputDir, 'raw-fireflies-transcript.json');
+    fs.writeFileSync(rawFirefliesPath, JSON.stringify(transcript, null, 2));
+
+    if (options.verbose) {
+      console.log(`💾 Saved raw Fireflies transcript to: ${rawFirefliesPath}`);
+    }
+
+    console.log('');
+    return rawFirefliesPath;
   }
 
   /**
@@ -151,20 +222,28 @@ backlog-chef process - Process meeting transcripts into Product Backlog Items
 
 USAGE
   $ backlog-chef process <file> [options]
+  $ backlog-chef process --fireflies <meeting-id-or-url> [options]
 
 ARGUMENTS
   file              Path to meeting transcript (TXT, JSON, or XML)
 
 FLAGS
-  --output <dir>    Output directory (default: auto-detected or 'output')
-  --formats <list>  Generate specific formats (devops,obsidian,confluence)
-  --config <path>   Path to custom model config file
-  --verbose         Show detailed progress information
-  --help            Show this help
+  --output <dir>       Output directory (default: auto-detected or 'output')
+  --formats <list>     Generate specific formats (devops,obsidian,confluence)
+  --config <path>      Path to custom model config file
+  --fireflies <id>     Fetch transcript from Fireflies.ai (meeting ID or URL)
+  --verbose            Show detailed progress information
+  --help               Show this help
 
 EXAMPLES
-  # Process a transcript file
+  # Process a local transcript file
   $ backlog-chef process examples/sample-transcript.txt
+
+  # Process from Fireflies meeting ID
+  $ backlog-chef process --fireflies abc123xyz
+
+  # Process from Fireflies URL
+  $ backlog-chef process --fireflies https://app.fireflies.ai/view/meeting::abc123
 
   # Process with custom output directory
   $ backlog-chef process transcript.txt --output ./my-pbis
@@ -175,8 +254,8 @@ EXAMPLES
   # Use custom config file
   $ backlog-chef process transcript.txt --config ./my-config.yaml
 
-  # Verbose mode
-  $ backlog-chef process transcript.txt --verbose
+  # Verbose mode with Fireflies
+  $ backlog-chef process --fireflies abc123 --verbose
 
 DESCRIPTION
   Processes meeting transcripts through the Backlog Chef pipeline:

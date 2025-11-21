@@ -51,9 +51,18 @@ async function handleProcessCommand(args: string[]): Promise<void> {
   }
 
   // Parse arguments
-  const filePath = args[0];
-  if (!filePath) {
-    throw new Error('Missing file path argument. Usage: backlog-chef process <file> [options]');
+  const fireflies = args.includes('--fireflies') ? args[args.indexOf('--fireflies') + 1] : undefined;
+
+  // If using --fireflies, file path is optional (will use fetched transcript)
+  // Otherwise, file path is required
+  let filePath: string;
+  if (fireflies) {
+    filePath = ''; // Will be set by fetchFromFireflies
+  } else {
+    filePath = args[0];
+    if (!filePath) {
+      throw new Error('Missing file path argument. Usage: backlog-chef process <file> [options]');
+    }
   }
 
   const output = args.includes('--output') ? args[args.indexOf('--output') + 1] : undefined;
@@ -66,6 +75,7 @@ async function handleProcessCommand(args: string[]): Promise<void> {
     formats,
     config,
     verbose,
+    fireflies,
   });
 }
 
