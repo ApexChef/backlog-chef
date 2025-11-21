@@ -1,15 +1,15 @@
 h1. {{pbi.pbi.id}}: {{pbi.pbi.title}}
 
-{{#with (confluenceStatusPanel pbi.readiness)}}
-{panel:title=Status|borderStyle=solid|borderColor={{this.panelColor}}|titleBGColor={{this.bgColor}}|bgColor={{this.bgColor}}}
-* *Status:* {{../pbi.readiness.readiness_status}}
-* *Readiness Score:* {{../pbi.readiness.readiness_score}}/100
-* *Sprint Ready:* {{#if ../pbi.readiness.sprint_ready}}(/) Yes{{else}}(x) No{{/if}}
-{{#if ../pbi.readiness.estimated_refinement_time}}
-* *Estimated Refinement Time:* {{../pbi.readiness.estimated_refinement_time}}
-{{/if}}
+{{~#with (confluenceStatusPanel pbi.readiness)~}}
+{panel:title=Status|borderStyle=solid|borderColor={{~this.panelColor~}}|titleBGColor={{~this.bgColor~}}|bgColor={{~this.bgColor~}}}
+* *Status:* {{~../pbi.readiness.readiness_status~}}
+* *Readiness Score:* {{~../pbi.readiness.readiness_score~}}/100
+* *Sprint Ready:* {{~#if ../pbi.readiness.sprint_ready~}}(/) Yes{{~else~}}(x) No{{~/if~}}
+{{~#if ../pbi.readiness.estimated_refinement_time~}}
+* *Estimated Refinement Time:* {{~../pbi.readiness.estimated_refinement_time~}}
+{{~/if~}}
 {panel}
-{{/with}}
+{{~/with~}}
 
 {{#if pbi.pbi.description}}
 h2. Description
@@ -113,15 +113,15 @@ h3. Verification Tasks
 {{#if (gt (length pbi.risks.risks) 0)}}
 h2. Risks ({{uppercase pbi.risks.overall_risk_level}})
 
-{{#each pbi.risks.risks}}
-{panel:title={{this.type}} ({{this.severity}})|borderColor={{confluenceRiskColor this.severity}}}
-{{this.description}}
-{{#if this.mitigation}}
+{{~#each pbi.risks.risks~}}
+{panel:title={{~this.type~}} ({{~this.severity~}})|borderColor={{~confluenceRiskColor this.severity~}}}
+{{~this.description~}}
+{{~#if this.mitigation~}}
 
-*Mitigation:* {{this.mitigation}}
-{{/if}}
+*Mitigation:* {{~this.mitigation~}}
+{{~/if~}}
 {panel}
-{{/each}}
+{{~/each~}}
 
 {{/if}}
 {{/if}}

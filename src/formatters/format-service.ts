@@ -8,18 +8,17 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Formatter, OutputFormat, FormatResult, FormatOptions } from './types';
 import { PipelineOutput } from '../pipeline/types/pipeline-types';
-import { DevOpsFormatter } from './devops-formatter';
-import { ObsidianFormatter } from './obsidian-formatter';
-import { ConfluenceFormatter } from './confluence-formatter';
+import { TemplateBasedFormatter } from './template-based-formatter';
 
 export class FormatService {
   private formatters: Map<OutputFormat, Formatter>;
 
   constructor() {
     this.formatters = new Map();
-    this.registerFormatter(new DevOpsFormatter());
-    this.registerFormatter(new ObsidianFormatter());
-    this.registerFormatter(new ConfluenceFormatter());
+    // Use template-based formatters for all formats
+    this.registerFormatter(new TemplateBasedFormatter('obsidian'));
+    this.registerFormatter(new TemplateBasedFormatter('devops'));
+    this.registerFormatter(new TemplateBasedFormatter('confluence'));
   }
 
   /**
