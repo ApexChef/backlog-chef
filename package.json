@@ -8,7 +8,8 @@
     "backlog-chef": "./bin/backlog-chef"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean && tsc && npm run copy-templates",
+    "copy-templates": "mkdir -p dist/templates/built-in && cp -r src/templates/built-in/* dist/templates/built-in/",
     "start": "npm run build && node dist/index.js",
     "dev": "ts-node src/index.ts",
     "clean": "rm -rf dist",
