@@ -1,0 +1,103 @@
+{
+  "step": "enrich_context",
+  "timestamp": "2025-11-21T07:36:02.698Z",
+  "runId": "1763710525835",
+  "cost": {
+    "step_cost_usd": 0,
+    "total_cost_usd": 0.012901600000000001
+  },
+  "timing": {
+    "step_duration_ms": 20386,
+    "total_duration_ms": 36861
+  },
+  "result": {
+    "total_pbis": 1,
+    "enriched_pbis": [
+      {
+        "pbi": {
+          "id": "PBI-011",
+          "title": "As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code",
+          "description": "Create a flexible template-based formatting system using Handlebars that allows users to define custom output formats for Product Backlog Items across different tools and platforms. The system will support template resolution, helper functions, and extensible format definitions.",
+          "acceptance_criteria": [
+            "Template resolution checks ./.backlog-chef/templates/ first, then ~/.backlog-chef/templates/, with built-in templates as fallback",
+            "Handlebars templates compile successfully with registered helpers",
+            "Context includes full PipelineOutput data for templates",
+            "Error messages point to specific template file and line",
+            "DevOps, Obsidian, and Confluence formats can be generated using templates",
+            "CLI commands support template initialization, validation, and listing",
+            "Users can create new formats by adding template directories",
+            "Custom helpers can be defined in configuration"
+          ],
+          "notes": [
+            "Support multiple output formats: DevOps, Obsidian, Confluence",
+            "Implement four-phase rollout: Core Template Engine, Formatter Migration, CLI Commands, Documentation",
+            "Use Handlebars for templating",
+            "Provide template discovery and resolution mechanism",
+            "Enable performance optimization through template caching"
+          ],
+          "mentioned_by": [
+            "Product Owner",
+            "Tech Lead",
+            "Developer"
+          ]
+        },
+        "scores": {
+          "overall_score": 92,
+          "completeness": 95,
+          "clarity": 90,
+          "actionability": 90,
+          "testability": 90,
+          "missing_elements": [
+            "Performance benchmark expectations",
+            "Specific security considerations for template parsing"
+          ],
+          "strengths": [
+            "Detailed acceptance criteria",
+            "Clear template resolution strategy",
+            "Comprehensive output format support",
+            "Phased implementation approach"
+          ],
+          "concerns": [
+            "Complex template engine requirements",
+            "Potential performance overhead with multiple template resolutions",
+            "Complexity of helper function implementation"
+          ]
+        },
+        "context": {
+          "similar_work": [],
+          "past_decisions": [],
+          "technical_docs": [],
+          "risk_flags": [
+            {
+              "type": "Performance Risk",
+              "severity": "HIGH",
+              "message": "Template parsing and resolution may introduce significant runtime overhead, especially with complex or nested Handlebars templates"
+            },
+            {
+              "type": "Security Vulnerability",
+              "severity": "HIGH",
+              "message": "Template-based systems can expose potential code injection risks if input validation and sanitization are not rigorously implemented"
+            },
+            {
+              "type": "Technical Complexity",
+              "severity": "MEDIUM",
+              "message": "Implementing flexible helper functions and extensible format definitions will require sophisticated design to maintain system maintainability"
+            },
+            {
+              "type": "Scalability Constraint",
+              "severity": "MEDIUM",
+              "message": "Multiple template resolution mechanisms may create performance bottlenecks with large numbers of concurrent formatting requests"
+            }
+          ],
+          "suggestions": [
+            "Define explicit performance requirements, such as maximum template rendering time and memory consumption thresholds for different template complexity levels.",
+            "Include comprehensive security guidelines for template parsing, specifying input validation techniques and preventing potential template injection vulnerabilities.",
+            "Document the expected interface for helper functions, including their signature, input/output types, and recommended error handling strategies.",
+            "Create a detailed example of a complex template that demonstrates nested formatting, conditional rendering, and advanced Handlebars features to validate the architecture's flexibility.",
+            "Develop a clear configuration mechanism that allows administrators to whitelist and restrict template sources to prevent unauthorized or malicious template execution"
+          ]
+        }
+      }
+    ]
+  }
+}

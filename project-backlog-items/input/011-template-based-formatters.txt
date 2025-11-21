@@ -1,0 +1,195 @@
+# Product Backlog Item: Template-Based Formatter Architecture
+
+## Meeting Context
+**Type:** Technical Refinement Session
+**Date:** 2025-11-21
+**Participants:** Product Owner, Tech Lead, Developer
+
+---
+
+## Discussion Transcript
+
+**Product Owner:** We just completed the multi-format output feature in PBI-010, but there's a fundamental architectural issue. The DevOps formatter generates text but has a .json extension, and more importantly - our clients need to own and customize their output templates. They shouldn't have to modify TypeScript code to change how PBIs are formatted.
+
+**Tech Lead:** Absolutely. This is a critical extensibility requirement. We need a template-based architecture where:
+1. Templates are separate from code
+2. Clients can override built-in templates
+3. New formats can be added without code changes
+4. Template resolution follows a predictable hierarchy
+
+**Developer:** I'm thinking Handlebars templates with a config-driven approach. Each format would have:
+- Template files for PBI and summary
+- Configuration file defining format metadata
+- Optional helper functions for complex logic
+- Clear file extension mapping
+
+**Product Owner:** Perfect. The template resolution should check:
+1. Project-level templates first (./.backlog-chef/templates/)
+2. User-level templates second (~/.backlog-chef/templates/)
+3. Built-in templates as fallback
+
+This way teams can have project-specific templates, and individuals can have personal defaults.
+
+**Tech Lead:** We should also think about template discovery. The CLI should be able to list available formats, show which templates are being used, and potentially validate templates before rendering.
+
+**Developer:** For the initial implementation, let's support:
+- DevOps format (proper Azure DevOps Work Item JSON)
+- Obsidian format (Markdown with YAML frontmatter)
+- Confluence format (Confluence wiki markup)
+- Generic Markdown format as a base example
+
+Each format needs both a PBI template and a summary template.
+
+**Product Owner:** What about versioning? If we ship template updates, how do users get them without breaking their customizations?
+
+**Tech Lead:** Good point. Templates should have version metadata in their config. We can provide migration tools later, but for now, user templates always take precedence. We should document the template context (available variables) clearly so customizations remain compatible.
+
+**Developer:** Here's what I'm proposing for the directory structure:
+
+```
+templates/
+├── devops/
+│   ├── pbi.hbs
+│   ├── summary.hbs
+│   └── config.yaml
+├── obsidian/
+│   ├── pbi.hbs
+│   ├── summary.hbs
+│   └── config.yaml
+└── confluence/
+    ├── pbi.hbs
+    ├── summary.hbs
+    └── config.yaml
+```
+
+Each config.yaml would define:
+- Format ID and display name
+- File extension
+- Description
+- Template files
+- Optional helper functions
+
+**Product Owner:** What about the CLI commands? How would users interact with templates?
+
+**Developer:** I'm thinking:
+```bash
+# List available formats (shows built-in and custom)
+backlog-chef format --list
+
+# Show which template will be used
+backlog-chef format --show-template obsidian
+
+# Initialize custom templates for a format
+backlog-chef template init obsidian
+
+# Validate custom templates
+backlog-chef template validate
+```
+
+**Tech Lead:** The format service should:
+1. Load all available templates on initialization
+2. Resolve templates using the hierarchy
+3. Compile Handlebars templates once
+4. Provide helper functions registry
+5. Pass rich context to templates (all PBI data, metadata, etc.)
+
+**Product Owner:** For the context passed to templates, what should be available?
+
+**Developer:** The full PipelineOutput structure plus helpers like:
+- Date formatting
+- Score thresholds (good/fair/poor)
+- Priority calculations
+- Status mapping
+- String utilities (truncate, capitalize, etc.)
+
+**Tech Lead:** We should also refactor the existing formatters to use templates. The current DevOpsFormatter, ObsidianFormatter, and ConfluenceFormatter classes would become template loaders, not generators.
+
+**Product Owner:** Agreed. This means we need to:
+1. Create Handlebars templates for existing formats
+2. Build the template engine infrastructure
+3. Add template discovery and resolution
+4. Update format service to use templates
+5. Add CLI commands for template management
+6. Document template structure and available helpers
+7. Provide example custom templates
+
+**Developer:** One more thing - we should think about error handling. If a template is malformed, we need clear error messages pointing to the exact line/issue.
+
+**Tech Lead:** And performance - templates should be compiled once and cached, not re-compiled for every PBI.
+
+**Product Owner:** This is a significant architectural improvement. Let's break it into phases:
+
+**Phase 1: Core Template Engine**
+- Install Handlebars dependency
+- Create template engine class
+- Implement template resolution (built-in → user → project)
+- Build helper registry
+- Add error handling
+
+**Phase 2: Migrate Existing Formatters**
+- Convert DevOps formatter to template
+- Convert Obsidian formatter to template
+- Convert Confluence formatter to template
+- Fix DevOps file extension issue
+
+**Phase 3: CLI Commands**
+- Add `template init` command
+- Add `template validate` command
+- Add `template list` command
+- Update `format --list` to show templates
+
+**Phase 4: Documentation**
+- Template development guide
+- Available helpers reference
+- Context structure documentation
+- Migration guide for custom templates
+
+**Developer:** For acceptance criteria, I'm thinking:
+
+1. **Template Resolution**
+   - System checks ./.backlog-chef/templates/ first
+   - Falls back to ~/.backlog-chef/templates/
+   - Uses built-in templates as default
+   - Logs which template is being used (in verbose mode)
+
+2. **Template Engine**
+   - Handlebars templates compile successfully
+   - Helpers are registered and available
+   - Context includes full PipelineOutput data
+   - Error messages point to template file and line
+
+3. **Format Migration**
+   - DevOps format generates valid Azure DevOps JSON
+   - Obsidian format matches current output
+   - Confluence format matches current output
+   - File extensions are correct
+
+4. **CLI Commands**
+   - `backlog-chef template init <format>` creates template scaffold
+   - `backlog-chef template validate` checks all custom templates
+   - `backlog-chef template list` shows all formats and sources
+   - `backlog-chef format --list` includes template info
+
+5. **Extensibility**
+   - User can create new format by adding template directory
+   - Custom helpers can be defined in config
+   - Templates can include partials for reusability
+
+**Product Owner:** Perfect. This gives our clients true ownership of their output formats and makes the system infinitely extensible. Any team can adapt outputs to their specific tools and workflows without touching code.
+
+**Tech Lead:** And it future-proofs us. When new tools emerge (Jira, Linear, Notion, etc.), the community can create templates without waiting for us to build formatters.
+
+**Developer:** I'll start with the architecture design. We need to think about:
+- Template context structure (what data is available)
+- Helper function API
+- Config schema for format definitions
+- Error handling strategy
+- Template caching mechanism
+
+**Product Owner:** Great. Let's make this PBI-011: Template-Based Formatter Architecture. This is a foundation feature that will enable massive ecosystem growth.
+
+---
+
+## Summary
+
+Replace hard-coded formatters with flexible template-based architecture using Handlebars, giving users full control over output formats and enabling extensibility without code changes.
