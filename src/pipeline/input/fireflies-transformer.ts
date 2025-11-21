@@ -10,9 +10,12 @@ import { FirefliesJSON, ParsedInput, Participant, ActionItem } from './types';
 export class FirefliesTransformer {
   /**
    * Transform Fireflies JSON into ParsedInput
+   * Handles both old wrapped format and new direct API format
    */
-  transform(fireflies: FirefliesJSON, sourcePath: string): ParsedInput {
-    const raw = fireflies.rawResponse;
+  transform(fireflies: FirefliesJSON | any, sourcePath: string): ParsedInput {
+    // Check if this is the new direct API format (has 'sentences' at top level)
+    // or old wrapped format (has 'rawResponse')
+    const raw = (fireflies as any).rawResponse || fireflies;
 
     // Build transcript from sentences
     const transcript = this.buildTranscript(raw.sentences || []);
@@ -26,6 +29,9 @@ export class FirefliesTransformer {
     // Parse action items
     const actionItems = this.parseActionItems(raw.summary?.action_items);
 
+    // Get Fireflies URL (either from wrapper or construct from transcript_url)
+    const firefliesUrl = (fireflies as any).firefliesUrl || raw.transcript_url;
+
     return {
       transcript,
       enrichedTranscript,
@@ -33,7 +39,7 @@ export class FirefliesTransformer {
         source: sourcePath,
         format: 'json',
         title: raw.title,
-        date: new Date(raw.date).toISOString(),
+        date: typeof raw.date === 'number' ? new Date(raw.date).toISOString() : raw.date,
         duration: Math.round(raw.duration),
         organizer: raw.organizer_email,
         participants,
@@ -54,7 +60,7 @@ export class FirefliesTransformer {
         },
         actionItems,
         externalUrls: {
-          fireflies: fireflies.firefliesUrl,
+          fireflies: firefliesUrl,
           recording: raw.audio_url,
           transcript: raw.transcript_url,
         },
@@ -162,23 +168,33 @@ export class FirefliesTransformer {
   /**
    * Extract participants with metadata
    */
-  private extractParticipants(raw: FirefliesJSON['rawResponse']): Participant[] {
+  private extractParticipants(raw: any): Participant[] {
     const participants: Participant[] = [];
 
     // Add basic participants
     if (raw.participants) {
       for (const p of raw.participants) {
-        participants.push({
-          name: p.name,
-          email: p.email,
-        });
+        // Handle both string format (email) and object format {name, email}
+        if (typeof p === 'string') {
+          // New API format - just email strings
+          participants.push({
+            name: p.split('@')[0], // Extract name from email
+            email: p,
+          });
+        } else {
+          // Old format - objects with name and email
+          participants.push({
+            name: p.name,
+            email: p.email,
+          });
+        }
       }
     }
 
     // Enrich with speaker stats if available
     if (raw.analytics?.speakers) {
       for (const speaker of raw.analytics.speakers) {
-        const existing = participants.find((p) => p.name === speaker.name);
+        const existing = participants.find((p) => p.name === speaker.name || p.email === speaker.name);
         if (existing) {
           existing.speakerId = speaker.speaker_id;
           existing.duration = speaker.duration;
@@ -186,7 +202,7 @@ export class FirefliesTransformer {
           existing.questionsCount = speaker.questions;
         } else {
           participants.push({
-            name: speaker.name,
+            name: speaker.name || `Speaker ${speaker.speaker_id}`,
             speakerId: speaker.speaker_id,
             duration: speaker.duration,
             wordCount: speaker.word_count,
