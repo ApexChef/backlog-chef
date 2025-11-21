@@ -166,6 +166,85 @@ export class HelperRegistry {
       return '🔴';
     });
 
+    // DevOps-specific helpers
+    this.register('devopsState', (readiness: any) => {
+      if (readiness.sprint_ready) {
+        return 'Committed';
+      } else if (readiness.readiness_score >= 60) {
+        return 'Approved';
+      } else {
+        return 'New';
+      }
+    });
+
+    this.register('devopsPriority', (readiness: any) => {
+      const score = readiness.readiness_score;
+      if (score >= 85) return 1;
+      if (score >= 60) return 2;
+      return 3;
+    });
+
+    this.register('devopsTags', (pbi: any) => {
+      const tags: string[] = [];
+
+      // Readiness tag
+      if (pbi.readiness.sprint_ready) {
+        tags.push('ready-for-sprint');
+      } else if (pbi.readiness.readiness_score >= 60) {
+        tags.push('needs-refinement');
+      } else {
+        tags.push('not-ready');
+      }
+
+      // Blocker tag
+      if (pbi.readiness.blocking_issues && pbi.readiness.blocking_issues.length > 0) {
+        tags.push('has-blockers');
+      }
+
+      // Risk level tag
+      if (pbi.risks) {
+        tags.push(`risk-${pbi.risks.overall_risk_level}`);
+      }
+
+      return tags.join('; ');
+    });
+
+    // Confluence-specific helpers
+    this.register('confluenceRiskColor', (severity: string) => {
+      const colors: Record<string, string> = {
+        critical: '#ff0000',
+        high: '#ff6600',
+        medium: '#ff9900',
+        low: '#00aa00',
+      };
+      return colors[severity?.toLowerCase()] || '#666666';
+    });
+
+    this.register('confluenceStatusPanel', (readiness: any) => {
+      let panelColor = '#ff0000'; // red for not ready
+      let bgColor = '#fff5f5';
+
+      if (readiness.sprint_ready) {
+        panelColor = '#00aa00';
+        bgColor = '#f0fff0';
+      } else if (readiness.readiness_score >= 60) {
+        panelColor = '#ff9900';
+        bgColor = '#fffef5';
+      }
+
+      return { panelColor, bgColor };
+    });
+
+    this.register('confluenceStatusIcon', (readiness: any) => {
+      if (readiness.sprint_ready) {
+        return '(/) READY';
+      } else if (readiness.readiness_score >= 60) {
+        return '(!) NEEDS REFINEMENT';
+      } else {
+        return '(x) NOT READY';
+      }
+    });
+
     this.register('checklistItem', (checked: boolean, text: string) => {
       const checkbox = checked ? '[x]' : '[ ]';
       return `- ${checkbox} ${text}`;
