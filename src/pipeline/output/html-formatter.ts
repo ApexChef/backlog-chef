@@ -496,8 +496,9 @@ export class HTMLFormatter {
    * Helper: Escape HTML
    */
   private escapeHtml(text: string): string {
-    const div = { textContent: text };
-    return (div as any).textContent
+    if (!text || typeof text !== 'string') return '';
+
+    return text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
