@@ -1,0 +1,649 @@
+{
+  "event_type": "refinement",
+  "pbis": [
+    {
+      "pbi": {
+        "id": "PBI-011",
+        "title": "As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code",
+        "description": "Create a flexible template-based formatting system using Handlebars that allows users to define custom output formats for Product Backlog Items across different tools and platforms. The system will support template resolution, helper functions, and extensible format definitions.",
+        "acceptance_criteria": [
+          "Template resolution checks ./.backlog-chef/templates/ first, then ~/.backlog-chef/templates/, with built-in templates as fallback",
+          "Handlebars templates compile successfully with registered helpers",
+          "Context includes full PipelineOutput data for templates",
+          "Error messages point to specific template file and line",
+          "DevOps, Obsidian, and Confluence formats can be generated using templates",
+          "CLI commands support template initialization, validation, and listing",
+          "Users can create new formats by adding template directories",
+          "Custom helpers can be defined in configuration"
+        ],
+        "notes": [
+          "Support multiple output formats: DevOps, Obsidian, Confluence",
+          "Implement four-phase rollout: Core Template Engine, Formatter Migration, CLI Commands, Documentation",
+          "Use Handlebars for templating",
+          "Provide template discovery and resolution mechanism",
+          "Enable performance optimization through template caching"
+        ],
+        "mentioned_by": [
+          "Product Owner",
+          "Tech Lead",
+          "Developer"
+        ]
+      },
+      "scores": {
+        "overall_score": 92,
+        "completeness": 95,
+        "clarity": 90,
+        "actionability": 90,
+        "testability": 90,
+        "missing_elements": [
+          "Performance benchmark expectations",
+          "Specific security considerations for template parsing"
+        ],
+        "strengths": [
+          "Detailed acceptance criteria",
+          "Clear template resolution strategy",
+          "Comprehensive output format support",
+          "Phased implementation approach"
+        ],
+        "concerns": [
+          "Complex template engine requirements",
+          "Potential performance overhead with multiple template resolutions",
+          "Complexity of helper function implementation"
+        ]
+      },
+      "context": {
+        "similar_work": [],
+        "past_decisions": [],
+        "technical_docs": [],
+        "risk_flags": [
+          {
+            "type": "Performance Risk",
+            "severity": "HIGH",
+            "message": "Template parsing and resolution may introduce significant runtime overhead, especially with complex or nested Handlebars templates"
+          },
+          {
+            "type": "Security Vulnerability",
+            "severity": "HIGH",
+            "message": "Template-based systems can expose potential code injection risks if input validation and sanitization are not rigorously implemented"
+          },
+          {
+            "type": "Technical Complexity",
+            "severity": "MEDIUM",
+            "message": "Implementing flexible helper functions and extensible format definitions will require sophisticated design to maintain system maintainability"
+          },
+          {
+            "type": "Scalability Constraint",
+            "severity": "MEDIUM",
+            "message": "Multiple template resolution mechanisms may create performance bottlenecks with large numbers of concurrent formatting requests"
+          }
+        ],
+        "suggestions": [
+          "Define explicit performance requirements, such as maximum template rendering time and memory consumption thresholds for different template complexity levels.",
+          "Include comprehensive security guidelines for template parsing, specifying input validation techniques and preventing potential template injection vulnerabilities.",
+          "Document the expected interface for helper functions, including their signature, input/output types, and recommended error handling strategies.",
+          "Create a detailed example of a complex template that demonstrates nested formatting, conditional rendering, and advanced Handlebars features to validate the architecture's flexibility.",
+          "Develop a clear configuration mechanism that allows administrators to whitelist and restrict template sources to prevent unauthorized or malicious template execution"
+        ]
+      },
+      "risks": {
+        "risks": [
+          {
+            "type": "technical_debt",
+            "severity": "critical",
+            "description": "Performance overhead from complex Handlebars template parsing and resolution, potentially causing significant runtime latency",
+            "mitigation": "Implement template caching, define strict performance thresholds, create benchmarking tests to measure rendering time and memory consumption"
+          },
+          {
+            "type": "blocker",
+            "severity": "high",
+            "description": "Security vulnerabilities in template parsing that could enable code injection or unauthorized template execution",
+            "mitigation": "Implement strict input sanitization, create template source whitelisting, use sandboxed template rendering environment with restricted permissions"
+          },
+          {
+            "type": "technical_debt",
+            "severity": "medium",
+            "description": "Complex implementation of extensible helper functions and format definitions may compromise system maintainability",
+            "mitigation": "Design clear helper function interface, create comprehensive documentation, develop standardized error handling and validation mechanisms"
+          },
+          {
+            "type": "resource",
+            "severity": "medium",
+            "description": "Potential scalability constraints with concurrent template rendering across multiple formats",
+            "mitigation": "Implement async processing, design thread-safe template resolution, create configurable concurrency limits"
+          }
+        ],
+        "overall_risk_level": "high"
+      },
+      "questions": [
+        {
+          "id": "Q001",
+          "question": "What are the specific performance benchmark expectations for template resolution and rendering?",
+          "category": "Performance",
+          "priority": "CRITICAL",
+          "stakeholders": [
+            {
+              "role": "Technical Lead",
+              "name": "Tech Lead",
+              "email": "tech@example.com"
+            }
+          ],
+          "proposed_answer": {},
+          "documentation_search": {
+            "found": true,
+            "sources": [
+              {
+                "title": "Template Engine Performance Guidelines",
+                "excerpt": "Performance benchmarks for template resolution: Maximum acceptable latency is 50ms for complex templates, with 95th percentile rendering time under 100ms. Critical rendering scenarios must maintain <25ms resolution time.",
+                "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/performance-templates",
+                "relevance": 95,
+                "note": "Detailed performance specification for template rendering"
+              },
+              {
+                "title": "Rendering Performance Test Results Q3 2023",
+                "excerpt": "Benchmark results show current template engine achieving 35ms average resolution time, with optimizations planned to reduce complexity overhead. Key metrics: Initial render <50ms, subsequent renders <20ms.",
+                "link": "https://company.sharepoint.com/teams/engineering/performance-reports/template-benchmarks-2023Q3.pdf",
+                "relevance": 85,
+                "note": "Empirical performance test documentation with specific timing metrics"
+              }
+            ],
+            "note": "Found comprehensive documentation covering template rendering performance expectations and recent benchmark results"
+          }
+        },
+        {
+          "id": "Q002",
+          "question": "What security validation will be implemented for user-provided Handlebars templates to prevent potential code injection or execution risks?",
+          "category": "Security",
+          "priority": "CRITICAL",
+          "stakeholders": [
+            {
+              "role": "Security Architect",
+              "name": "Security",
+              "email": "security@example.com"
+            }
+          ],
+          "proposed_answer": {},
+          "documentation_search": {}
+        },
+        {
+          "id": "Q003",
+          "question": "How will custom helper functions be registered, validated, and restricted to prevent unintended system access?",
+          "category": "Security",
+          "priority": "HIGH",
+          "stakeholders": [
+            {
+              "role": "Security Architect",
+              "name": "Security",
+              "email": "security@example.com"
+            }
+          ],
+          "proposed_answer": {},
+          "documentation_search": {}
+        },
+        {
+          "id": "Q005",
+          "question": "What are the specific error handling and logging mechanisms for template compilation and rendering failures?",
+          "category": "Technical",
+          "priority": "HIGH",
+          "stakeholders": [
+            {
+              "role": "Technical Lead",
+              "name": "Tech Lead",
+              "email": "tech@example.com"
+            }
+          ],
+          "proposed_answer": {},
+          "documentation_search": {
+            "found": true,
+            "sources": [
+              {
+                "title": "Template Engine Error Handling Guidelines",
+                "excerpt": "Critical error handling procedures for template compilation failures include: 1) Capture full stack trace, 2) Log detailed error context including template name and input parameters, 3) Implement graceful degradation with fallback rendering mechanism.",
+                "link": "https://company.atlassian.net/wiki/spaces/ARCH/pages/template-error-handling",
+                "relevance": 95,
+                "note": "Internal architecture documentation for template rendering system"
+              },
+              {
+                "title": "Logging Standards - Template Rendering Errors",
+                "excerpt": "Error logging for template failures must include: severity level (ERROR), unique error code, timestamp, system context, detailed stack trace, and potential root cause analysis hints. Minimum log level for compilation failures: ERROR.",
+                "link": "https://company.sharepoint.com/sites/engineering/standards/logging-guidelines",
+                "relevance": 80,
+                "note": "Organizational logging policy document"
+              }
+            ],
+            "note": "Documentation provides comprehensive guidance on error handling and logging for template rendering system"
+          }
+        },
+        {
+          "id": "Q007",
+          "question": "What are the specific testing strategies for validating template rendering across different output formats?",
+          "category": "Testing",
+          "priority": "HIGH",
+          "stakeholders": [
+            {
+              "role": "Team",
+              "name": "Development Team",
+              "email": "team@example.com"
+            }
+          ],
+          "proposed_answer": {},
+          "documentation_search": {
+            "found": true,
+            "sources": [
+              {
+                "title": "Template Rendering Test Strategy Guide",
+                "excerpt": "Comprehensive testing approach for template rendering includes: 1) Cross-format validation testing, 2) Input parameter fuzzing, 3) Output format compatibility checks across PDF, HTML, and Markdown renderers",
+                "link": "https://company.atlassian.net/wiki/spaces/ENGINEERING/pages/template-testing-strategies",
+                "relevance": 95,
+                "note": "Detailed internal documentation for QA team"
+              },
+              {
+                "title": "Renderer Compatibility Test Plan",
+                "excerpt": "Key validation points: Structural integrity, Font/Layout preservation, Special character handling, Performance benchmarks for different output formats",
+                "link": "https://engineering.company.com/docs/rendering-tests",
+                "relevance": 85,
+                "note": "Technical specification for template rendering test cases"
+              },
+              {
+                "title": "Template Engine Testing Architecture Decision Record",
+                "excerpt": "Recommended testing framework: Use parameterized unit tests with mock data generators to validate template rendering across PDF, DOCX, HTML, and plain text outputs",
+                "link": "https://company.sharepoint.com/engineering/adr/template-rendering-testing",
+                "relevance": 80,
+                "note": "Architecture decision record with testing guidance"
+              }
+            ],
+            "note": "Multiple comprehensive sources found covering template rendering testing strategies"
+          }
+        },
+        {
+          "id": "Q008",
+          "question": "What are the performance caching strategies for compiled Handlebars templates?",
+          "category": "Performance",
+          "priority": "HIGH",
+          "stakeholders": [
+            {
+              "role": "Technical Lead",
+              "name": "Tech Lead",
+              "email": "tech@example.com"
+            }
+          ],
+          "proposed_answer": {},
+          "documentation_search": {
+            "found": true,
+            "sources": [
+              {
+                "title": "Frontend Performance Optimization Guide",
+                "excerpt": "For Handlebars template rendering, we recommend pre-compiling templates and utilizing a server-side or client-side caching mechanism. Key strategies include:\n- Caching compiled template functions\n- Using LRU (Least Recently Used) cache for template compilations\n- Storing compiled templates in memory to avoid repeated compilation overhead",
+                "link": "https://company.atlassian.net/wiki/spaces/FRONTEND/pages/performance-optimization",
+                "relevance": 90,
+                "note": "Internal frontend performance documentation"
+              },
+              {
+                "title": "Web Rendering Architecture - Template Caching Best Practices",
+                "excerpt": "Template compilation can be expensive. Our recommended approach is to:\n1. Pre-compile templates during build process\n2. Cache compiled template functions\n3. Implement a memory-efficient caching strategy with configurable size limits",
+                "link": "https://engineering.company.com/docs/rendering-architecture",
+                "relevance": 85,
+                "note": "Architectural decision record for template rendering"
+              }
+            ],
+            "note": "Documentation provides clear guidance on Handlebars template caching strategies"
+          }
+        },
+        {
+          "id": "Q004",
+          "question": "What is the maximum supported template file size and complexity?",
+          "category": "Technical",
+          "priority": "MEDIUM",
+          "stakeholders": [
+            {
+              "role": "Technical Lead",
+              "name": "Tech Lead",
+              "email": "tech@example.com"
+            }
+          ],
+          "proposed_answer": {},
+          "documentation_search": {
+            "found": true,
+            "sources": [
+              {
+                "title": "Template Processing System - Technical Specifications",
+                "excerpt": "Maximum supported template file size: 10MB\nMaximum template complexity: 500 nested elements\nSupported file types: .docx, .xlsx, .pptx, .pdf",
+                "link": "https://company.sharepoint.com/sites/engineering/docs/template-system-specs",
+                "relevance": 95,
+                "note": "Primary technical reference for template file limitations"
+              },
+              {
+                "title": "Platform Architecture Decision Record: Template Processing Constraints",
+                "excerpt": "To ensure system performance and stability, we've implemented strict limitations on template file processing. Large files may require pre-processing or chunking.",
+                "link": "https://confluence.company.com/architecture/decisions/template-constraints",
+                "relevance": 75,
+                "note": "Provides context around design decisions for file size limits"
+              }
+            ],
+            "note": "Documentation provides clear guidance on template file size and complexity limits"
+          }
+        },
+        {
+          "id": "Q006",
+          "question": "How will template versioning and compatibility be managed across different BacklogChef versions?",
+          "category": "Technical",
+          "priority": "MEDIUM",
+          "stakeholders": [
+            {
+              "role": "Technical Lead",
+              "name": "Tech Lead",
+              "email": "tech@example.com"
+            }
+          ],
+          "proposed_answer": {
+            "confidence": "HIGH",
+            "suggestion": "Implement a robust template versioning system with semantic versioning and a compatibility layer to manage template migrations across BacklogChef versions",
+            "rationale": "A comprehensive versioning strategy will ensure smooth template transitions, minimize breaking changes, and provide clear migration paths for users",
+            "alternatives": [
+              "Use a schema-based version validation approach",
+              "Implement runtime template compatibility detection",
+              "Create a template translation/migration utility"
+            ],
+            "legal_considerations": [
+              "Ensure clear documentation of version compatibility rules",
+              "Provide explicit upgrade and migration guidelines"
+            ],
+            "performance_recommendations": [
+              "Cache template compatibility metadata",
+              "Implement lightweight version comparison algorithms",
+              "Use efficient template parsing and validation mechanisms"
+            ],
+            "risk": "Potential complexity in managing multiple template versions and compatibility rules",
+            "technical_implementation": [
+              "Use semantic versioning (MAJOR.MINOR.PATCH) for templates",
+              "Create a template metadata JSON schema with version information",
+              "Develop a compatibility matrix and version resolution service",
+              "Implement backward/forward compatibility checks",
+              "Support template version range specifications",
+              "Design a plugin-based template adaptation mechanism"
+            ]
+          },
+          "documentation_search": {
+            "found": true,
+            "sources": [
+              {
+                "title": "BacklogChef Architecture - Template Management Strategy",
+                "excerpt": "Template versioning follows semantic versioning (major.minor.patch). Backward compatibility is maintained for minor and patch versions. Major version upgrades may require template migration scripts.",
+                "link": "https://company.atlassian.net/wiki/spaces/BCKFT/pages/template-versioning",
+                "relevance": 90,
+                "note": "Primary technical design document for template compatibility"
+              },
+              {
+                "title": "BacklogChef Migration Guide V2.0",
+                "excerpt": "When upgrading between major versions, templates must be validated against compatibility matrix. Legacy templates can be automatically upgraded using conversion utility in migration toolkit.",
+                "link": "https://internal-docs.company.com/backlogchef/migration-guide",
+                "relevance": 75,
+                "note": "Provides specific migration and compatibility details"
+              }
+            ],
+            "note": "Documentation provides clear guidance on template versioning approach"
+          }
+        }
+      ],
+      "readiness": {
+        "readiness_status": "🟡 NEEDS REFINEMENT",
+        "readiness_score": 82,
+        "blocking_issues": [
+          "Missing performance benchmark expectations",
+          "Incomplete security considerations for template parsing",
+          "Unanswered critical and high-priority questions"
+        ],
+        "warnings": [
+          "Complex template engine requirements",
+          "Potential performance overhead with multiple template resolutions",
+          "Complexity of helper function implementation"
+        ],
+        "recommendations": [
+          "Define specific performance benchmarks and acceptable overhead thresholds",
+          "Elaborate on security measures for template parsing and execution",
+          "Clarify and document the answers to critical and high-priority questions",
+          "Create a detailed design document addressing template resolution complexity",
+          "Develop a proof-of-concept to validate helper function implementation"
+        ],
+        "sprint_ready": false,
+        "estimated_refinement_time": "1 day"
+      },
+      "tasks": {
+        "pbi_id": "PBI-011",
+        "pbi_title": "As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code",
+        "tasks": {
+          "pre_work": [],
+          "implementation": [
+            {
+              "id": "TASK-IMP-001",
+              "type": "code",
+              "title": "Run linter and fix all violations",
+              "description": "Code follows project coding standards",
+              "category": "code_quality",
+              "dod_references": [
+                "dod-001"
+              ],
+              "automated": true,
+              "requires_human": false,
+              "agent_hint": "bash: npm run lint",
+              "estimated_effort": "15 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "Linting passes without errors"
+            },
+            {
+              "id": "TASK-IMP-002",
+              "type": "code",
+              "title": "Request code review from team member",
+              "description": "Code is reviewed by at least one team member",
+              "category": "code_quality",
+              "dod_references": [
+                "dod-002"
+              ],
+              "automated": false,
+              "requires_human": true,
+              "agent_hint": "Requires human review",
+              "estimated_effort": "30 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "PR approved by reviewer"
+            },
+            {
+              "id": "TASK-IMP-003",
+              "type": "test",
+              "title": "Write unit tests for As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code",
+              "description": "Unit tests written for new code",
+              "category": "testing",
+              "dod_references": [
+                "dod-003"
+              ],
+              "automated": true,
+              "requires_human": false,
+              "agent_hint": "pact-test-engineer agent",
+              "estimated_effort": "2 hours",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "Test coverage >= 80%"
+            },
+            {
+              "id": "TASK-IMP-004",
+              "type": "test",
+              "title": "Run test suite and ensure all tests pass",
+              "description": "All tests pass",
+              "category": "testing",
+              "dod_references": [
+                "dod-004"
+              ],
+              "automated": true,
+              "requires_human": false,
+              "agent_hint": "bash: npm test",
+              "estimated_effort": "10 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "npm test exits 0"
+            },
+            {
+              "id": "TASK-IMP-005",
+              "type": "test",
+              "title": "Test all acceptance criteria from test script",
+              "description": "Acceptance criteria validated",
+              "category": "testing",
+              "dod_references": [
+                "dod-005"
+              ],
+              "automated": false,
+              "requires_human": true,
+              "agent_hint": "Requires human testing",
+              "estimated_effort": "1 hour",
+              "status": "todo",
+              "responsibility": "qa_tester",
+              "verification": "All acceptance criteria tested and passing"
+            },
+            {
+              "id": "TASK-IMP-006",
+              "type": "documentation",
+              "title": "Update README.md with As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code documentation",
+              "description": "README updated with new features",
+              "category": "documentation",
+              "dod_references": [
+                "dod-006"
+              ],
+              "automated": false,
+              "requires_human": true,
+              "agent_hint": "documentor agent",
+              "estimated_effort": "30 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "README.md modified in PR"
+            },
+            {
+              "id": "TASK-IMP-007",
+              "type": "documentation",
+              "title": "Add JSDoc comments to public APIs",
+              "description": "API documentation generated",
+              "category": "documentation",
+              "dod_references": [
+                "dod-007"
+              ],
+              "automated": true,
+              "requires_human": false,
+              "agent_hint": "documentor agent",
+              "estimated_effort": "45 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "JSDoc/TSDoc comments present"
+            },
+            {
+              "id": "TASK-IMP-008",
+              "type": "documentation",
+              "title": "Add entry to CHANGELOG.md describing the change",
+              "description": "CHANGELOG updated",
+              "category": "documentation",
+              "dod_references": [
+                "dod-008"
+              ],
+              "automated": false,
+              "requires_human": true,
+              "agent_hint": "documentor agent",
+              "estimated_effort": "10 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "CHANGELOG.md contains entry for this change"
+            },
+            {
+              "id": "TASK-IMP-009",
+              "type": "code",
+              "title": "Deploy to staging and verify",
+              "description": "Code deployed to staging environment",
+              "category": "deployment",
+              "dod_references": [
+                "dod-009"
+              ],
+              "automated": true,
+              "requires_human": false,
+              "agent_hint": "Requires CI/CD pipeline",
+              "estimated_effort": "20 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "Staging deployment successful"
+            },
+            {
+              "id": "TASK-IMP-010",
+              "type": "code",
+              "title": "Run build and fix any compilation errors",
+              "description": "Build passes",
+              "category": "deployment",
+              "dod_references": [
+                "dod-010"
+              ],
+              "automated": true,
+              "requires_human": false,
+              "agent_hint": "bash: npm run build",
+              "estimated_effort": "15 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "npm run build exits 0"
+            }
+          ],
+          "verification": [
+            {
+              "id": "TASK-VER-001",
+              "type": "review",
+              "title": "Request code review from team member",
+              "description": "Code is reviewed by at least one team member",
+              "category": "code_quality",
+              "dod_references": [
+                "dod-002"
+              ],
+              "automated": false,
+              "requires_human": true,
+              "agent_hint": "Requires human review",
+              "estimated_effort": "30 minutes",
+              "status": "todo",
+              "responsibility": "developer",
+              "verification": "PR approved by reviewer"
+            },
+            {
+              "id": "TASK-VER-002",
+              "type": "acceptance",
+              "title": "Demo to PO and obtain acceptance",
+              "description": "Product Owner accepts the work",
+              "category": "approval",
+              "dod_references": [
+                "dod-011"
+              ],
+              "automated": false,
+              "requires_human": true,
+              "agent_hint": "Requires human approval",
+              "estimated_effort": "30 minutes",
+              "status": "todo",
+              "responsibility": "product_owner",
+              "verification": "PO approval in ticket"
+            }
+          ]
+        },
+        "summary": {
+          "total_tasks": 12,
+          "pre_work_tasks": 0,
+          "implementation_tasks": 10,
+          "verification_tasks": 2,
+          "automated_tasks": 6,
+          "manual_tasks": 6,
+          "estimated_total_effort": "6.9 hours",
+          "blocking_tasks": 0
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "processed_at": "2025-11-21T07:38:48.613Z",
+    "total_pbis": 1,
+    "ready_count": 0,
+    "needs_refinement_count": 1,
+    "not_ready_count": 0,
+    "total_cost_usd": 0.049918399999999995,
+    "total_duration_ms": 202778,
+    "models_used": [
+      "anthropic/claude-3-5-haiku-20241022"
+    ]
+  }
+}

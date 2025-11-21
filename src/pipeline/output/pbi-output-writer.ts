@@ -2,34 +2,45 @@
  * PBI Output Writer
  *
  * Writes individual JSON files for each Product Backlog Item
- * after pipeline completion
+ * and generates multi-format outputs
  */
 
 import fs from 'fs';
 import path from 'path';
 import { PipelineOutput } from '../types/pipeline-types';
+import { FormatService, OutputFormat } from '../../formatters';
 
 export class PBIOutputWriter {
   private runDir: string;
   private runId: string;
   private enabled: boolean;
+  private formatService: FormatService;
+  private outputFormats: OutputFormat[];
 
-  constructor(runDir: string, runId: string, enabled: boolean = true) {
+  constructor(
+    runDir: string,
+    runId: string,
+    enabled: boolean = true,
+    outputFormats: OutputFormat[] = []
+  ) {
     this.runDir = runDir;
     this.runId = runId;
     this.enabled = enabled;
+    this.formatService = new FormatService();
+    this.outputFormats = outputFormats;
 
     // runDir is already created by StepOutputWriter, no need to create again
   }
 
   /**
-   * Write individual PBI files
+   * Write individual PBI files (JSON + multi-format)
    */
-  writePBIs(output: PipelineOutput): void {
+  async writePBIs(output: PipelineOutput): Promise<void> {
     if (!this.enabled || !output.pbis) return;
 
     console.log(`\n📝 Writing individual PBI files...`);
 
+    // Write JSON files (existing behavior)
     for (let i = 0; i < output.pbis.length; i++) {
       const pbi = output.pbis[i];
       const fileName = `pbi-${pbi.pbi.id}-${this.sanitizeFileName(pbi.pbi.title)}.json`;
@@ -60,6 +71,7 @@ export class PBIOutputWriter {
           readiness_level: this.getReadinessLevel(pbi.readiness.readiness_status),
           can_start_sprint: pbi.readiness.sprint_ready,
         },
+        tasks: pbi.tasks,  // Include tasks if generated
       };
 
       fs.writeFileSync(filePath, JSON.stringify(pbiOutput, null, 2), 'utf-8');
@@ -67,7 +79,60 @@ export class PBIOutputWriter {
       console.log(`  ✓ ${pbi.pbi.id}: ${fileName}`);
     }
 
-    console.log(`\n✅ Wrote ${output.pbis.length} individual PBI files`);
+    console.log(`\n✅ Wrote ${output.pbis.length} individual PBI JSON files`);
+
+    // Generate multi-format outputs if requested
+    if (this.outputFormats.length > 0) {
+      await this.writeFormattedOutputs(output);
+    }
+  }
+
+  /**
+   * Write formatted outputs (DevOps, Obsidian, Confluence)
+   */
+  private async writeFormattedOutputs(output: PipelineOutput): Promise<void> {
+    console.log(`\n📄 Generating formatted outputs...`);
+
+    try {
+      const results = await this.formatService.generateFormats(
+        output,
+        this.outputFormats,
+        {
+          outputDir: this.runDir,
+          force: false,  // Don't overwrite existing files
+        }
+      );
+
+      // Group results by format
+      const byFormat = new Map<OutputFormat, typeof results>();
+      for (const result of results) {
+        if (!byFormat.has(result.format)) {
+          byFormat.set(result.format, []);
+        }
+        byFormat.get(result.format)!.push(result);
+      }
+
+      // Display results
+      for (const [format, formatResults] of byFormat) {
+        const successful = formatResults.filter(r => r.success);
+        const failed = formatResults.filter(r => !r.success);
+
+        if (successful.length > 0) {
+          console.log(`  ✓ ${format}: ${successful.length} files generated`);
+        }
+
+        if (failed.length > 0) {
+          console.log(`  ⚠️  ${format}: ${failed.length} files skipped/failed`);
+          for (const failure of failed) {
+            console.log(`     ${failure.filename}: ${failure.error}`);
+          }
+        }
+      }
+
+      console.log(`\n✅ Multi-format generation complete`);
+    } catch (error) {
+      console.error(`\n❌ Multi-format generation failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**

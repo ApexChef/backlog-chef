@@ -1,0 +1,14 @@
+name: Obsidian Markdown
+description: Rich markdown format for Obsidian with backlinks, tags, and quality scores
+fileExtension: .md
+templatePath: main.hbs
+
+metadata:
+  author: Backlog Chef
+  version: 1.0.0
+  documentation: https://github.com/ApexChef/backlog-chef
+
+options:
+  prettyPrint: true
+  lineEndings: lf
+  includeMetadata: true

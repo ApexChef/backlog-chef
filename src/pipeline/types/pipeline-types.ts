@@ -363,7 +363,7 @@ export interface PipelineOptions {
 
   // Output configuration
   output?: {
-    formats?: Array<'markdown' | 'devops' | 'confluence'>;
+    formats?: Array<'devops' | 'obsidian' | 'confluence'>;
     directory?: string;
   };
 

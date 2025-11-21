@@ -1,0 +1,46 @@
+Meeting Transcript - Backlog Refinement Session
+Date: 2025-01-21
+Participants: Product Owner, Tech Lead, Developer
+
+---
+
+Product Owner: "I noticed we have templates for Obsidian, DevOps, and Confluence formats, but the JSON output is still using the old hard-coded formatter. Can we align JSON with the template-based architecture we just built?"
+
+Tech Lead: "Good point, but JSON is different. It's structured data, not presentation markup. Using Handlebars to generate JSON would be problematic - you'd have escaping issues, comma placement errors, and invalid JSON if the template has a syntax error."
+
+Developer: "Right. For JSON, we should just serialize the data structure directly. That guarantees valid JSON and gives users the full data to work with."
+
+Product Owner: "That makes sense. So we'd create a dedicated JSON formatter that outputs the raw PBI data?"
+
+Tech Lead: "Exactly. We could make it configurable - let users choose between compact and pretty-printed JSON, maybe filter which fields to include, and potentially support different schemas like JSON-LD or GeoJSON if needed in the future."
+
+Developer: "We should also consider: do we output the full PipelineOutput structure, or just the PBI data? And should we support JSON Schema for validation?"
+
+Product Owner: "Let's start simple - a JSON formatter that outputs either a single PBI or the full pipeline output, with options for pretty-printing and field filtering. The JSON format should be self-documenting with all the context users need."
+
+Tech Lead: "We should use a YAML config file like the other formats, but instead of a Handlebars template, we'd have configuration for serialization options. File extension would be .json obviously."
+
+Developer: "Should we support both JSON and JSONL (JSON Lines) for bulk processing?"
+
+Product Owner: "Add that as a 'nice to have'. Priority is getting a clean JSON formatter that works like the template-based formatters but uses direct serialization."
+
+Tech Lead: "One more thing - we should include metadata about when it was generated, which version of Backlog Chef created it, and maybe a schema version for future compatibility."
+
+Product Owner: "Perfect. Let's add this to the backlog as PBI-012. It fits nicely after the template architecture work we just completed."
+
+Developer: "I'll note that this should work with the same Formatter interface, so it integrates seamlessly with the existing pipeline."
+
+Product Owner: "Exactly. Users should be able to do `backlog-chef format output.json --to json` just like any other format. Ready to move on?"
+
+All: "Agreed!"
+
+---
+
+Key Points:
+- JSON needs direct serialization, not templates
+- Config-driven like other formats (YAML config file)
+- Options: pretty-print, field filtering, full vs PBI-only
+- Same Formatter interface for consistency
+- Include generation metadata
+- Future: JSONL support, JSON Schema validation
+- File extension: .json
