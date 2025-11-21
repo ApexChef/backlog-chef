@@ -9,8 +9,8 @@ created: {{pbi.metadata.created}}
 ## 📊 Status & Readiness
 
 - **Readiness**: {{readinessIcon pbi.readiness.readiness_status}} {{pbi.readiness.readiness_status}}
-**Ready for Sprint**: {{#if pbi.readiness.sprint_ready}}✅ Yes{{else}}❌ No{{/if}}
-**Readiness Score**: {{pbi.readiness.readiness_score}}/100
+- **Ready for Sprint**: {{#if pbi.readiness.sprint_ready}}✅ Yes{{else}}❌ No{{/if}}
+- **Readiness Score**: {{pbi.readiness.readiness_score}}/100
 
 {{#if pbi.pbi.description}}
 ## 📝 Description
@@ -67,11 +67,11 @@ created: {{pbi.metadata.created}}
 {{#if (or (eq this.priority 'CRITICAL') (eq this.priority 'HIGH'))}}
 ### {{this.priority}}: {{this.question}}
 
-**Category**: {{this.category}}
+- **Category**: {{this.category}}
 {{#if this.stakeholders}}
-**Stakeholders**: {{#each this.stakeholders}}{{#if this.name}}{{this.name}}{{else}}{{this.role}}{{/if}}{{#unless @last}}, {{/unless}}{{/each}}
+- **Stakeholders**: {{#each this.stakeholders}}{{#if this.name}}{{this.name}}{{else}}{{this.role}}{{/if}}{{#unless @last}}, {{/unless}}{{/each}}
 {{/if}}
-{{#if this.proposed_answer}}
+{{#if this.proposed_answer.suggestion}}
 
 **Proposed Answer** (Confidence: {{this.proposed_answer.confidence}}):
 
