@@ -6,3 +6,11 @@ dist/
 .DS_Store
 .idea/
 *.zip
+
+# RAG vector database (local only)
+vector-db/
+
+# Test data
+.rag-test-data/
+examples/rag-test-data/
+tests/
