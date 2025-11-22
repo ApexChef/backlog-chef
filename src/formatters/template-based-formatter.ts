@@ -12,9 +12,11 @@ export class TemplateBasedFormatter implements Formatter {
   private engine: TemplateEngine;
   private format: OutputFormat;
   private formatName: string;
+  private variant?: string;
 
-  constructor(format: OutputFormat) {
+  constructor(format: OutputFormat, variant?: string) {
     this.format = format;
+    this.variant = variant;
     this.engine = new TemplateEngine();
 
     // Set format names
@@ -22,8 +24,14 @@ export class TemplateBasedFormatter implements Formatter {
       obsidian: 'Obsidian Markdown',
       devops: 'Azure DevOps',
       confluence: 'Confluence Wiki',
+      json: 'JSON',
     };
     this.formatName = formatNames[format];
+
+    // Append variant to format name if specified
+    if (variant) {
+      this.formatName += ` (${variant})`;
+    }
   }
 
   formatPBI(pbi: PipelineOutput['pbis'][0], runId: string): string {
@@ -31,6 +39,7 @@ export class TemplateBasedFormatter implements Formatter {
     // We need to call it synchronously for the Formatter interface
     const result = this.renderSync({
       format: this.format,
+      variant: this.variant,
       context: {
         pbi,
         metadata: {
@@ -75,26 +84,35 @@ export class TemplateBasedFormatter implements Formatter {
 
   getFileExtension(): string {
     // Get extension from template configuration
+    // Try variant-aware resolution first
+    const variantResult = this.engine.getResolver().resolveVariant(this.format, this.variant);
+    if (variantResult) {
+      return variantResult.variant.fileExtension;
+    }
+
+    // Fallback to legacy resolution
     const location = this.engine.getResolver().resolveMain(this.format);
     if (location) {
       const configPath = location.path.replace(/main\.hbs$/, 'config.yaml');
       try {
         const { ConfigLoader } = require('../templates/engine/config-loader');
         const config = ConfigLoader.load(configPath);
-        return config.fileExtension;
+        if (config.fileExtension) {
+          return config.fileExtension;
+        }
       } catch (error) {
-        // Fallback to defaults
-        const defaults: Record<OutputFormat, string> = {
-          obsidian: '.md',
-          devops: '.txt',
-          confluence: '.wiki',
-        };
-        return defaults[this.format];
+        // Continue to defaults
       }
     }
 
-    // Ultimate fallback
-    return '.txt';
+    // Fallback to defaults
+    const defaults: Record<OutputFormat, string> = {
+      obsidian: '.md',
+      devops: '.txt',
+      confluence: '.wiki',
+      json: '.json',
+    };
+    return defaults[this.format];
   }
 
   getName(): string {
@@ -108,17 +126,39 @@ export class TemplateBasedFormatter implements Formatter {
   /**
    * Synchronous rendering helper for template engine
    */
-  private renderSync(options: { format: string; context: any }): { content: string; fileExtension: string } {
+  private renderSync(options: { format: string; variant?: string; context: any }): { content: string; fileExtension: string } {
     // Since Handlebars is actually synchronous, we can call the engine's internal rendering directly
     // This is a workaround for the async interface
-    const templateLocation = this.engine.getResolver().resolveMain(options.format);
-    if (!templateLocation) {
-      throw new Error(`Template not found for format "${options.format}"`);
+    const fs = require('fs');
+    const Handlebars = require('handlebars');
+
+    // Try variant-aware resolution first
+    let templateLocation;
+    let fileExtension = '.txt';
+
+    const variantResult = this.engine.getResolver().resolveVariant(options.format, options.variant);
+    if (variantResult) {
+      templateLocation = variantResult.location;
+      fileExtension = variantResult.variant.fileExtension;
+    } else {
+      // Fallback to legacy main template
+      templateLocation = this.engine.getResolver().resolveMain(options.format);
+      if (!templateLocation) {
+        throw new Error(`Template not found for format "${options.format}"${options.variant ? ` variant "${options.variant}"` : ''}`);
+      }
+
+      // Get file extension from config
+      const configPath = templateLocation.path.replace(/main\.hbs$/, 'config.yaml');
+      if (fs.existsSync(configPath)) {
+        const { ConfigLoader } = require('../templates/engine/config-loader');
+        const config = ConfigLoader.load(configPath);
+        if (config.fileExtension) {
+          fileExtension = config.fileExtension;
+        }
+      }
     }
 
     // Get compiled template
-    const fs = require('fs');
-    const Handlebars = require('handlebars');
     const templateSource = fs.readFileSync(templateLocation.path, 'utf-8');
 
     // Register helpers
@@ -127,15 +167,6 @@ export class TemplateBasedFormatter implements Formatter {
     // Compile and render
     const template = Handlebars.compile(templateSource);
     const content = template(options.context);
-
-    // Get file extension from config
-    let fileExtension = '.txt';
-    const configPath = templateLocation.path.replace(/main\.hbs$/, 'config.yaml');
-    if (fs.existsSync(configPath)) {
-      const { ConfigLoader } = require('../templates/engine/config-loader');
-      const config = ConfigLoader.load(configPath);
-      fileExtension = config.fileExtension;
-    }
 
     return { content, fileExtension };
   }

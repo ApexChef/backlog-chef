@@ -10,10 +10,17 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { ConfigLoader, FormatConfig, OutputVariant } from './config-loader';
 
 export interface TemplateLocation {
   type: 'project' | 'user' | 'built-in';
   path: string;
+}
+
+export interface VariantResolveResult {
+  location: TemplateLocation;
+  variant: OutputVariant;
+  config: FormatConfig;
 }
 
 export class TemplateResolver {
@@ -68,6 +75,101 @@ export class TemplateResolver {
    */
   resolveMain(format: string): TemplateLocation | null {
     return this.resolve(format, 'main.hbs');
+  }
+
+  /**
+   * Resolve format directory (for config loading)
+   * Returns the first location where the format directory exists
+   */
+  resolveFormatDir(format: string): TemplateLocation | null {
+    // 1. Check project-level
+    const projectDir = path.join(this.projectRoot, '.backlog-chef', 'templates', format);
+    if (fs.existsSync(projectDir) && fs.statSync(projectDir).isDirectory()) {
+      return {
+        type: 'project',
+        path: projectDir,
+      };
+    }
+
+    // 2. Check user-level
+    const userDir = path.join(this.userTemplateDir, format);
+    if (fs.existsSync(userDir) && fs.statSync(userDir).isDirectory()) {
+      return {
+        type: 'user',
+        path: userDir,
+      };
+    }
+
+    // 3. Check built-in
+    const builtInDir = path.join(this.builtInTemplateDir, format);
+    if (fs.existsSync(builtInDir) && fs.statSync(builtInDir).isDirectory()) {
+      return {
+        type: 'built-in',
+        path: builtInDir,
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Resolve template for a specific variant
+   * Loads config and returns template location + variant info
+   */
+  resolveVariant(format: string, variantName?: string): VariantResolveResult | null {
+    // Find format directory
+    const formatDir = this.resolveFormatDir(format);
+    if (!formatDir) {
+      return null;
+    }
+
+    // Load config
+    let config: FormatConfig;
+    try {
+      config = ConfigLoader.loadForFormat(formatDir.path);
+    } catch (error) {
+      // If config doesn't exist or is invalid, fall back to legacy behavior
+      return null;
+    }
+
+    // Get the requested variant (or default)
+    const variant = ConfigLoader.getVariant(config, variantName);
+    if (!variant) {
+      return null;
+    }
+
+    // Determine which template file to use
+    const templateFilename = variant.templatePath || config.templatePath;
+
+    // Resolve the template file
+    const templateLocation = this.resolve(format, templateFilename);
+    if (!templateLocation) {
+      return null;
+    }
+
+    return {
+      location: templateLocation,
+      variant,
+      config,
+    };
+  }
+
+  /**
+   * List all available variants for a format
+   */
+  listVariants(format: string): string[] {
+    const formatDir = this.resolveFormatDir(format);
+    if (!formatDir) {
+      return [];
+    }
+
+    try {
+      const config = ConfigLoader.loadForFormat(formatDir.path);
+      return ConfigLoader.getAvailableVariants(config);
+    } catch (error) {
+      // Config doesn't exist or is invalid
+      return [];
+    }
   }
 
   /**

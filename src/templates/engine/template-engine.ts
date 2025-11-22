@@ -74,9 +74,18 @@ export class TemplateEngine {
       // Render template
       const content = template(context);
 
+      // Get file extension from config (either direct or from first output variant)
+      let fileExtension = config.fileExtension;
+      if (!fileExtension && config.outputs && config.outputs.length > 0) {
+        fileExtension = config.outputs[0].fileExtension;
+      }
+      if (!fileExtension) {
+        fileExtension = '.txt'; // Ultimate fallback
+      }
+
       return {
         content,
-        fileExtension: config.fileExtension,
+        fileExtension,
         format,
       };
     } catch (error) {

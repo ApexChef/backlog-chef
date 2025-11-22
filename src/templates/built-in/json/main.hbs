@@ -1,0 +1,206 @@
+{
+  "metadata": {
+    "generated_at": "{{metadata.generated_at}}",
+    "run_id": "{{metadata.run_id}}",
+    "event_type": "{{metadata.event_type}}",
+    "pbi_index": {{metadata.pbi_index}},
+    "total_pbis": {{metadata.total_pbis}}
+  },
+  "pbi": {
+    "id": "{{pbi.pbi.id}}",
+    "title": "{{pbi.pbi.title}}",
+    {{#if pbi.pbi.description}}
+    "description": "{{pbi.pbi.description}}",
+    {{/if}}
+    {{#if pbi.pbi.acceptance_criteria}}
+    "acceptance_criteria": [
+      {{#each pbi.pbi.acceptance_criteria}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ],
+    {{/if}}
+    {{#if pbi.pbi.notes}}
+    "notes": [
+      {{#each pbi.pbi.notes}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ],
+    {{/if}}
+    {{#if pbi.pbi.mentioned_by}}
+    "mentioned_by": [
+      {{#each pbi.pbi.mentioned_by}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ],
+    {{/if}}
+    "priority": "{{pbi.pbi.priority}}",
+    "estimated_effort": "{{pbi.pbi.estimated_effort}}"
+  },
+  "quality": {
+    "scores": {
+      "overall_score": {{pbi.scores.overall_score}},
+      "completeness": {{pbi.scores.completeness}},
+      "clarity": {{pbi.scores.clarity}},
+      "actionability": {{pbi.scores.actionability}},
+      "testability": {{pbi.scores.testability}}
+    },
+    "overall_assessment": "{{#gte pbi.scores.overall_score 90}}Excellent - Ready for sprint{{else}}{{#gte pbi.scores.overall_score 80}}Good - Minor improvements needed{{else}}{{#gte pbi.scores.overall_score 70}}Fair - Requires refinement{{else}}{{#gte pbi.scores.overall_score 60}}Poor - Significant gaps{{else}}Very Poor - Not ready for development{{/gte}}{{/gte}}{{/gte}}{{/gte}}"
+  },
+  {{#if pbi.context}}
+  "context": {
+    {{#if pbi.context.related_work}}
+    "related_work": [
+      {{#each pbi.context.related_work}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ],
+    {{/if}}
+    {{#if pbi.context.technical_notes}}
+    "technical_notes": [
+      {{#each pbi.context.technical_notes}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ],
+    {{/if}}
+    {{#if pbi.context.dependencies}}
+    "dependencies": [
+      {{#each pbi.context.dependencies}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ]
+    {{/if}}
+  },
+  {{/if}}
+  "risks": {
+    {{#if pbi.risks.overall_risk_level}}
+    "overall_risk_level": "{{pbi.risks.overall_risk_level}}",
+    {{/if}}
+    "risk_count": {{#if pbi.risks.risks}}{{length pbi.risks.risks}}{{else}}0{{/if}},
+    "risk_assessment": "{{#eq pbi.risks.overall_risk_level 'HIGH'}}High risk - Requires mitigation plan{{else}}{{#eq pbi.risks.overall_risk_level 'MEDIUM'}}Medium risk - Monitor and address{{else}}{{#eq pbi.risks.overall_risk_level 'LOW'}}Low risk - Acceptable for sprint{{else}}Unknown risk level{{/eq}}{{/eq}}{{/eq}}",
+    {{#if pbi.risks.risks}}
+    "risks": [
+      {{#each pbi.risks.risks}}
+      {
+        "type": "{{this.type}}",
+        "severity": "{{this.severity}}",
+        "description": "{{this.description}}"{{#if this.mitigation}},
+        "mitigation": "{{this.mitigation}}"{{/if}}
+      }{{#unless @last}},{{/unless}}
+      {{/each}}
+    ]
+    {{else}}
+    "risks": []
+    {{/if}}
+  },
+  {{#if pbi.questions}}
+  "questions": [
+    {{#each pbi.questions}}
+    {
+      "question": "{{this.question}}",
+      "category": "{{this.category}}",
+      "priority": "{{this.priority}}",
+      {{#if this.stakeholders}}
+      "stakeholders": [
+        {{#each this.stakeholders}}
+        {
+          {{#if this.name}}
+          "name": "{{this.name}}",
+          {{/if}}
+          "role": "{{this.role}}"
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+      ],
+      {{/if}}
+      {{#if this.proposed_answer}}
+      "proposed_answer": {
+        {{#if this.proposed_answer.confidence}}
+        "confidence": "{{this.proposed_answer.confidence}}",
+        {{/if}}
+        {{#if this.proposed_answer.suggestion}}
+        "suggestion": "{{this.proposed_answer.suggestion}}",
+        {{/if}}
+        {{#if this.proposed_answer.rationale}}
+        "rationale": "{{this.proposed_answer.rationale}}"
+        {{/if}}
+      }
+      {{/if}}
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ],
+  {{/if}}
+  "readiness": {
+    {{#if pbi.readiness.readiness_status}}
+    "readiness_status": "{{pbi.readiness.readiness_status}}",
+    {{/if}}
+    "readiness_level": "{{#if pbi.readiness.readiness_status}}{{#if (includes pbi.readiness.readiness_status 'READY')}}ready{{else}}{{#if (includes pbi.readiness.readiness_status 'NEEDS REFINEMENT')}}needs_refinement{{else}}{{#if (includes pbi.readiness.readiness_status 'NOT READY')}}not_ready{{else}}unknown{{/if}}{{/if}}{{/if}}{{else}}unknown{{/if}}",
+    "can_start_sprint": {{#if pbi.readiness.sprint_ready}}true{{else}}false{{/if}},
+    "readiness_score": {{#if pbi.readiness.readiness_score}}{{pbi.readiness.readiness_score}}{{else}}0{{/if}},
+    {{#if pbi.readiness.blocking_issues}}
+    "blocking_issues": [
+      {{#each pbi.readiness.blocking_issues}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ],
+    {{/if}}
+    {{#if pbi.readiness.warnings}}
+    "warnings": [
+      {{#each pbi.readiness.warnings}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ],
+    {{/if}}
+    {{#if pbi.readiness.recommendations}}
+    "recommendations": [
+      {{#each pbi.readiness.recommendations}}
+      "{{this}}"{{#unless @last}},{{/unless}}
+      {{/each}}
+    ]
+    {{/if}}
+  }{{#if pbi.tasks}},
+  "tasks": {
+    "summary": {
+      "total_tasks": {{pbi.tasks.summary.total_tasks}},
+      {{#if pbi.tasks.summary.estimated_total_effort}}
+      "estimated_total_effort": "{{pbi.tasks.summary.estimated_total_effort}}",
+      {{/if}}
+      "by_phase": {
+        "pre_work": {{#if pbi.tasks.tasks.pre_work}}{{length pbi.tasks.tasks.pre_work}}{{else}}0{{/if}},
+        "implementation": {{#if pbi.tasks.tasks.implementation}}{{length pbi.tasks.tasks.implementation}}{{else}}0{{/if}},
+        "verification": {{#if pbi.tasks.tasks.verification}}{{length pbi.tasks.tasks.verification}}{{else}}0{{/if}}
+      }
+    },
+    "tasks": {
+      {{#if pbi.tasks.tasks.pre_work}}
+      "pre_work": [
+        {{#each pbi.tasks.tasks.pre_work}}
+        {
+          "title": "{{this.title}}",
+          "priority": "{{this.priority}}"{{#if this.estimated_effort}},
+          "estimated_effort": "{{this.estimated_effort}}"{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+      ],
+      {{/if}}
+      {{#if pbi.tasks.tasks.implementation}}
+      "implementation": [
+        {{#each pbi.tasks.tasks.implementation}}
+        {
+          "title": "{{this.title}}"{{#if this.agent_hint}},
+          "agent_hint": "{{this.agent_hint}}"{{/if}}{{#if this.estimated_effort}},
+          "estimated_effort": "{{this.estimated_effort}}"{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+      ],
+      {{/if}}
+      {{#if pbi.tasks.tasks.verification}}
+      "verification": [
+        {{#each pbi.tasks.tasks.verification}}
+        {
+          "title": "{{this.title}}"
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+      ]
+      {{/if}}
+    }
+  }{{/if}}
+}

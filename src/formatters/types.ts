@@ -7,7 +7,7 @@ import { PipelineOutput } from '../pipeline/types/pipeline-types';
 /**
  * Supported output formats
  */
-export type OutputFormat = 'devops' | 'obsidian' | 'confluence';
+export type OutputFormat = 'devops' | 'obsidian' | 'confluence' | 'json';
 
 /**
  * Formatter interface - each formatter must implement these methods

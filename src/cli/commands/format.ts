@@ -13,11 +13,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { glob } from 'glob';
-import { FormatService, OutputFormat } from '../../formatters';
+import { FormatService, FormatSpec, OutputFormat } from '../../formatters';
 import { PipelineOutput } from '../../pipeline/types/pipeline-types';
 
 export interface FormatCommandOptions {
-  to: string;  // Target format(s): 'devops', 'obsidian', 'confluence', 'all'
+  to: string;  // Target format(s): 'devops', 'devops:api', 'obsidian', 'confluence', 'all'
   output?: string;  // Output directory (defaults to input file directory)
   force?: boolean;  // Overwrite existing files
   verbose?: boolean;  // Show detailed output
@@ -40,7 +40,7 @@ export class FormatCommand {
     const targetFormats = this.parseFormats(options.to);
 
     if (targetFormats.length === 0) {
-      throw new Error('No valid formats specified. Use: devops, obsidian, confluence, or all');
+      throw new Error('No valid formats specified. Use: devops, obsidian, confluence, json, or all');
     }
 
     // Find matching files
@@ -98,7 +98,7 @@ export class FormatCommand {
    */
   private async formatFile(
     filePath: string,
-    formats: OutputFormat[] | 'all',
+    formats: OutputFormat[] | FormatSpec[] | 'all',
     options: FormatCommandOptions
   ): Promise<{ success: boolean; generated: number; skipped: number }> {
     // Determine output directory
@@ -164,9 +164,9 @@ export class FormatCommand {
   }
 
   /**
-   * Parse format string into array of OutputFormat
+   * Parse format string into array of FormatSpec (supports format:variant syntax)
    */
-  private parseFormats(formatString: string): OutputFormat[] | 'all' {
+  private parseFormats(formatString: string): OutputFormat[] | FormatSpec[] | 'all' {
     const cleaned = formatString.toLowerCase().trim();
 
     if (cleaned === 'all') {
@@ -174,11 +174,14 @@ export class FormatCommand {
     }
 
     const parts = cleaned.split(',').map(s => s.trim());
-    const validFormats: OutputFormat[] = [];
+    const validFormats: FormatSpec[] = [];
 
     for (const part of parts) {
-      if (part === 'devops' || part === 'obsidian' || part === 'confluence') {
-        validFormats.push(part as OutputFormat);
+      // Split on colon to support format:variant syntax
+      const [format, variant] = part.split(':');
+
+      if (format === 'devops' || format === 'obsidian' || format === 'confluence' || format === 'json') {
+        validFormats.push({ format: format as OutputFormat, variant });
       } else if (part !== '') {
         console.warn(`  Warning: Unknown format '${part}' ignored`);
       }
@@ -224,7 +227,8 @@ ARGUMENTS
   file-or-pattern   Path to JSON file or glob pattern (e.g., output/**/*.json)
 
 FLAGS
-  --to <format>     Target format(s): devops, obsidian, confluence, all
+  --to <format>     Target format(s): devops, devops:api, devops:manual, obsidian, confluence, json, all
+                    Supports format:variant syntax for multi-variant formats
   --output <dir>    Output directory (defaults to same as input file)
   --force           Overwrite existing files
   --verbose         Show detailed output
@@ -233,6 +237,15 @@ FLAGS
 EXAMPLES
   # Convert single file to Obsidian format
   $ backlog-chef format output/pbi-001.json --to obsidian
+
+  # Convert to DevOps API variant (JSON for REST API)
+  $ backlog-chef format output/pbi-001.json --to devops:api
+
+  # Convert to DevOps manual variant (Markdown for copy-paste)
+  $ backlog-chef format output/pbi-001.json --to devops:manual
+
+  # Convert to both DevOps variants
+  $ backlog-chef format output/pbi-001.json --to devops:api,devops:manual
 
   # Convert to all formats
   $ backlog-chef format output/pbi-001.json --to all
