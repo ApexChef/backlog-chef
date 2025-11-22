@@ -1,0 +1,209 @@
+# User Story: Transcript Viewer UI (Web + CLI)
+
+## Story
+As a **Product Owner and Team Member**, I want a **visual transcript viewer** so that I can **easily browse, review, and share meeting transcripts with stakeholders in both web and terminal interfaces**.
+
+## Background
+Currently, transcripts are plain text files in the input folder with no visual representation. We need:
+1. A web-based viewer using Astro (static site) for sharing and documentation
+2. A CLI-based viewer for terminal users who prefer command-line workflows
+3. A consistent schema for transcript display across both interfaces
+4. Navigation between multiple transcripts
+
+This is the first step toward a future full web UI for Backlog Chef, complementing the existing CLI interface.
+
+## Acceptance Criteria
+
+### 1. Transcript Schema Definition
+- [ ] Define a standardized JSON schema for transcript display metadata
+- [ ] Schema includes: title, date, participants, duration, source, sections/turns
+- [ ] Schema supports both speaker-based (Fireflies) and time-based (generic) formats
+- [ ] Schema is validated and documented in `docs/schemas/transcript-display-schema.json`
+
+### 2. Astro Static Site Setup
+- [ ] Create separate Astro project in `src/ui/web/` directory
+- [ ] Project structure isolates UI code from CLI pipeline code
+- [ ] Astro site can be built independently (`npm run build:web`)
+- [ ] Static output goes to `dist/web/` for deployment
+
+### 3. Web Transcript Viewer
+- [ ] Index page (`/`) lists all available transcripts with metadata cards
+- [ ] Transcript detail page (`/transcript?id=<filename>`) displays full conversation
+- [ ] Query parameter-based routing (e.g., `?id=013-rag-context-enrichment`)
+- [ ] Responsive design works on mobile, tablet, desktop
+- [ ] Visual distinction between speakers (avatars, color coding, or labels)
+- [ ] Timestamps displayed for each turn/message
+- [ ] Metadata header shows: meeting type, date, duration, participants
+- [ ] Clean, readable typography optimized for long-form content
+
+### 4. Dynamic Transcript Loading
+- [ ] Transcripts loaded from JSON files in `src/ui/web/public/transcripts/`
+- [ ] Auto-discovery: new transcript files appear in navigation automatically
+- [ ] Support for both parsed Fireflies JSON and custom transcript format
+- [ ] Graceful error handling for missing or malformed transcripts
+- [ ] Loading states and error messages
+
+### 5. CLI Transcript Viewer
+- [ ] New command: `backlog-chef view <transcript-file>`
+- [ ] Uses terminal UI framework (investigate OCLIF plugins: `@oclif/core`, `ink`, `blessed`, or `terminal-kit`)
+- [ ] Displays transcript with speaker names, timestamps, and message content
+- [ ] Supports scrolling through long transcripts
+- [ ] Color-coded speakers for readability
+- [ ] Metadata header in terminal (date, participants, duration)
+- [ ] Keyboard navigation (arrow keys, page up/down, q to quit)
+
+### 6. CLI Transcript List
+- [ ] New command: `backlog-chef list` or `backlog-chef view --list`
+- [ ] Shows all transcripts in `project-backlog-items/input/` directory
+- [ ] Table format with columns: ID, Title, Date, Participants, Status
+- [ ] Interactive selection (use arrow keys to select, Enter to view)
+- [ ] Filter options: `--type <refinement|planning|retrospective>`
+
+### 7. Transcript Parser/Converter
+- [ ] Utility converts plain text transcripts to JSON schema format
+- [ ] Command: `backlog-chef parse <input.txt> --output <output.json>`
+- [ ] Detects speaker patterns (e.g., "Speaker: message" or "**Speaker:** message")
+- [ ] Extracts metadata from header (date, participants if present)
+- [ ] Preserves formatting, line breaks, emphasis
+
+### 8. Documentation & Examples
+- [ ] README in `src/ui/web/` explains Astro setup and development
+- [ ] Example transcript JSON files in `examples/transcripts/`
+- [ ] Schema documentation with field descriptions
+- [ ] CLI command help text for `view`, `list`, `parse` commands
+- [ ] Deployment guide for hosting Astro site (Vercel, Netlify, GitHub Pages)
+
+## Technical Considerations
+
+### Web Stack (Astro)
+- **Why Astro?** Static site generation, fast builds, component-based, easy deployment
+- **Styling:** Tailwind CSS or vanilla CSS (keep it simple)
+- **Routing:** Client-side routing with query parameters (no server needed)
+- **Build output:** Fully static HTML/CSS/JS for CDN deployment
+
+### CLI Stack (Terminal UI)
+- **Research OCLIF ecosystem:**
+  - `@oclif/core` - Base framework (already using)
+  - `ink` - React for CLIs (recommended by Vercel)
+  - `blessed` - Full-featured terminal UI
+  - `terminal-kit` - Rich terminal features
+  - `chalk` - Terminal colors (simple)
+  - `cli-table3` - Tables for list view
+- **Decision criteria:** Ease of use, maintenance, bundle size
+
+### Directory Structure
+```
+backlog-chef/
+├── src/
+│   ├── cli/           # Existing CLI commands
+│   ├── pipeline/      # Existing pipeline
+│   ├── ui/
+│   │   ├── web/       # NEW: Astro static site
+│   │   │   ├── src/
+│   │   │   │   ├── pages/
+│   │   │   │   │   ├── index.astro
+│   │   │   │   │   └── transcript.astro
+│   │   │   │   ├── components/
+│   │   │   │   │   ├── TranscriptCard.astro
+│   │   │   │   │   ├── TranscriptViewer.astro
+│   │   │   │   │   └── Navigation.astro
+│   │   │   │   └── layouts/
+│   │   │   │       └── BaseLayout.astro
+│   │   │   ├── public/
+│   │   │   │   └── transcripts/  # JSON transcript files
+│   │   │   ├── package.json
+│   │   │   └── astro.config.mjs
+│   │   └── cli/       # NEW: Terminal UI components
+│   │       ├── transcript-viewer.ts
+│   │       └── transcript-list.ts
+│   └── schemas/       # NEW: JSON schemas
+│       └── transcript-display.schema.json
+├── docs/
+│   └── schemas/       # Schema documentation
+└── examples/
+    └── transcripts/   # Example JSON transcripts
+```
+
+### Transcript Display Schema (Draft)
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "date": { "type": "string", "format": "date-time" },
+    "duration": { "type": "number", "description": "Duration in seconds" },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "role": { "type": "string" },
+          "email": { "type": "string", "format": "email" }
+        }
+      }
+    },
+    "source": {
+      "type": "string",
+      "enum": ["fireflies", "manual", "zoom", "teams"]
+    },
+    "meetingType": {
+      "type": "string",
+      "enum": ["refinement", "planning", "retrospective", "daily_standup", "unknown"]
+    },
+    "turns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "speaker": { "type": "string" },
+          "timestamp": { "type": "number" },
+          "message": { "type": "string" },
+          "metadata": { "type": "object" }
+        },
+        "required": ["speaker", "message"]
+      }
+    }
+  },
+  "required": ["id", "title", "turns"]
+}
+```
+
+## Out of Scope (Future Enhancements)
+- Interactive editing of transcripts
+- Real-time collaboration features
+- Authentication/authorization
+- Server-side processing
+- Integration with live meeting platforms
+- Audio/video playback
+
+## Definition of Done
+- [ ] Astro site builds successfully and displays transcripts
+- [ ] CLI viewer command works with keyboard navigation
+- [ ] CLI list command shows all transcripts in table format
+- [ ] Parser converts existing txt transcripts to JSON schema
+- [ ] At least 3 example transcripts viewable in both interfaces
+- [ ] Documentation includes deployment guide for Astro site
+- [ ] Code is in isolated `src/ui/` directory
+- [ ] Both web and CLI interfaces are accessible via npm scripts
+- [ ] All tests pass (unit tests for parser, integration for CLI commands)
+
+## Dependencies
+- Astro framework
+- Terminal UI library (TBD based on research)
+- JSON schema validator
+
+## Estimated Effort
+Medium-Large (3-5 days)
+
+## Priority
+Medium - Nice to have for better UX, but not blocking core pipeline functionality
+
+## Notes
+- This is foundational work for future full web UI
+- Keep web and CLI code cleanly separated
+- Static site approach means no backend needed (lower complexity)
+- Consider accessibility (WCAG) for web viewer
+- Terminal UI should work in standard terminals (zsh, bash, fish, PowerShell)

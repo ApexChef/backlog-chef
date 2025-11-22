@@ -1,0 +1,32 @@
+[
+  {
+    "op": "add",
+    "path": "/fields/System.Title",
+    "value": "As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code"
+  },
+  {
+    "op": "add",
+    "path": "/fields/System.Description",
+    "value": "<div>Create a flexible template-based formatting system using Handlebars that allows users to define custom output formats for Product Backlog Items across different tools and platforms. The system will support template resolution, helper functions, and extensible format definitions.</div><h3>Acceptance Criteria</h3><ol><li>Template resolution checks ./.backlog-chef/templates/ first, then ~/.backlog-chef/templates/, with built-in templates as fallback</li><li>Handlebars templates compile successfully with registered helpers</li><li>Context includes full PipelineOutput data for templates</li><li>Error messages point to specific template file and line</li><li>DevOps, Obsidian, and Confluence formats can be generated using templates</li><li>CLI commands support template initialization, validation, and listing</li><li>Users can create new formats by adding template directories</li><li>Custom helpers can be defined in configuration</li></ol>"
+  },
+  {
+    "op": "add",
+    "path": "/fields/System.State",
+    "value": "Approved"
+  },
+  {
+    "op": "add",
+    "path": "/fields/Microsoft.VSTS.Common.Priority",
+    "value": 2
+  },
+  {
+    "op": "add",
+    "path": "/fields/Microsoft.VSTS.Common.BlockedBy",
+    "value": "Missing performance benchmark expectations; Incomplete security considerations for template parsing; Unanswered critical and high-priority questions"
+  },
+  {
+    "op": "add",
+    "path": "/fields/System.Tags",
+    "value": "backlog-chef; PBI-011; readiness-82"
+  }
+]

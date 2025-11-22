@@ -176,7 +176,8 @@ export class PBIOutputWriter {
   /**
    * Get readiness level
    */
-  private getReadinessLevel(status: string): string {
+  private getReadinessLevel(status: string | undefined): string {
+    if (!status || typeof status !== 'string') return 'unknown';
     if (status.includes('READY')) return 'ready';
     if (status.includes('NEEDS REFINEMENT')) return 'needs_refinement';
     if (status.includes('NOT READY')) return 'not_ready';

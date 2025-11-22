@@ -1,0 +1,62 @@
+# Display Configuration for Backlog Chef
+#
+# Controls the chef-themed loading indicators and tips system
+# Copy this file to ~/.backlog-chef/display-config.yaml to customize
+
+display:
+  # Chef Theme Settings
+  # ---------------------
+  # Enable/disable the chef-themed loading indicators
+  # Set to false for professional/boring mode
+  chef_theme: true
+
+  # Show emojis in output
+  # Disable if your terminal doesn't support Unicode properly
+  show_emojis: true
+
+  # Tips System
+  # -----------
+  # Display helpful tips during long operations
+  show_tips: true
+
+  # Tip display style
+  # - both: Show both chef metaphor and CLI tip (default)
+  # - metaphor: Only show chef wisdom
+  # - cli: Only show CLI usage tips
+  tip_style: "both"
+
+  # How often tips rotate (in seconds)
+  # Set to 0 to disable rotation
+  tip_rotation_seconds: 8
+
+  # Which tip categories to show
+  # Available: chef_wisdom, cli_usage, chef_quotes
+  tip_categories:
+    - chef_wisdom
+    - cli_usage
+    - chef_quotes
+
+# Environment Variable Overrides
+# -------------------------------
+# You can also control these settings via environment variables:
+#
+# CHEF_THEME=false          # Disable chef theme
+# CHEF_SHOW_TIPS=false      # Disable tips
+# CHEF_TIP_ROTATION=10      # Change rotation interval
+#
+# Environment variables take precedence over this file
+
+# Examples
+# --------
+# Professional mode (no fun):
+#   chef_theme: false
+#   show_tips: false
+#
+# Minimal mode (chef theme but no tips):
+#   chef_theme: true
+#   show_tips: false
+#
+# Tips only mode (no chef metaphors):
+#   chef_theme: true
+#   show_tips: true
+#   tip_style: "cli"

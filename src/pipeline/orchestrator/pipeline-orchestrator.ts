@@ -95,11 +95,19 @@ export class PipelineOrchestrator {
    * @returns Processed PBI data
    */
   async execute(input: PipelineInput, options: PipelineOptions = {}): Promise<PipelineOutput> {
-    console.log('\n' + '='.repeat(80));
-    console.log('BACKLOG CHEF PIPELINE');
-    console.log('='.repeat(80));
-    console.log(`Transcript length: ${input.transcript.length} characters`);
-    console.log('='.repeat(80) + '\n');
+    // Only show banner if chef theme is disabled
+    const chefTheme = process.env.CHEF_THEME !== 'false';
+
+    if (!chefTheme) {
+      console.log('\n' + '='.repeat(80));
+      console.log('BACKLOG CHEF PIPELINE');
+      console.log('='.repeat(80));
+      console.log(`Transcript length: ${input.transcript.length} characters`);
+      console.log('='.repeat(80) + '\n');
+    } else {
+      console.log('\n🎯 Backlog Chef Pipeline');
+      console.log('━'.repeat(80) + '\n');
+    }
 
     // Initialize context
     const context: PipelineContext = {

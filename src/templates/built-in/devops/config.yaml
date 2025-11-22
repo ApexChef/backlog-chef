@@ -1,11 +1,38 @@
 name: Azure DevOps
 description: Azure DevOps Work Item format for Product Backlog Items
-fileExtension: .txt
 templatePath: main.hbs
+
+# Target system information
+target:
+  system: azure-devops
+  organization: "https://dev.azure.com/{org}"
+  project: "{project}"
+  workItemType: "Product Backlog Item"
+
+# Output variants - multiple delivery methods
+outputs:
+  - variant: api
+    description: JSON payload for Azure DevOps REST API
+    fileExtension: .json
+    contentType: application/json
+    templatePath: api.hbs
+    delivery:
+      method: api
+      endpoint: "{organization}/{project}/_apis/wit/workitems/${type}?api-version=7.1"
+      authentication: pat
+
+  - variant: manual
+    description: Markdown for manual copy-paste into DevOps UI
+    fileExtension: .md
+    contentType: text/markdown
+    templatePath: manual.hbs
+    delivery:
+      method: file
+      instructions: "Copy content and paste into Azure DevOps work item description field"
 
 metadata:
   author: Backlog Chef
-  version: 1.0.0
+  version: 2.0.0
   documentation: https://github.com/ApexChef/backlog-chef
 
 options:

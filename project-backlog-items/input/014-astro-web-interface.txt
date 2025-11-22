@@ -1,0 +1,196 @@
+Meeting Transcript: Astro Web Interface for Backlog Chef
+==========================================================
+
+Participants: Product Owner, Developer
+Date: 2025-01-22
+Duration: 15 minutes
+
+---
+
+[00:00] Product Owner:
+We need a web interface for Backlog Chef that makes it easier to interact with transcripts, documentation, and the RAG search system. Currently everything is CLI-based, which works for developers but isn't ideal for product owners and other stakeholders who want to review and search through our backlog items.
+
+[00:30] Developer:
+That makes sense. What specific features do you envision?
+
+[00:45] Product Owner:
+Three main sections:
+
+First, a transcript viewer with a WhatsApp-style chat interface. When we process meeting transcripts, I want to be able to see them in a familiar chat bubble format with speaker names, timestamps, and the ability to scroll through the conversation naturally. It should feel like reading a messaging app, not a wall of text.
+
+Second, documentation browsing. All our markdown documentation in the /docs folder should be browsable with a nice sidebar navigation, search functionality, and syntax highlighting for code blocks. Think of something like GitBook or the Next.js documentation site.
+
+Third, and most importantly, a RAG search interface. I want a search box where I can type queries like "authentication patterns" or "database migration" and get relevant results from our indexed documentation and past PBIs. Show me the relevance scores, let me filter by document type, and click through to see the full content.
+
+[02:15] Developer:
+For the tech stack, I'm thinking Astro would be perfect for this. It's built for content-heavy sites, has great performance, and we can add interactive components where needed. We already have the RAG backend working with ChromaDB.
+
+[02:30] Product Owner:
+Why Astro specifically?
+
+[02:35] Developer:
+Astro uses an "island architecture" - most of the site is static HTML for fast loading, but we can make specific components interactive with React or other frameworks. Since most of what we're showing is documentation and transcripts, we want that to be static and fast. Only the search box and filters need to be interactive.
+
+Also, Astro has built-in Content Collections which are perfect for managing our markdown docs. We can define schemas, add frontmatter for metadata, and query everything easily.
+
+[03:15] Product Owner:
+How would the architecture work?
+
+[03:20] Developer:
+We'd have an Astro site running on localhost:4321 or similar. The structure would be:
+
+- Homepage: Dashboard showing recent transcripts, quick search, documentation links
+- /transcripts: List of all processed meetings with preview
+- /transcripts/[id]: Single transcript viewer with the WhatsApp-style UI
+- /docs: Documentation home with navigation sidebar
+- /docs/[...slug]: Dynamic documentation pages
+- /search: Full RAG search interface with filters and results
+
+For styling, I recommend Tailwind CSS or shadcn/ui which gives us nice pre-built components.
+
+[04:00] Product Owner:
+What about the data sources? Where does it get the transcripts and documentation?
+
+[04:05] Developer:
+For transcripts, we'd read from the /output directory where backlog-chef process saves the results. Each run creates a folder with the transcript JSON and the generated PBIs.
+
+For documentation, Astro Content Collections can directly read from /docs/**/*.md. It will parse frontmatter, generate types, and give us a nice API to query everything.
+
+For RAG search, we'd need a small Express or Fastify API server running alongside Astro. The search component would call something like POST /api/rag/search with the query, and our existing RAG service returns the results. This keeps the backend logic separate from the frontend.
+
+[05:00] Product Owner:
+Let's talk about the WhatsApp-style transcript viewer specifically. What should that look like?
+
+[05:05] Developer:
+Each message would be a chat bubble with:
+- Speaker name or avatar on the left
+- Timestamp in small gray text
+- Message content in a rounded bubble
+- Different background colors for different speakers
+- Scroll smoothly like a chat app
+- Maybe add search-within-transcript functionality
+- Export button to download as PDF or markdown
+
+We could use React for this since it's an interactive component. There are existing libraries like react-chat-elements we could customize.
+
+[06:00] Product Owner:
+For the RAG search interface, I want this to be really powerful. Show me what you're thinking.
+
+[06:10] Developer:
+The search page would have:
+
+Top section:
+- Large search input box with autocomplete suggestions
+- Filters: document type (markdown, pbi_json), date range, minimum relevance score
+- Sort options: relevance, date, document type
+
+Results section:
+- Each result shows:
+  - Document title and path
+  - Relevance score as a percentage with a visual indicator
+  - Snippet of matching content with highlighted search terms
+  - Document type badge
+  - Click to expand full content or navigate to source
+- Pagination for large result sets
+- "No results" state with suggestions
+
+Right sidebar:
+- Quick stats: total indexed documents, search time
+- Recent searches
+- Suggested queries based on popular searches
+
+[07:30] Product Owner:
+I like it. What about the documentation section?
+
+[07:35] Developer:
+Classic documentation site layout:
+
+Left sidebar:
+- Hierarchical navigation based on folder structure
+- Collapsible sections
+- Search box to filter docs
+- Active page highlighted
+
+Main content area:
+- Rendered markdown with syntax highlighting
+- Headings with anchor links for easy sharing
+- Table of contents on the right for long pages
+- "Edit on GitHub" link
+- Previous/Next navigation at bottom
+
+Features:
+- Dark mode toggle
+- Copy code button on all code blocks
+- Responsive design for mobile
+
+[08:30] Product Owner:
+How long would this take to build?
+
+[08:35] Developer:
+If we break it down:
+
+Phase 1 (MVP): Basic Astro setup with documentation and simple RAG search - 1-2 weeks
+Phase 2: WhatsApp-style transcript viewer - 1 week
+Phase 3: Enhanced search with filters and stats - 1 week
+Phase 4: Polish, dark mode, responsive design - 1 week
+
+Total: 4-6 weeks for a complete, polished interface.
+
+We could start with just the RAG search interface if you want to prioritize that.
+
+[09:15] Product Owner:
+Yes, let's prioritize the RAG search since that provides the most immediate value. Once that's working, we can add the transcript viewer and enhance the docs.
+
+[09:25] Developer:
+One more thing - deployment. Since this is a development tool, should we host it somewhere or just run it locally?
+
+[09:35] Product Owner:
+Let's keep it local for now. Developers can run npm run dev and access it on localhost. Later if we want to share it with the team, we could deploy to Vercel or Netlify, but that's not a priority yet.
+
+[10:00] Developer:
+Got it. So the tech stack is:
+- Astro for the site framework
+- React for interactive components (search, transcript viewer)
+- Tailwind CSS for styling
+- Content Collections for documentation
+- Express/Fastify API for RAG search endpoint
+- Runs locally on localhost:4321
+
+[10:20] Product Owner:
+Perfect. Let's also make sure there's a README in the Astro project explaining how to:
+- Install dependencies
+- Start the dev server
+- Start the RAG API server
+- Troubleshooting common issues
+
+[10:40] Developer:
+Absolutely. I'll also add some example queries and screenshots to the README so people know what they can do with the search.
+
+[11:00] Product Owner:
+One last requirement - the site should automatically detect when new transcripts or documentation files are added. If I run backlog-chef process and generate a new PBI, I should see it in the web interface without manually refreshing anything.
+
+[11:15] Developer:
+Astro has hot module replacement in dev mode, so changes to the /output and /docs directories will automatically trigger a rebuild. For production, we'd need to add a file watcher or webhook, but for local development it should just work.
+
+[11:40] Product Owner:
+Excellent. Let's document all of this and add it to the backlog. This is PBI-014.
+
+[12:00] Developer:
+Will do. I'll also note that this integrates with PBI-013 (RAG Context Enrichment), so we need that to be merged first before we can build the search interface.
+
+[12:20] Product Owner:
+Makes sense. Any other dependencies?
+
+[12:25] Developer:
+The template system from PBI-011 would be nice to have for formatting the output, but it's not strictly required. We can display the raw JSON if needed.
+
+[12:45] Product Owner:
+Alright, let's proceed. This will make Backlog Chef much more accessible to non-technical users.
+
+[13:00] Developer:
+Agreed. I'll start with a spike to prototype the RAG search interface and show you a demo by next week.
+
+[13:15] Product Owner:
+Perfect. Thanks!
+
+[End of Meeting]

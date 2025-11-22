@@ -1,0 +1,58 @@
+Meeting: Backlog Refinement Session
+Date: November 21, 2025
+Participants: Product Owner, Technical Lead
+
+---
+
+Product Owner: "I've been thinking about how we can improve Step 4 - the 'Enrich with Context' step. Right now, it's using mock data or basic searches, but we need real, intelligent retrieval of similar work, past decisions, and technical documentation."
+
+Technical Lead: "Absolutely. I actually came across this article about building RAG systems: https://www.kdnuggets.com/7-steps-to-build-a-simple-rag-system-from-scratch. It outlines a straightforward approach."
+
+Product Owner: "Perfect! So the idea is to set up a RAG system that we can use to lookup data when we want to enrich content during Step 4. This would replace the current placeholder logic."
+
+Technical Lead: "Right. We'd need to:
+1. Create a vector database of our historical PBIs, decisions, and documentation
+2. Implement semantic search to find relevant context
+3. Integrate this into the existing Step 4 pipeline
+4. Make it configurable so users can point it at their own knowledge bases"
+
+Product Owner: "What about the data sources? We should support multiple types of knowledge bases."
+
+Technical Lead: "Good point. We should support:
+- Previous PBI JSON files from past pipeline runs
+- Markdown documentation files
+- Confluence pages (via API)
+- Azure DevOps work items (via API)
+- Custom JSON/YAML files for decisions and ADRs"
+
+Product Owner: "And this needs to work locally without requiring external services, right?"
+
+Technical Lead: "Yes, we can use local embedding models like sentence-transformers or all-MiniLM, and a local vector store like Chroma or FAISS. But we should also support cloud options like Pinecone or Weaviate for teams that want better performance."
+
+Product Owner: "What about the acceptance criteria?"
+
+Technical Lead: "Let me outline them:
+1. Vector database setup with configurable storage (local or cloud)
+2. Document ingestion pipeline for multiple source types
+3. Semantic search returns top-k relevant documents with similarity scores
+4. Integration with Step 4 replaces mock data with real RAG results
+5. CLI commands for indexing documents and managing the vector store
+6. Configuration file for data sources, embedding model, and vector store
+7. Proper error handling when vector store is not initialized
+8. Performance: search queries complete in < 500ms for local, < 2s for cloud"
+
+Product Owner: "This will be a game-changer. The similar work detection will actually be useful instead of just returning mock examples."
+
+Technical Lead: "Agreed. We should also think about the update strategy - how often do we re-index? Do we support incremental updates?"
+
+Product Owner: "Good questions. Let's add those to the technical considerations. We should support both full re-index and incremental updates."
+
+Technical Lead: "I'll also note that we need to handle embeddings for different content types differently - code snippets need different treatment than markdown prose."
+
+Product Owner: "Makes sense. And we should track which documents were retrieved for each enrichment, so users can audit the RAG's suggestions."
+
+Technical Lead: "That's a great point for transparency. We can add that to the context enrichment output."
+
+Product Owner: "Alright, I think we have enough to create this PBI. This builds on the template system we just finished, and will make Step 4 actually intelligent."
+
+Technical Lead: "Agreed. This is definitely a high-priority item since it affects the core value proposition - turning transcripts into well-informed PBIs."

@@ -10,29 +10,57 @@ import { Formatter, OutputFormat, FormatResult, FormatOptions } from './types';
 import { PipelineOutput } from '../pipeline/types/pipeline-types';
 import { TemplateBasedFormatter } from './template-based-formatter';
 
+export interface FormatSpec {
+  format: OutputFormat;
+  variant?: string;
+}
+
 export class FormatService {
-  private formatters: Map<OutputFormat, Formatter>;
+  private formatters: Map<string, Formatter>; // Key: "format" or "format:variant"
 
   constructor() {
     this.formatters = new Map();
-    // Use template-based formatters for all formats
+    // Use template-based formatters for all formats (default variants)
     this.registerFormatter(new TemplateBasedFormatter('obsidian'));
     this.registerFormatter(new TemplateBasedFormatter('devops'));
     this.registerFormatter(new TemplateBasedFormatter('confluence'));
+    this.registerFormatter(new TemplateBasedFormatter('json'));
   }
 
   /**
    * Register a formatter
    */
-  private registerFormatter(formatter: Formatter): void {
-    this.formatters.set(formatter.getFormatId(), formatter);
+  private registerFormatter(formatter: Formatter, variant?: string): void {
+    const key = variant ? `${formatter.getFormatId()}:${variant}` : formatter.getFormatId();
+    this.formatters.set(key, formatter);
   }
 
   /**
-   * Get a formatter by format ID
+   * Get a formatter by format ID and optional variant
    */
-  getFormatter(format: OutputFormat): Formatter | undefined {
-    return this.formatters.get(format);
+  getFormatter(format: OutputFormat, variant?: string): Formatter {
+    // Try specific variant first
+    if (variant) {
+      const key = `${format}:${variant}`;
+      let formatter = this.formatters.get(key);
+      if (formatter) {
+        return formatter;
+      }
+
+      // If variant not found, create it dynamically
+      formatter = new TemplateBasedFormatter(format, variant);
+      this.formatters.set(key, formatter);
+      return formatter;
+    }
+
+    // Return default formatter for format
+    let formatter = this.formatters.get(format);
+    if (!formatter) {
+      // Create dynamically if needed
+      formatter = new TemplateBasedFormatter(format);
+      this.formatters.set(format, formatter);
+    }
+    return formatter;
   }
 
   /**
@@ -43,24 +71,52 @@ export class FormatService {
   }
 
   /**
+   * Parse format specification string (supports "format" or "format:variant")
+   */
+  static parseFormatSpec(spec: string): FormatSpec {
+    const parts = spec.split(':');
+    const format = parts[0] as OutputFormat;
+    const variant = parts[1];
+    return { format, variant };
+  }
+
+  /**
    * Generate multiple formats for pipeline output
    *
    * @param output - Pipeline output with all PBIs
-   * @param formats - Array of format IDs to generate ('all' for all formats)
+   * @param formats - Array of format IDs or FormatSpecs to generate ('all' for all formats)
    * @param options - Output options (directory, force, etc.)
    * @returns Array of format results
    */
   async generateFormats(
     output: PipelineOutput,
-    formats: OutputFormat[] | 'all',
+    formats: OutputFormat[] | FormatSpec[] | 'all',
     options: FormatOptions
   ): Promise<FormatResult[]> {
     const results: FormatResult[] = [];
 
-    // Resolve 'all' to actual format array
-    const targetFormats = formats === 'all'
-      ? Array.from(this.formatters.keys())
-      : formats;
+    // Resolve 'all' to actual format specs
+    let targetFormats: FormatSpec[];
+    if (formats === 'all') {
+      // Get unique formats (ignore variants for 'all')
+      const uniqueFormats = new Set<OutputFormat>();
+      for (const key of this.formatters.keys()) {
+        const format = key.split(':')[0] as OutputFormat;
+        uniqueFormats.add(format);
+      }
+      targetFormats = Array.from(uniqueFormats).map(f => ({ format: f }));
+    } else if (Array.isArray(formats) && formats.length > 0) {
+      // Check if it's OutputFormat[] or FormatSpec[]
+      if (typeof formats[0] === 'string') {
+        // OutputFormat[] - convert to FormatSpec[]
+        targetFormats = (formats as OutputFormat[]).map(f => ({ format: f }));
+      } else {
+        // Already FormatSpec[]
+        targetFormats = formats as FormatSpec[];
+      }
+    } else {
+      targetFormats = [];
+    }
 
     // Extract runId from metadata (use timestamp as fallback)
     const runId = output.metadata.processed_at.replace(/[:.]/g, '-').substring(0, 19);
@@ -70,17 +126,17 @@ export class FormatService {
       fs.mkdirSync(options.outputDir, { recursive: true });
     }
 
-    for (const format of targetFormats) {
-      const formatter = this.formatters.get(format);
+    for (const spec of targetFormats) {
+      const formatter = this.getFormatter(spec.format, spec.variant);
 
       if (!formatter) {
         results.push({
-          format,
+          format: spec.format,
           filename: '',
           filepath: '',
           content: '',
           success: false,
-          error: `No formatter found for format: ${format}`,
+          error: `No formatter found for format: ${spec.format}${spec.variant ? `:${spec.variant}` : ''}`,
         });
         continue;
       }
@@ -90,7 +146,8 @@ export class FormatService {
         output,
         formatter,
         runId,
-        options
+        options,
+        spec.variant
       );
       results.push(summaryResult);
 
@@ -100,7 +157,8 @@ export class FormatService {
           pbi,
           formatter,
           runId,
-          options
+          options,
+          spec.variant
         );
         results.push(pbiResult);
       }
@@ -157,11 +215,14 @@ export class FormatService {
     output: PipelineOutput,
     formatter: Formatter,
     runId: string,
-    options: FormatOptions
+    options: FormatOptions,
+    variant?: string
   ): Promise<FormatResult> {
     try {
       const content = formatter.formatSummary(output);
-      const filename = `summary${formatter.getFileExtension()}`;
+      const extension = formatter.getFileExtension();
+      const variantSuffix = variant ? `.${variant}` : '';
+      const filename = `summary${variantSuffix}${extension}`;
       const filepath = path.join(options.outputDir, filename);
 
       // Check if file exists and force flag
@@ -187,10 +248,14 @@ export class FormatService {
         success: true,
       };
     } catch (error) {
+      const extension = formatter.getFileExtension();
+      const variantSuffix = variant ? `.${variant}` : '';
+      const filename = `summary${variantSuffix}${extension}`;
+
       return {
         format: formatter.getFormatId(),
-        filename: `summary${formatter.getFileExtension()}`,
-        filepath: path.join(options.outputDir, `summary${formatter.getFileExtension()}`),
+        filename,
+        filepath: path.join(options.outputDir, filename),
         content: '',
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -205,20 +270,22 @@ export class FormatService {
     pbi: PipelineOutput['pbis'][0],
     formatter: Formatter,
     runId: string,
-    options: FormatOptions
+    options: FormatOptions,
+    variant?: string
   ): Promise<FormatResult> {
     try {
       const content = formatter.formatPBI(pbi, runId);
 
-      // File naming: pbi-{id}.{format}.{ext}
-      // For example: PBI-001.obsidian.md, PBI-001.devops.json, PBI-001.confluence.md
+      // File naming: pbi-{id}.{format}[.{variant}].{ext}
+      // For example: PBI-001.obsidian.md, PBI-001.devops.api.json, PBI-001.devops.manual.md
       const formatId = formatter.getFormatId();
       const extension = formatter.getFileExtension();
 
       // Remove leading dot from extension if present
       const ext = extension.startsWith('.') ? extension.substring(1) : extension;
 
-      const filename = `${pbi.pbi.id}.${formatId}.${ext}`;
+      const variantPart = variant ? `.${variant}` : '';
+      const filename = `${pbi.pbi.id}.${formatId}${variantPart}.${ext}`;
       const filepath = path.join(options.outputDir, filename);
 
       // Check if file exists and force flag
@@ -247,7 +314,8 @@ export class FormatService {
       const formatId = formatter.getFormatId();
       const extension = formatter.getFileExtension();
       const ext = extension.startsWith('.') ? extension.substring(1) : extension;
-      const filename = `${pbi.pbi.id}.${formatId}.${ext}`;
+      const variantPart = variant ? `.${variant}` : '';
+      const filename = `${pbi.pbi.id}.${formatId}${variantPart}.${ext}`;
 
       return {
         format: formatter.getFormatId(),

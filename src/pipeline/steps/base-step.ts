@@ -6,6 +6,7 @@
 
 import { ModelRouter } from '../../ai/router';
 import { PipelineContext } from '../types/pipeline-types';
+import { ChefLoader } from '../../display';
 
 /**
  * Base interface for all pipeline steps
@@ -47,11 +48,25 @@ export abstract class BaseStep implements PipelineStep {
   async execute(context: PipelineContext, router: ModelRouter): Promise<PipelineContext> {
     const stepStartTime = Date.now();
 
+    // Determine step number from orchestrator context (if available)
+    const stepNumber = this.getStepNumber();
+    const totalSteps = 8; // Total pipeline steps
+
+    // Create chef loader
+    const loader = new ChefLoader({
+      stepName: this.name,
+      stepNumber,
+      totalSteps,
+      showTips: process.env.CHEF_SHOW_TIPS !== 'false',
+      chefTheme: process.env.CHEF_THEME !== 'false',
+    });
+
     try {
-      console.log(`\n[${this.name}] Starting...`);
+      loader.start();
 
       // Validate prerequisites
       if (!this.canExecute(context)) {
+        loader.fail(`Prerequisites not met`);
         throw new Error(`${this.name}: Prerequisites not met`);
       }
 
@@ -62,13 +77,31 @@ export abstract class BaseStep implements PipelineStep {
       const duration = Date.now() - stepStartTime;
       updatedContext.stepTimings[this.name] = duration;
 
-      console.log(`[${this.name}] ✓ Completed in ${(duration / 1000).toFixed(2)}s`);
+      loader.succeed();
 
       return updatedContext;
     } catch (error) {
-      console.error(`[${this.name}] ✗ Failed:`, (error as Error).message);
+      loader.fail((error as Error).message);
       throw error;
     }
+  }
+
+  /**
+   * Get step number based on step name
+   */
+  private getStepNumber(): number | undefined {
+    const stepNumbers: Record<string, number> = {
+      detect_event_type: 1,
+      extract_candidates: 2,
+      score_confidence: 3,
+      enrich_context: 4,
+      check_risks: 5,
+      generate_proposals: 6,
+      readiness_checker: 7,
+      format_output: 8,
+    };
+
+    return stepNumbers[this.name];
   }
 
   /**

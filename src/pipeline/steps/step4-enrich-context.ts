@@ -2,6 +2,7 @@
  * Step 4: Enrich with Context
  *
  * Enriches PBIs with relevant historical context, similar work, and past decisions
+ * Now powered by RAG (Retrieval-Augmented Generation) for intelligent semantic search
  */
 
 import { BaseStep } from './base-step';
@@ -15,6 +16,10 @@ import {
   TechnicalDoc,
   RiskFlag,
 } from '../types/pipeline-types';
+
+// RAG imports
+import { RAGService, loadRAGConfig, isRAGEnabled } from '../../rag';
+import type { EnrichedContext as RAGEnrichedContext } from '../../rag';
 
 interface SearchQuery {
   keywords: string[];
@@ -67,10 +72,18 @@ interface RawContextSearch {
  * Purpose: Add historical context, similar work, and past decisions to PBIs
  * Input: Scored PBIs from Step 3
  * Output: PBIs enriched with searchable context and AI-generated insights
+ *
+ * Features:
+ * - RAG-powered semantic search across historical PBIs and documentation
+ * - Automatic fallback to traditional enrichment if RAG unavailable
+ * - Graceful degradation on errors
  */
 export class EnrichContextStep extends BaseStep {
   readonly name = 'enrich_context';
   readonly description = 'Add historical context and similar work references';
+
+  private ragService?: RAGService;
+  private ragEnabled = false;
 
   canExecute(context: PipelineContext): boolean {
     return !!context.scoredPBIs && context.scoredPBIs.scored_pbis.length > 0;
@@ -80,50 +93,24 @@ export class EnrichContextStep extends BaseStep {
     context: PipelineContext,
     router: ModelRouter
   ): Promise<PipelineContext> {
+    // Initialize RAG service if not already done
+    await this.initializeRAG();
+
     const enrichedPBIs: EnrichContextResult['enriched_pbis'] = [];
 
     for (const scoredPBI of context.scoredPBIs!.scored_pbis) {
       console.log(`  Enriching PBI: ${scoredPBI.pbi.id} - ${scoredPBI.pbi.title}`);
 
-      // Step 1: Generate search queries
-      const searchQuery = await this.generateSearchQueries(
-        scoredPBI,
-        context,
-        router
-      );
+      // Determine enrichment strategy: RAG or fallback
+      let contextEnrichment: ContextEnrichment;
 
-      // Step 2: Search for context (simulated with AI)
-      const searchResults = await this.searchForContext(
-        scoredPBI,
-        searchQuery,
-        context,
-        router
-      );
-
-      // Step 3: Analyze risks based on context
-      const riskFlags = await this.analyzeRisks(
-        scoredPBI,
-        searchResults.similar_work,
-        context,
-        router
-      );
-
-      // Step 4: Generate suggestions
-      const suggestions = await this.generateSuggestions(
-        scoredPBI,
-        searchResults,
-        context,
-        router
-      );
-
-      // Compile enrichment
-      const contextEnrichment: ContextEnrichment = {
-        similar_work: searchResults.similar_work,
-        past_decisions: searchResults.past_decisions,
-        technical_docs: searchResults.technical_docs,
-        risk_flags: riskFlags,
-        suggestions: suggestions,
-      };
+      if (this.ragEnabled && this.ragService) {
+        // Use RAG for intelligent semantic search
+        contextEnrichment = await this.enrichWithRAG(scoredPBI, context, router);
+      } else {
+        // Fall back to traditional enrichment
+        contextEnrichment = await this.enrichWithFallback(scoredPBI, context, router);
+      }
 
       enrichedPBIs.push({
         pbi: scoredPBI.pbi,
@@ -143,6 +130,206 @@ export class EnrichContextStep extends BaseStep {
     console.log(`  Total: ${enrichedPBIs.length} PBIs enriched`);
 
     return context;
+  }
+
+  /**
+   * Initialize RAG service if enabled
+   */
+  private async initializeRAG(): Promise<void> {
+    if (this.ragService) {
+      return; // Already initialized
+    }
+
+    try {
+      // Load RAG configuration
+      const ragConfig = loadRAGConfig();
+
+      // Check if RAG is enabled
+      if (!isRAGEnabled(ragConfig)) {
+        console.log('  RAG disabled in configuration, using fallback enrichment');
+        this.ragEnabled = false;
+        return;
+      }
+
+      console.log('  Initializing RAG service...');
+
+      // Create and initialize RAG service
+      this.ragService = await RAGService.create(ragConfig);
+      this.ragEnabled = true;
+
+      console.log('  RAG service initialized successfully');
+    } catch (error) {
+      console.warn(`  Failed to initialize RAG service: ${error}`);
+      console.log('  Falling back to traditional enrichment');
+      this.ragEnabled = false;
+    }
+  }
+
+  /**
+   * Enrich PBI using RAG semantic search
+   */
+  private async enrichWithRAG(
+    scoredPBI: any,
+    context: PipelineContext,
+    router: ModelRouter
+  ): Promise<ContextEnrichment> {
+    try {
+      console.log('    Using RAG for context enrichment');
+
+      // Search using RAG
+      const ragContext = await this.ragService!.searchForPBI(
+        scoredPBI.pbi.title,
+        scoredPBI.pbi.description
+      );
+
+      // Step 3: Analyze risks based on RAG context
+      const riskFlags = await this.analyzeRisks(
+        scoredPBI,
+        ragContext.similar_work,
+        context,
+        router
+      );
+
+      // Step 4: Generate suggestions based on RAG context
+      const suggestions = await this.generateSuggestionsFromRAG(
+        scoredPBI,
+        ragContext,
+        context,
+        router
+      );
+
+      // Combine RAG results with analysis
+      return {
+        similar_work: ragContext.similar_work,
+        past_decisions: ragContext.past_decisions,
+        technical_docs: ragContext.technical_docs,
+        risk_flags: riskFlags,
+        suggestions: suggestions,
+      };
+    } catch (error) {
+      console.warn(`    RAG search failed: ${error}`);
+      console.log('    Falling back to traditional enrichment');
+
+      // Fall back to traditional enrichment on error
+      return await this.enrichWithFallback(scoredPBI, context, router);
+    }
+  }
+
+  /**
+   * Traditional enrichment using documentation and AI
+   */
+  private async enrichWithFallback(
+    scoredPBI: any,
+    context: PipelineContext,
+    router: ModelRouter
+  ): Promise<ContextEnrichment> {
+    console.log('    Using traditional documentation enrichment');
+
+    // Step 1: Generate search queries
+    const searchQuery = await this.generateSearchQueries(
+      scoredPBI,
+      context,
+      router
+    );
+
+    // Step 2: Search for context (simulated with AI)
+    const searchResults = await this.searchForContext(
+      scoredPBI,
+      searchQuery,
+      context,
+      router
+    );
+
+      // Step 3: Analyze risks based on context
+      const riskFlags = await this.analyzeRisks(
+        scoredPBI,
+        searchResults.similar_work,
+        context,
+        router
+      );
+
+      // Step 4: Generate suggestions
+      const suggestions = await this.generateSuggestions(
+        scoredPBI,
+        searchResults,
+        context,
+        router
+      );
+
+      // Compile enrichment
+      return {
+        similar_work: searchResults.similar_work,
+        past_decisions: searchResults.past_decisions,
+        technical_docs: searchResults.technical_docs,
+        risk_flags: riskFlags,
+        suggestions: suggestions,
+      };
+  }
+
+  /**
+   * Generate suggestions based on RAG context
+   */
+  private async generateSuggestionsFromRAG(
+    scoredPBI: any,
+    ragContext: RAGEnrichedContext,
+    context: PipelineContext,
+    router: ModelRouter
+  ): Promise<string[]> {
+    const systemPrompt = `You are an expert consultant providing actionable suggestions for Product Backlog Items.
+
+Based on the PBI and relevant historical context found via semantic search, provide 3-5 specific, actionable suggestions that would:
+1. Improve the PBI's clarity or completeness
+2. Leverage learnings from similar work
+3. Address gaps identified in quality scoring
+4. Follow relevant technical guidelines
+5. Mitigate known risks
+
+Each suggestion should be a single, clear sentence focused on action.
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "suggestions": [
+    "Clear, specific suggestion 1",
+    "Clear, specific suggestion 2"
+  ]
+}`;
+
+    const userPrompt = `Generate suggestions for this PBI:
+
+Title: ${scoredPBI.pbi.title}
+Description: ${scoredPBI.pbi.description}
+
+Quality Scores:
+- Overall: ${scoredPBI.scores.overall_score}/100
+- Completeness: ${scoredPBI.scores.completeness}/100
+- Clarity: ${scoredPBI.scores.clarity}/100
+
+Missing Elements: ${scoredPBI.scores.missing_elements.join(', ')}
+
+Similar Work Found via RAG: ${ragContext.similar_work.length} items
+Past Decisions Found: ${ragContext.past_decisions.length} items
+Technical Docs Found: ${ragContext.technical_docs.length} items
+
+Key Learnings from Similar Work:
+${ragContext.similar_work.flatMap(w => w.learnings).slice(0, 5).map(l => `- ${l}`).join('\n')}
+
+Past Decisions:
+${ragContext.past_decisions.slice(0, 3).map(d => `- ${d.title}: ${d.decision}`).join('\n')}`;
+
+    const responseContent = await this.makeAIRequest(
+      router,
+      this.name,
+      systemPrompt,
+      userPrompt,
+      context
+    );
+
+    const response = this.parseJSONResponse<{ suggestions: string[] }>(
+      responseContent,
+      'Suggestion Generation from RAG'
+    );
+
+    return response.suggestions || [];
   }
 
   /**
