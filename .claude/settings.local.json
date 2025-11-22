@@ -50,7 +50,9 @@
       "Bash(node bin/backlog-chef format:*)",
       "Bash(npm link)",
       "Bash(node dist/test-template-engine.js:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(python3:*)",
+      "Bash(CHEF_THEME=false node:*)"
     ],
     "deny": [],
     "ask": []
