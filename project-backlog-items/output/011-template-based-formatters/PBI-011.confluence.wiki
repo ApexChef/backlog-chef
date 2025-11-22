@@ -1,0 +1,92 @@
+h1. PBI-011: As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code{panel:title=Status|borderStyle=solid|borderColor=#ff9900|titleBGColor=#fffef5|bgColor=#fffef5}
+* *Status:*🟡 NEEDS REFINEMENT* *Readiness Score:*82/100
+* *Sprint Ready:*(x) No* *Estimated Refinement Time:*1 day{panel}h2. Description
+
+Create a flexible template-based formatting system using Handlebars that allows users to define custom output formats for Product Backlog Items across different tools and platforms. The system will support template resolution, helper functions, and extensible format definitions.
+
+h2. Acceptance Criteria
+
+* Template resolution checks ./.backlog-chef/templates/ first, then ~/.backlog-chef/templates/, with built-in templates as fallback
+* Handlebars templates compile successfully with registered helpers
+* Context includes full PipelineOutput data for templates
+* Error messages point to specific template file and line
+* DevOps, Obsidian, and Confluence formats can be generated using templates
+* CLI commands support template initialization, validation, and listing
+* Users can create new formats by adding template directories
+* Custom helpers can be defined in configuration
+
+h2. Quality Scores
+
+||Metric||Score||
+|Overall|92/100|
+|Completeness|95/100|
+|Clarity|90/100|
+|Actionability|90/100|
+|Testability|90/100|
+
+{panel:title=🚨 BLOCKING ISSUES|borderStyle=solid|borderColor=#ff0000|titleBGColor=#ffcccc|bgColor=#fff5f5}
+* Missing performance benchmark expectations
+* Incomplete security considerations for template parsing
+* Unanswered critical and high-priority questions
+{panel}
+
+{panel:title=⚠️ WARNINGS|borderStyle=solid|borderColor=#ff9900|titleBGColor=#fff3cd|bgColor=#fffef5}
+* Complex template engine requirements
+* Potential performance overhead with multiple template resolutions
+* Complexity of helper function implementation
+{panel}
+
+h2. Recommendations
+
+* Define specific performance benchmarks and acceptable overhead thresholds
+* Elaborate on security measures for template parsing and execution
+* Clarify and document the answers to critical and high-priority questions
+* Create a detailed design document addressing template resolution complexity
+* Develop a proof-of-concept to validate helper function implementation
+
+h2. Tasks (12 total)
+
+h3. Implementation Tasks
+
+||Task||Agent||Effort||
+|Run linter and fix all violations|bash: npm run lint|15 minutes|
+|Request code review from team member|Requires human review|30 minutes|
+|Write unit tests for As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code|pact-test-engineer agent|2 hours|
+|Run test suite and ensure all tests pass|bash: npm test|10 minutes|
+|Test all acceptance criteria from test script|Requires human testing|1 hour|
+|Update README.md with As a Product Owner, I want a template-based formatter architecture so that users can customize output formats without modifying code documentation|documentor agent|30 minutes|
+|Add JSDoc comments to public APIs|documentor agent|45 minutes|
+|Add entry to CHANGELOG.md describing the change|documentor agent|10 minutes|
+|Deploy to staging and verify|Requires CI/CD pipeline|20 minutes|
+|Run build and fix any compilation errors|bash: npm run build|15 minutes|
+
+h3. Verification Tasks
+
+* Request code review from team member
+* Demo to PO and obtain acceptance
+
+{info:title=Total Estimated Effort}
+6.9 hours
+{info}
+
+h2. Risks (HIGH){panel:title=technical_debt(critical)|borderColor=#ff0000}Performance overhead from complex Handlebars template parsing and resolution, potentially causing significant runtime latency*Mitigation:*Implement template caching, define strict performance thresholds, create benchmarking tests to measure rendering time and memory consumption{panel}{panel:title=blocker(high)|borderColor=#ff6600}Security vulnerabilities in template parsing that could enable code injection or unauthorized template execution*Mitigation:*Implement strict input sanitization, create template source whitelisting, use sandboxed template rendering environment with restricted permissions{panel}{panel:title=technical_debt(medium)|borderColor=#ff9900}Complex implementation of extensible helper functions and format definitions may compromise system maintainability*Mitigation:*Design clear helper function interface, create comprehensive documentation, develop standardized error handling and validation mechanisms{panel}{panel:title=resource(medium)|borderColor=#ff9900}Potential scalability constraints with concurrent template rendering across multiple formats*Mitigation:*Implement async processing, design thread-safe template resolution, create configurable concurrency limits{panel}h2. Key Questions
+
+||Priority||Question||Proposed Answer||
+|CRITICAL|What are the specific performance benchmark expectations for template resolution and rendering?||
+|CRITICAL|What security validation will be implemented for user-provided Handlebars templates to prevent potential code injection or execution risks?||
+|HIGH|How will custom helper functions be registered, validated, and restricted to prevent unintended system access?||
+|HIGH|What are the specific error handling and logging mechanisms for template compilation and rendering failures?||
+|HIGH|What are the specific testing strategies for validating template rendering across different output formats?||
+|HIGH|What are the performance caching strategies for compiled Handlebars templates?||
+
+h2. Metadata
+
+||Field||Value||
+|Run ID|2025-11-21T07-38-48|
+|Readiness Status|🟡 NEEDS REFINEMENT|
+|Sprint Ready|(x) No|
+|Readiness Score|82/100|
+|Mentioned By|Product Owner, Tech Lead, Developer|
+
+----
+{note}Generated by Backlog Chef{note}

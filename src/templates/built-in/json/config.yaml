@@ -1,0 +1,14 @@
+name: JSON
+description: Structured JSON format for Product Backlog Items
+fileExtension: .json
+templatePath: main.hbs
+
+metadata:
+  author: Backlog Chef
+  version: 1.0.0
+  documentation: https://github.com/ApexChef/backlog-chef
+
+options:
+  prettyPrint: true
+  lineEndings: lf
+  includeMetadata: true

@@ -1,0 +1,37 @@
+[
+  {
+    "op": "add",
+    "path": "/fields/System.Title",
+    "value": "{{pbi.pbi.title}}"
+  },
+  {
+    "op": "add",
+    "path": "/fields/System.Description",
+    "value": "<div>{{#if pbi.pbi.description}}{{pbi.pbi.description}}{{else}}No description provided{{/if}}</div>{{#if pbi.pbi.acceptance_criteria}}{{#if (gt (length pbi.pbi.acceptance_criteria) 0)}}<h3>Acceptance Criteria</h3><ol>{{#each pbi.pbi.acceptance_criteria}}<li>{{this}}</li>{{/each}}</ol>{{/if}}{{/if}}"
+  },
+  {
+    "op": "add",
+    "path": "/fields/System.State",
+    "value": "{{devopsState pbi.readiness}}"
+  },
+  {
+    "op": "add",
+    "path": "/fields/Microsoft.VSTS.Common.Priority",
+    "value": {{devopsPriorityNumber pbi.readiness}}
+  }{{#if pbi.pbi.estimated_effort}},
+  {
+    "op": "add",
+    "path": "/fields/Microsoft.VSTS.Scheduling.Effort",
+    "value": "{{pbi.pbi.estimated_effort}}"
+  }{{/if}}{{#if pbi.readiness.blocking_issues}}{{#if (gt (length pbi.readiness.blocking_issues) 0)}},
+  {
+    "op": "add",
+    "path": "/fields/Microsoft.VSTS.Common.BlockedBy",
+    "value": "{{join pbi.readiness.blocking_issues '; '}}"
+  }{{/if}}{{/if}},
+  {
+    "op": "add",
+    "path": "/fields/System.Tags",
+    "value": "backlog-chef; {{pbi.pbi.id}}; readiness-{{pbi.readiness.readiness_score}}"
+  }
+]

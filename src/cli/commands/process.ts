@@ -18,10 +18,11 @@ import { createProviderRegistry, loadRouterConfig } from '../../ai/config';
 import { ModelRouter } from '../../ai/router';
 import { PipelineOrchestrator } from '../../pipeline';
 import { InputParser } from '../../pipeline/input';
+import { FormatSpec } from '../../formatters/format-service';
 
 export interface ProcessCommandOptions {
   output?: string;       // Output directory
-  formats?: string;      // Output formats (comma-separated: devops,obsidian,confluence)
+  formats?: string;      // Output formats (comma-separated: devops,obsidian,confluence,json or devops:api,devops:manual)
   verbose?: boolean;     // Verbose output
   config?: string;       // Custom config file path
   fireflies?: string;    // Fireflies meeting ID or URL
@@ -191,20 +192,24 @@ export class ProcessCommand {
   }
 
   /**
-   * Parse format string into array
+   * Parse format string into array of FormatSpecs
+   * Supports format:variant syntax (e.g., "devops:api", "devops:manual")
    */
-  private parseFormats(formatString?: string): Array<'devops' | 'obsidian' | 'confluence'> | undefined {
+  private parseFormats(formatString?: string): FormatSpec[] | undefined {
     if (!formatString) {
       return undefined;
     }
 
     const cleaned = formatString.toLowerCase().trim();
     const parts = cleaned.split(',').map(s => s.trim());
-    const validFormats: Array<'devops' | 'obsidian' | 'confluence'> = [];
+    const validFormats: FormatSpec[] = [];
 
     for (const part of parts) {
-      if (part === 'devops' || part === 'obsidian' || part === 'confluence') {
-        validFormats.push(part);
+      // Split on colon to support format:variant syntax
+      const [format, variant] = part.split(':');
+
+      if (format === 'devops' || format === 'obsidian' || format === 'confluence' || format === 'json') {
+        validFormats.push({ format, variant });
       } else if (part !== '') {
         console.warn(`  Warning: Unknown format '${part}' ignored`);
       }
@@ -229,7 +234,7 @@ ARGUMENTS
 
 FLAGS
   --output <dir>       Output directory (default: auto-detected or 'output')
-  --formats <list>     Generate specific formats (devops,obsidian,confluence)
+  --formats <list>     Generate specific formats (devops,obsidian,confluence,json)
   --config <path>      Path to custom model config file
   --fireflies <id>     Fetch transcript from Fireflies.ai (meeting ID or URL)
   --verbose            Show detailed progress information

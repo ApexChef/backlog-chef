@@ -1,4 +1,4 @@
-# Backlog Summary - Obsidian Markdown
+# Backlog Summary - Azure DevOps (manual)
 
 Generated: 11/21/2025, 8:38:48 AM
 Event Type: refinement

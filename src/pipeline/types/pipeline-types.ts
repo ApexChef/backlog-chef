@@ -5,6 +5,8 @@
  */
 
 import { TaskGenerationResult } from './task-types';
+import { OutputFormat } from '../../formatters/types';
+import { FormatSpec } from '../../formatters/format-service';
 
 /**
  * Input for the pipeline - meeting transcript
@@ -363,7 +365,7 @@ export interface PipelineOptions {
 
   // Output configuration
   output?: {
-    formats?: Array<'devops' | 'obsidian' | 'confluence'>;
+    formats?: OutputFormat[] | FormatSpec[];
     directory?: string;
   };
 

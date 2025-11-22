@@ -96,6 +96,24 @@ export class HelperRegistry {
       return array[array.length - 1];
     });
 
+    // Math helpers
+    this.register('add', (a: number, b: number) => {
+      return (a || 0) + (b || 0);
+    });
+
+    this.register('subtract', (a: number, b: number) => {
+      return (a || 0) - (b || 0);
+    });
+
+    this.register('multiply', (a: number, b: number) => {
+      return (a || 0) * (b || 0);
+    });
+
+    this.register('divide', (a: number, b: number) => {
+      if (!b) return 0;
+      return a / b;
+    });
+
     // Conditional helpers
     this.register('eq', (a: any, b: any) => {
       return a === b;
@@ -178,6 +196,13 @@ export class HelperRegistry {
     });
 
     this.register('devopsPriority', (readiness: any) => {
+      const score = readiness.readiness_score;
+      if (score >= 85) return 1;
+      if (score >= 60) return 2;
+      return 3;
+    });
+
+    this.register('devopsPriorityNumber', (readiness: any) => {
       const score = readiness.readiness_score;
       if (score >= 85) return 1;
       if (score >= 60) return 2;
