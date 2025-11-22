@@ -1,0 +1,121 @@
+# RAG Context Enrichment Configuration
+# This file configures the Retrieval-Augmented Generation (RAG) system
+# for enriching Product Backlog Items with historical context
+
+rag:
+  # Enable or disable RAG system
+  # Set to false to use fallback enrichment from documentation
+  # NOTE: Requires ChromaDB server running on localhost:8000
+  enabled: true
+
+  # Vector store provider
+  # Options: chroma (local), pinecone (cloud - not yet implemented)
+  provider: chroma
+
+  # Embedding model configuration
+  embedding:
+    # HuggingFace model name
+    # Default: Xenova/all-MiniLM-L6-v2 (80MB, 384 dimensions, fast)
+    model: Xenova/all-MiniLM-L6-v2
+
+    # Embedding dimensions (must match model)
+    dimensions: 384
+
+    # Batch size for encoding multiple documents
+    batchSize: 32
+
+    # Device to run on (cpu only for now)
+    device: cpu
+
+  # Vector store storage configuration
+  storage:
+    # Local storage (ChromaDB)
+    local:
+      type: chroma
+      # Path to store vector database
+      path: ./vector-db
+      # Persist to disk
+      persist: true
+      # Collection name
+      collection: backlog_chef_context
+
+    # Cloud storage (future - not yet implemented)
+    # cloud:
+    #   type: pinecone
+    #   apiKey: ${PINECONE_API_KEY}
+    #   environment: us-west1-gcp
+    #   index: backlog-chef
+    #   namespace: default
+
+  # Document chunking configuration
+  chunking:
+    # Chunking strategy
+    # Options: semantic, fixed, recursive
+    strategy: semantic
+
+    # Minimum chunk size in characters
+    minSize: 100
+
+    # Maximum chunk size in characters
+    maxSize: 500
+
+    # Overlap between chunks in characters
+    # Helps preserve context across chunk boundaries
+    overlap: 50
+
+    # Separators to split on (in priority order)
+    # splitOn:
+    #   - '\n\n'   # Paragraphs (highest priority)
+    #   - '\n'     # Lines
+    #   - '. '     # Sentences
+    #   - ', '     # Clauses
+
+  # Retrieval configuration
+  retrieval:
+    # Number of results to return
+    topK: 5
+
+    # Minimum similarity score threshold (0-1)
+    minSimilarity: 0.7
+
+    # Reranking configuration (future enhancement)
+    # rerank:
+    #   enabled: false
+    #   model: cross-encoder/ms-marco-MiniLM-L-6-v2
+    #   topK: 3
+
+    # Query result caching (future enhancement)
+    # cache:
+    #   enabled: false
+    #   ttl: 900  # 15 minutes
+    #   maxEntries: 100
+
+  # Data sources to index
+  sources:
+    # Previous PBI outputs from pipeline
+    - name: pipeline_outputs
+      type: pbi_json
+      paths:
+        - ./output/run-*/final-output.json
+        - ./output/run-*/step-4-enrich-context.json
+      watch: false
+      autoIndex: false
+
+    # Project documentation
+    - name: project_docs
+      type: markdown
+      paths:
+        - ./docs/**/*.md
+      config:
+        exclude:
+          - '**/node_modules/**'
+          - '**/README.md'
+          - '**/CHANGELOG.md'
+          - '**/.git/**'
+
+  # Monitoring and logging
+  monitoring:
+    logging:
+      # Log level: debug, info, warn, error
+      # Controlled by VERBOSE and DEBUG environment variables
+      level: info
